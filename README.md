@@ -23,7 +23,7 @@ $ wget -O- https://bootstrap.pypa.io/get-pip.py | sudo python3
 $ sudo pip3 -U install pip
 ```
 
-`onedrived`, written in Python 3, uses [`Keyring](https://pypi.python.org/pypi/keyring) to store
+`onedrived`, written in Python 3, uses [Keyring](https://pypi.python.org/pypi/keyring) to store
 account credentials, and [inotifytools](https://github.com/rvoicilas/inotify-tools/wiki) to
 monitor file system changes. This requires that your Linux has the following non-Python packages
 installed (assuming Ubuntu; names may vary on other distros):
@@ -40,6 +40,18 @@ total compromise of your OneDrive data), but may require additional packages (fo
 or FreeDesktop Secret Service) depending on your Linux distro and desktop manager. Please refer
 to its [installation instructions](https://pypi.python.org/pypi/keyring#installation-instructions)
 for more details.
+
+## Installation
+
+TBA.
+
+## Usage
+
+Not usable yet.
+
+## Uninstallation
+
+TBA.
 
 ## License
 
