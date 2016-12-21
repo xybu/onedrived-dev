@@ -1,7 +1,7 @@
 """
 onedrive-d
 A Microsoft OneDrive client for Linux.
-:copyright: (c) Xiangyu Bu
+:copyright: (c) Xiangyu Bu <xybu92@live.com>
 :license: MIT
 """
 

@@ -41,6 +41,8 @@ or FreeDesktop Secret Service) depending on your Linux distro and desktop manage
 to its [installation instructions](https://pypi.python.org/pypi/keyring#installation-instructions)
 for more details.
 
+Python-based pre-requisites are listed in `requirements.txt` and can be easily installed by PIP.
+
 ## Installation
 
 TBA.
