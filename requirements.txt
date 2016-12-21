@@ -1,0 +1,4 @@
+onedrivesdk
+keyring>=10.1
+send2trash
+zgitignore
