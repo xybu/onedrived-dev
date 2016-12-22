@@ -4,6 +4,7 @@ import os
 import sys
 import urllib
 import click
+import keyring
 import tabulate
 
 from __init__ import __version__
@@ -34,9 +35,11 @@ def save_context(context):
 
 def print_all_accounts(context):
     all_accounts = [('#', 'Account ID', 'Owner Name')]
-    for i, account_id in enumerate(context.all_accounts()):
-        all_accounts.append((click.style(str(i), bold=True), account_id, context.get_account(account_id)))
+    all_account_ids = context.all_accounts()
+    for i, account_id in enumerate(all_account_ids):
+        all_accounts.append((i, account_id, context.get_account(account_id)))
     print(tabulate.tabulate(all_accounts, headers='firstrow'))
+    return all_account_ids
 
 
 context = load_context()
@@ -111,7 +114,33 @@ def list_accounts():
 @click.option('--account-id', '-u', type=str, required=False, default=None,
               help='Specify the account to delete by account ID shown in account list table.')
 def delete_account(yes=False, index=None, account_id=None):
-    click.echo('del!')
+    click.echo('All OneDrive accounts associated with user "%s":\n' % context.user_name)
+    all_account_ids = print_all_accounts(context)
+    click.echo()
+
+    if index is None and account_id is None:
+        # Print account table and ask which account to delete.
+        index = click.prompt('Please enter row number of the account to delete (CTRL+C to abort)', type=int)
+
+    if index is not None:
+        if isinstance(index, int) and index >= 0 and index < len(all_account_ids):
+            account_id = all_account_ids[index]
+        else:
+            click.echo(click.style('Index is not a valid row number.', fg='red'))
+            return
+
+    if account_id is not None:
+        if account_id not in all_account_ids:
+            click.echo(click.style('Account ID "%s" is not found.' % account_id, fg='red'))
+            return
+        prompt_text = 'Are you sure to delete account %s (%s)?' % (account_id, context.get_account(account_id))
+        if yes or click.confirm(prompt_text):
+            context.delete_account(account_id)
+            keyring.delete_password(OneDriveAPISession.KEYRING_SERVICE_NAME, get_keyring_key(account_id))
+            save_context(context)
+            click.echo(click.style('Successfully deleted account from onedrived.', fg='green'))
+        else:
+            click.echo('Operation canceled.')
 
 
 @click.group(name='config', short_help='Modify config (e.g., proxies, intervals) for current user.')

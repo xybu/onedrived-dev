@@ -13,7 +13,8 @@ def is_invalid_username(s):
 
 
 def get_login_username():
-    for key in ('SUDO_USER', 'LOGNAME', 'USER', 'LNAME', 'USERNAME'):
+    # TODO: Allow for sudoing or not? If so, prepend SUDO_USER.
+    for key in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
         s = os.getenv(key)
         if not is_invalid_username(s):
             return s
