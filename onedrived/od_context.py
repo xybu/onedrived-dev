@@ -24,7 +24,8 @@ class UserContext:
     """Stores config params for a single local user."""
 
     DEFAULT_CONFIG = {
-        'proxies': {} # Proxy is of format {'http': url1, 'https': url2}.
+        'proxies': {}, # Proxy is of format {'http': url1, 'https': url2}.
+        'accounts': {}
     }
 
     DEFAULT_CONFIG_FILENAME = 'onedrived_config_v2.json'
@@ -55,6 +56,19 @@ class UserContext:
             self.logger.info('Config dir "' + self.config_dir + '" is not a directory. Delete and re-create it.')
             os.remove(self.config_dir)
             mkdir(self.config_dir, self.user_uid, mode=0o700, exist_ok=True)
+
+    def add_account(self, account_id, account_name):
+        self.config['accounts'][account_id] = account_name
+
+    def get_account(self, account_id):
+        return self.config['accounts'][account_id]
+
+    def delete_account(self, account_id):
+        del self.config['accounts'][account_id]
+
+    def all_accounts(self):
+        """Return a list of all linked account IDs."""
+        return sorted(self.config['accounts'].keys())
 
     def load_config(self, filename):
         with open(self.config_dir + '/' + filename, 'r') as f:
