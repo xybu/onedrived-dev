@@ -59,3 +59,7 @@ class OneDriveAuthenticator:
     def save_session(self, key):
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.save_session(**args)
+
+    def load_session(self, key):
+        args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
+        self.client.auth_provider.load_session(**args)

@@ -7,6 +7,7 @@ import xdg
 
 from . import mkdir
 from .models import account_profile
+from .models import drive_config
 
 
 def is_invalid_username(s):
@@ -27,7 +28,8 @@ class UserContext:
 
     DEFAULT_CONFIG = {
         'proxies': {}, # Proxy is of format {'http': url1, 'https': url2}.
-        'accounts': {}
+        'accounts': {},
+        'drives': {}
     }
 
     DEFAULT_CONFIG_FILENAME = 'onedrived_config_v2.json'
@@ -84,6 +86,26 @@ class UserContext:
     def all_accounts(self):
         """Return a list of all linked account IDs."""
         return sorted(self.config['accounts'].keys())
+
+    def add_drive(self, drive_config):
+        """
+        Add a new drive to local config.
+        :param models.drive_config.LocalDriveConfig drive_config:
+        """
+        self.config['drives'][drive_config.drive_id] = drive_config.data
+
+    def get_drive(self, drive_id):
+        """
+        :param str drive_id:
+        :return models.drive_config.LocalDriveConfig:
+        """
+        return drive_config.LocalDriveConfig(drive_id, **self.config['drives'][drive_id])
+
+    def delete_drive(self, drive_id):
+        del self.config['drives'][drive_id]
+
+    def all_drives(self):
+        return sorted(self.config['drives'].keys())
 
     def load_config(self, filename):
         with open(self.config_dir + '/' + filename, 'r') as f:

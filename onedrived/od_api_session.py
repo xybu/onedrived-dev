@@ -38,6 +38,5 @@ class OneDriveAPISession(onedrivesdk.session.Session):
         if keyarg not in load_session_kwargs:
             raise ValueError('"%s" must be specified in load_session() argument.' % keyarg)
         saved_data = keyring.get_password(OneDriveAPISession.KEYRING_SERVICE_NAME, load_session_kwargs[keyarg])
-        print(saved_data)
         data = zlib.decompress(binascii.a2b_base64(saved_data))
         return pickle.loads(data)

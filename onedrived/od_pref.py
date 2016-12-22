@@ -11,6 +11,7 @@ from . import __version__
 from . import od_auth
 from . import od_context
 from .od_api_session import OneDriveAPISession
+from .models import pretty_api
 
 
 def get_keyring_key(account_id):
@@ -160,6 +161,49 @@ def delete_account(yes=False, index=None, email=None, account_id=None):
             click.echo('Operation canceled.')
 
 
+@click.group(name='drive',
+             short_help='List all remote OneDrive repositories (Drives) of linked accounts, add new Drives to sync, '
+                        'edit configurations of existing Drives, or remove a Drive from local list.')
+def change_drive():
+    pass
+
+
+def print_all_drives():
+    all_drives = {}
+    local_drive_ids = context.all_drives()
+    drive_table = [('#', 'Added?', 'Account Email', 'Drive ID', 'Type', 'Quota', 'Status')]
+    for i in context.all_accounts():
+        drive_objs = []
+        profile = context.get_account(i)
+        authenticator = od_auth.OneDriveAuthenticator(proxies=context.config['proxies'])
+        try:
+            authenticator.load_session(key=get_keyring_key(i))
+            drives = authenticator.client.drives.get()
+        except RuntimeError:
+            # Try to refresh the session.
+            authenticator.client.auth_provider.refresh_token()
+            authenticator.save_session(key=get_keyring_key(i))
+            drives = authenticator.client.drives.get()
+        for d in drives:
+            added_symbol = 'Y' if d.id in local_drive_ids else ' '
+            drive_objs.append(d)
+            drive_table.append((len(drive_table) - 1, added_symbol, profile.account_email,
+                                d.id, d.drive_type, pretty_api.pretty_quota(d.quota), d.status.state))
+        all_drives[i] = (profile, authenticator, drive_objs)
+    print(tabulate.tabulate(drive_table, headers='firstrow'))
+    return all_drives, drive_table.pop(0)
+
+
+@click.command(name='list', short_help='List all available Drives.')
+def list_drives():
+    click.echo('Reading drives information from OneDrive server... This might take a while.\n')
+    try:
+        print_all_drives()
+    except Exception as e:
+        click.echo(click.style('Error: %s.' % e, fg='red'))
+        return None
+
+
 @click.group(name='config', short_help='Modify config (e.g., proxies, intervals) for current user.')
 def change_config():
     pass
@@ -204,6 +248,8 @@ if __name__ == '__main__':
     change_account.add_command(delete_account)
     change_config.add_command(set_proxy)
     change_config.add_command(del_proxy)
+    change_drive.add_command(list_drives)
     main.add_command(change_account)
     main.add_command(change_config)
+    main.add_command(change_drive)
     main()
