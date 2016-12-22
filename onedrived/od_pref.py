@@ -2,11 +2,18 @@
 
 import os
 import sys
+import urllib
 import click
+import tabulate
 
 from __init__ import __version__
 import od_auth
 import od_context
+from od_api_session import OneDriveAPISession
+
+
+def get_keyring_key(account_id):
+    return OneDriveAPISession.KEYRING_ACCOUNT_KEY_PREFIX + account_id
 
 
 def load_context():
@@ -25,6 +32,13 @@ def save_context(context):
         context.logger.error('Failed to save config file: %s. Changes were discarded.' % str(e))
 
 
+def print_all_accounts(context):
+    all_accounts = [('#', 'Account ID', 'Owner Name')]
+    for i, account_id in enumerate(context.all_accounts()):
+        all_accounts.append((click.style(str(i), bold=True), account_id, context.get_account(account_id)))
+    print(tabulate.tabulate(all_accounts, headers='firstrow'))
+
+
 context = load_context()
 
 
@@ -34,7 +48,13 @@ def main():
     pass
 
 
-@click.command(name='auth', short_help='Add a new OneDrive account to onedrived.')
+@click.group(name='account',
+             short_help='Add new OneDrive account to onedrived, list all existing ones, or remove some.')
+def change_account():
+    pass
+
+
+@click.command(name='add', short_help='Add a new OneDrive account to onedrived.')
 @click.option('--get-auth-url', '-u', is_flag=True, default=False, required=False,
               help='If set, print the authentication URL and exit.')
 @click.option('--code', '-c', type=str, required=False, default=None,
@@ -51,19 +71,46 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
         click.echo('\n' + click.style(authenticator.get_auth_url(), underline=True) + '\n')
         if get_auth_url:
             return
-        code_bold_str = '"' + click.style("code=", bold=True) + '"'
-        click.echo('When the address bar shows a URL containing ' + code_bold_str + ', paste the part after ' + code_bold_str + ' here.')
-        code = click.prompt('Paste code here', type=str)
-    click.echo(code)
+        click.echo('The authentication web page will finish with a blank page whose URL starts with ' +
+                   '"' + click.style(authenticator.APP_REDIRECT_URL, bold=True) + '". Paste this URL here.')
+        url = click.prompt('Paste URL here', type=str)
+        if url is not None and '?' in url:
+            qs_dict = urllib.parse.parse_qs(url.split('?')[1])
+            if 'code' in qs_dict:
+                code = qs_dict['code']
+        if code is None:
+            click.echo(click.style('Error: did not find authorization code in URL.', fg='red'))
+            return
+    try:
+        authenticator.authenticate(code)
+        click.echo(click.style('Successfully authenticated onedrived.', fg='green'))
+    except Exception as e:
+        click.echo(click.style('Failed to authorize onedrived: %s. ' % str(e), fg='red'))
+    try:
+        account_profile = authenticator.get_profile()
+        authenticator.save_session(key=get_keyring_key(account_profile.user_id))
+        context.add_account(account_profile.user_id, account_profile.user_name)
+        save_context(context)
+        click.echo(click.style(
+            'Successfully added account for %s (%s)!' % (account_profile.user_name, account_profile.user_id),
+            fg='green'))
+    except Exception as e:
+        click.echo(click.style('Failed to save account info: %s. ' % str(e), fg='red'))
 
-
-@click.command(name='edit', short_help='Edit preferences for an existing account in onedrived.')
-def edit_account():
-    click.echo('edit!')
+@click.command(name='list', short_help='List all linked accounts.')
+def list_accounts():
+    click.echo('All OneDrive accounts associated with user "%s":\n' % context.user_name)
+    print_all_accounts(context)
 
 
 @click.command(name='del', short_help='De-authorize and delete an existing account from onedrived.')
-def delete_account():
+@click.option('--yes', '-y', is_flag=True, default=False, required=False,
+              help='If set, do not ask for confirmation but simply delete if account exists.')
+@click.option('--index', '-i', type=int, required=False, default=None,
+              help='Specify the account to delete by row index in account list table.')
+@click.option('--account-id', '-u', type=str, required=False, default=None,
+              help='Specify the account to delete by account ID shown in account list table.')
+def delete_account(yes=False, index=None, account_id=None):
     click.echo('del!')
 
 
@@ -106,10 +153,11 @@ def del_proxy(protocol):
 
 
 if __name__ == '__main__':
-    main.add_command(authenticate_account)
-    main.add_command(edit_account)
-    main.add_command(delete_account)
-    main.add_command(change_config)
+    change_account.add_command(authenticate_account)
+    change_account.add_command(list_accounts)
+    change_account.add_command(delete_account)
     change_config.add_command(set_proxy)
     change_config.add_command(del_proxy)
+    main.add_command(change_account)
+    main.add_command(change_config)
     main()
