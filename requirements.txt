@@ -1,4 +1,7 @@
+colorama>=0.3.7
+click>=6.6
 onedrivesdk
 keyring>=10.1
 send2trash
 zgitignore
+xdg>=1.0.3
