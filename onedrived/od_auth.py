@@ -9,8 +9,8 @@ import requests
 import onedrivesdk
 import onedrivesdk.helpers.http_provider_with_proxy
 
-import od_api_session
-import od_account
+from . import od_api_session
+from .models import account_profile
 
 
 class OneDriveAuthenticator:
@@ -19,7 +19,7 @@ class OneDriveAuthenticator:
     APP_CLIENT_SECRET = 'PimIrUibJfsKsMcd0SqwPBwMTV7NDgYi'
     APP_BASE_URL = 'https://api.onedrive.com/v1.0/'
     APP_REDIRECT_URL = 'https://login.live.com/oauth20_desktop.srf'
-    APP_SCOPES = ['wl.signin', 'wl.offline_access', 'onedrive.readwrite']
+    APP_SCOPES = ['wl.signin', 'wl.emails', 'wl.offline_access', 'onedrive.readwrite']
 
     def __init__(self, proxies=None):
         """
@@ -46,7 +46,7 @@ class OneDriveAuthenticator:
         Fetch basic profile of the specified user (Live ID).
         :param str user_id: (Optional) ID of the target user.
         :param dict[str, str] proxies: (Optional) Proxies to issue the HTTP request.
-        :return OneDriveUserProfile: An OneDriveUserProfile object that contains the basic user info.
+        :return models.account_profile.OneDriveUserProfile: An OneDriveUserProfile object that models the user info.
         """
         url = 'https://apis.live.net/v5.0/' + user_id
         headers = {'Authorization': 'Bearer ' + self.client.auth_provider.access_token}
@@ -54,7 +54,7 @@ class OneDriveAuthenticator:
         if response.status_code != requests.codes.ok:
             raise ValueError('Failed to read user profile.')
         data = response.json()
-        return od_account.OneDriveAccountProfile(user_id=data['id'], user_name=data['name'])
+        return account_profile.OneDriveAccountProfile(data)
 
     def save_session(self, key):
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}

@@ -1,0 +1,16 @@
+{
+  "first_name": "Xiangyu",
+  "last_name": "Bu",
+  "id": "713d61",
+  "gender": null,
+  "link": "https://profile.live.com/",
+  "emails": {
+    "account": "foo@bar.com",
+    "preferred": "bar@baz.com",
+    "business": "xb@personal",
+    "personal": "xb@business"
+  },
+  "updated_time": "2016-12-19T20:13:12+0000",
+  "name": "Xiangyu Bu",
+  "locale": "zh_CN"
+}

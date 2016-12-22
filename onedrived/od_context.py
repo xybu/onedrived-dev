@@ -5,7 +5,8 @@ from pwd import getpwnam
 
 import xdg
 
-from __init__ import mkdir
+from . import mkdir
+from .models import account_profile
 
 
 def is_invalid_username(s):
@@ -58,13 +59,26 @@ class UserContext:
             os.remove(self.config_dir)
             mkdir(self.config_dir, self.user_uid, mode=0o700, exist_ok=True)
 
-    def add_account(self, account_id, account_name):
-        self.config['accounts'][account_id] = account_name
+    def add_account(self, account_profile):
+        """
+        Add a new account to config file.
+        :param models.account_profile.OneDriveAccountProfile account_profile:
+        """
+        self.config['accounts'][account_profile.account_id] = account_profile.data
 
     def get_account(self, account_id):
-        return self.config['accounts'][account_id]
+        """
+        Return profile of a saved account.
+        :param str account_id: ID of the account to query.
+        :return models.account_profile.OneDriveAccountProfile: An OneDriveAccountProfile object of the account profile.
+        """
+        return account_profile.OneDriveAccountProfile(self.config['accounts'][account_id])
 
     def delete_account(self, account_id):
+        """
+        Delete a saved account from config.
+        :param str account_id: ID of the account to delete.
+        """
         del self.config['accounts'][account_id]
 
     def all_accounts(self):

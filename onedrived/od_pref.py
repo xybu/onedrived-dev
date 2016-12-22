@@ -7,10 +7,10 @@ import click
 import keyring
 import tabulate
 
-from __init__ import __version__
-import od_auth
-import od_context
-from od_api_session import OneDriveAPISession
+from . import __version__
+from . import od_auth
+from . import od_context
+from .od_api_session import OneDriveAPISession
 
 
 def get_keyring_key(account_id):
@@ -34,10 +34,11 @@ def save_context(context):
 
 
 def print_all_accounts(context):
-    all_accounts = [('#', 'Account ID', 'Owner Name')]
+    all_accounts = [('#', 'Account ID', 'Owner Name', 'Email Address')]
     all_account_ids = context.all_accounts()
     for i, account_id in enumerate(all_account_ids):
-        all_accounts.append((i, account_id, context.get_account(account_id)))
+        account = context.get_account(account_id)
+        all_accounts.append((i, account_id, account.account_name, account.account_email))
     print(tabulate.tabulate(all_accounts, headers='firstrow'))
     return all_account_ids
 
@@ -69,8 +70,10 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
         click.echo(click.style('OneDrive for Business is not yet supported.', fg='red'))
         return
     authenticator = od_auth.OneDriveAuthenticator(proxies=context.config['proxies'])
+    click.echo('NOTE: To better manage your OneDrive accounts, onedrived needs permission to access your account info '
+               '(e.g., email address to distinguish different accounts) and read/write your OneDrive files.\n')
     if code is None:
-        click.echo('Paste this URL into your browser to sign in and approve onedrived to access your files:')
+        click.echo('Paste this URL into your browser to sign in and authorize onedrived:')
         click.echo('\n' + click.style(authenticator.get_auth_url(), underline=True) + '\n')
         if get_auth_url:
             return
@@ -86,17 +89,17 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
             return
     try:
         authenticator.authenticate(code)
-        click.echo(click.style('Successfully authenticated onedrived.', fg='green'))
+        click.echo(click.style('Successfully authorized onedrived.', fg='green'))
     except Exception as e:
         click.echo(click.style('Failed to authorize onedrived: %s. ' % str(e), fg='red'))
     try:
-        account_profile = authenticator.get_profile()
-        authenticator.save_session(key=get_keyring_key(account_profile.user_id))
-        context.add_account(account_profile.user_id, account_profile.user_name)
+        account_profile = authenticator.get_profile(proxies=context.config['proxies'])
+        authenticator.save_session(key=get_keyring_key(account_profile.account_id))
+        context.add_account(account_profile)
         save_context(context)
-        click.echo(click.style(
-            'Successfully added account for %s (%s)!' % (account_profile.user_name, account_profile.user_id),
-            fg='green'))
+        click.echo(click.style('Successfully added account for %s!' % account_profile, fg='green'))
+        click.echo('\nAll OneDrive accounts associated with user "%s":\n' % context.user_name)
+        print_all_accounts(context)
     except Exception as e:
         click.echo(click.style('Failed to save account info: %s. ' % str(e), fg='red'))
 
@@ -111,14 +114,16 @@ def list_accounts():
               help='If set, do not ask for confirmation but simply delete if account exists.')
 @click.option('--index', '-i', type=int, required=False, default=None,
               help='Specify the account to delete by row index in account list table.')
+@click.option('--email', '-e', type=str, required=False, default=None,
+              help='Specify the account to delete by email address.')
 @click.option('--account-id', '-u', type=str, required=False, default=None,
               help='Specify the account to delete by account ID shown in account list table.')
-def delete_account(yes=False, index=None, account_id=None):
+def delete_account(yes=False, index=None, email=None, account_id=None):
     click.echo('All OneDrive accounts associated with user "%s":\n' % context.user_name)
     all_account_ids = print_all_accounts(context)
     click.echo()
 
-    if index is None and account_id is None:
+    if index is None and email is None and account_id is None:
         # Print account table and ask which account to delete.
         index = click.prompt('Please enter row number of the account to delete (CTRL+C to abort)', type=int)
 
@@ -129,11 +134,23 @@ def delete_account(yes=False, index=None, account_id=None):
             click.echo(click.style('Index is not a valid row number.', fg='red'))
             return
 
+    if email is not None:
+        for s in all_account_ids:
+            account = context.get_account(s)
+            if account.account_email == email:
+                account_id = s
+                email = None
+                break
+        if email is not None:
+            click.echo(click.style('Did not find existing account with email address "%s".' % email, fg='red'))
+            return
+
     if account_id is not None:
         if account_id not in all_account_ids:
             click.echo(click.style('Account ID "%s" is not found.' % account_id, fg='red'))
             return
-        prompt_text = 'Are you sure to delete account %s (%s)?' % (account_id, context.get_account(account_id))
+        account = context.get_account(account_id)
+        prompt_text = 'Are you sure to delete account %s?' % account
         if yes or click.confirm(prompt_text):
             context.delete_account(account_id)
             keyring.delete_password(OneDriveAPISession.KEYRING_SERVICE_NAME, get_keyring_key(account_id))

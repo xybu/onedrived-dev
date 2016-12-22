@@ -5,12 +5,3 @@ Core component for user account management.
 :license: MIT
 """
 
-
-class OneDriveAccountProfile:
-
-    def __init__(self, user_id, user_name):
-        self.user_id = user_id
-        self.user_name = user_name
-
-    def __repr__(self):
-        return '%s (%s)' % (self.user_name, self.user_id)
