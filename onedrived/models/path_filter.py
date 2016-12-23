@@ -7,12 +7,16 @@ class PathFilter(zgitignore.ZgitIgnore):
     specific path should be ignored.
     """
 
+    TMP_PREFIX = '.'
+    TMP_SUFFIX = '.odtemp!'
+
     def __init__(self, rules):
         """
         Initialize the filter with a list of (case-INsensitive) gitignore rules.
         :param [str] rules: List of gitignore rules.
         """
         super().__init__(rules, ignore_case=True)
+        self.add_patterns((self.TMP_PREFIX + '*' + self.TMP_SUFFIX, '*[<>?*:"|]*', '.*'))
 
     def add_rules(self, rules):
         """
@@ -31,3 +35,7 @@ class PathFilter(zgitignore.ZgitIgnore):
         if path[-1] == '/':
             is_dir = True
         return self.is_ignored(path, is_directory=is_dir)
+
+    @classmethod
+    def get_temp_name(cls, name):
+        return cls.TMP_PREFIX + name + cls.TMP_SUFFIX

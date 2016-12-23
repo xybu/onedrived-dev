@@ -1,6 +1,7 @@
-### NTFS namespace violation ###
-*[<>?*:"|]*
-.*
+# Hard-coded rules:
+# .*.odtemp! -- onedrived temp files.
+# *[<>?*:"|]* -- NTFS namespace violation.
+# .* -- NTFS namespace violation.
 
 # Created by https://www.gitignore.io/api/linux,windows,macos
 
@@ -8,16 +9,16 @@
 *~
 
 # temporary files which can be created if a process still has a handle open of a deleted file
-.fuse_hidden*
+# .fuse_hidden*
 
 # KDE directory preferences
-.directory
+# .directory
 
 # Linux trash folder which might appear on any partition or disk
-.Trash-*
+# .Trash-*
 
 # .nfs files are created when an open file is removed but is still being accessed
-.nfs*
+# .nfs*
 
 
 ### Windows ###
@@ -44,26 +45,26 @@ $RECYCLE.BIN/
 
 ### macOS ###
 *.DS_Store
-.AppleDouble
-.LSOverride
+# .AppleDouble
+# .LSOverride
 
 # Icon must end with two \r
 Icon
 # Thumbnails
-._*
+# ._*
 # Files that might appear in the root of a volume
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
+# .DocumentRevisions-V100
+# .fseventsd
+# .Spotlight-V100
+# .TemporaryItems
+# .Trashes
+# .VolumeIcon.icns
+# .com.apple.timemachine.donotpresent
 # Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
+# .AppleDB
+# .AppleDesktop
 Network Trash Folder
 Temporary Items
-.apdisk
+# .apdisk
 
 # End of https://www.gitignore.io/api/linux,windows,macos

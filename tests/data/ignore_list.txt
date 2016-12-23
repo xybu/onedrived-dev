@@ -1,0 +1,28 @@
+# A sample ignore list.
+
+# Paths relative to root
+# 'foo' can be either a file or a dir under repository root
+/foo
+# 'bar' must be a dir under root repository
+/bar/
+
+# General rules
+# All files or dirs ending with ".swp" should be ignored.
+*.swp
+.ignore
+# All directories called "BUILD" (case-insensitive) should be ignored.
+BUILD/
+
+# Path-specific rules are all relative to repository root
+path/to/ignore/file.txt
+
+# Negation rules to specify what MUST be included
+path-ignored/**
+!path-ignored/content
+
+# The following should not be treated as a comment
+# As a note, zgitignore does not support pattern '\#*#'.
+# The following is a workaround.
+[#]*[#]
+
+/Documents/**/resume.txt
