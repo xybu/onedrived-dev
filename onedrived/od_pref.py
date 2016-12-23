@@ -179,7 +179,6 @@ def change_drive():
 def print_all_drives():
     click.echo('Reading drives information from OneDrive server...\n')
     all_drives = {}
-    local_drive_ids = context.all_drives()
     drive_table = [('#', 'Account Email', 'Drive ID', 'Type', 'Quota', 'Status')]
     for i in context.all_accounts():
         drive_objs = []
@@ -204,15 +203,29 @@ def print_all_drives():
 
 
 def print_saved_drives():
-    click.echo(click.style('Drives that have been set up:\n', bold=True))
-    for drive_id in context.all_drives():
-        curr_drive_config = context.get_drive(drive_id)
-        curr_account = context.get_account(curr_drive_config.account_id)
-        click.echo(' ' + click.style('Drive "%s":' % curr_drive_config.drive_id, underline=True))
-        click.echo('   Account:     %s (%s)' % (curr_account.account_email, curr_drive_config.account_id))
-        click.echo('   Local root:  %s' % curr_drive_config.localroot_path)
-        click.echo('   Ignore file: %s' % curr_drive_config.ignorefile_path)
+    click.echo(click.style('Drives that have been set up:', bold=True))
+    all_drive_ids = context.all_drives()
+    if len(all_drive_ids) > 0:
         click.echo()
+        for i, drive_id in enumerate(all_drive_ids):
+            curr_drive_config = context.get_drive(drive_id)
+            curr_account = context.get_account(curr_drive_config.account_id)
+            click.echo(' ' + click.style('#%d - Drive "%s":' % (i, curr_drive_config.drive_id), underline=True))
+            click.echo('   Account:     %s (%s)' % (curr_account.account_email, curr_drive_config.account_id))
+            click.echo('   Local root:  %s' % curr_drive_config.localroot_path)
+            click.echo('   Ignore file: %s' % curr_drive_config.ignorefile_path)
+            click.echo()
+    else:
+        click.echo(' No Drive has been setup with onedrived.\n')
+    return all_drive_ids
+
+
+def index_to_drive_table_row(index, drive_table):
+    if isinstance(index, int) and index >= 0 and index < len(drive_table):
+        email = drive_table[index + 1][2]  # Plus one to offset the header row.
+        drive_id = drive_table[index + 1][3]
+        return email, drive_id
+    raise ValueError('Index is not a valid row number.')
 
 
 @click.command(name='list', short_help='List all available Drives.')
@@ -247,11 +260,10 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
     if interactive:
         # Interactive mode to ask for which drive to add.
         index = click.prompt('Please enter row number of the Drive to add or modify (CTRL+C to abort)', type=int)
-        if isinstance(index, int) and index >= 0 and index < len(drive_table):
-            email = drive_table[index + 1][2] # Plus one to offset the header row.
-            drive_id = drive_table[index + 1][3]
-        else:
-            click.echo(click.style('Index is not a valid row number.', fg='red'))
+        try:
+            email, drive_id = index_to_drive_table_row(index, drive_table)
+        except ValueError as e:
+            click.echo(click.style('%s' % e, fg='red'))
             return
 
     try:
@@ -349,6 +361,38 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
     click.echo('  Ignore file path: ' + d.ignorefile_path)
 
 
+@click.command(name='del', short_help='Stop syncing a Drive with local directory.')
+@click.option('--drive-id', '-d', type=str, required=False, default=None,
+              help='ID of the Drive.')
+@click.option('--yes', '-y', is_flag=True, default=False, required=False,
+              help='If set, quietly delete the Drive if existing without confirmation.')
+def delete_drive(drive_id=None, yes=False):
+    all_drive_ids = print_saved_drives()
+
+    if drive_id is None:
+        if yes:
+            click.echo(click.style('Please specify the Drive ID to delete.', fg='red'))
+            return
+        index = click.prompt('Please enter the # number of the Drive to delete (CTRL+C to abort)', type=int)
+        if isinstance(index, int) and index >= 0 and index < len(all_drive_ids):
+            drive_id = all_drive_ids[index]
+        else:
+            click.echo(click.style('Error: "%s" is not a valid # number.' % str(index), fg='red'))
+            return
+
+    if drive_id not in all_drive_ids:
+        click.echo(click.style('Error: Drive "%s" is not setup locally.' % drive_id, fg='red'))
+        return
+
+    if yes or click.confirm('Continue to delete Drive "%s" (its local directory will NOT be deleted)?' % drive_id,
+                            abort=True):
+        context.delete_drive(drive_id)
+        save_context(context)
+        click.echo(click.style('Successfully deleted Drive "%s" from onedrived.' % drive_id, fg='green'))
+    else:
+        click.echo('Operation canceled.')
+
+
 @click.group(name='config', short_help='Modify config (e.g., proxies, intervals) for current user.')
 def change_config():
     pass
@@ -395,6 +439,7 @@ if __name__ == '__main__':
     change_config.add_command(del_proxy)
     change_drive.add_command(list_drives)
     change_drive.add_command(set_drive)
+    change_drive.add_command(delete_drive)
     main.add_command(change_account)
     main.add_command(change_config)
     main.add_command(change_drive)
