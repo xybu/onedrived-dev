@@ -13,6 +13,19 @@ from . import od_api_session
 from .models import account_profile
 
 
+def get_authenticator_and_drives(context, account_id):
+    authenticator = OneDriveAuthenticator(proxies=context.config['proxies'])
+    try:
+        authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
+        drives = authenticator.client.drives.get()
+    except RuntimeError:
+        # Try to refresh the session.
+        authenticator.client.auth_provider.refresh_token()
+        authenticator.save_session(key=od_api_session.get_keyring_key(account_id))
+        drives = authenticator.client.drives.get()
+    return authenticator, drives
+
+
 class OneDriveAuthenticator:
 
     APP_CLIENT_ID = '000000004010C916'

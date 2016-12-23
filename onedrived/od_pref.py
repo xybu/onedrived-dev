@@ -176,15 +176,7 @@ def print_all_drives():
     for i in context.all_accounts():
         drive_objs = []
         profile = context.get_account(i)
-        authenticator = od_auth.OneDriveAuthenticator(proxies=context.config['proxies'])
-        try:
-            authenticator.load_session(key=get_keyring_key(i))
-            drives = authenticator.client.drives.get()
-        except RuntimeError:
-            # Try to refresh the session.
-            authenticator.client.auth_provider.refresh_token()
-            authenticator.save_session(key=get_keyring_key(i))
-            drives = authenticator.client.drives.get()
+        authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
         for d in drives:
             drive_objs.append(d)
             drive_table.append((str(len(drive_table) - 1), profile.account_email,
