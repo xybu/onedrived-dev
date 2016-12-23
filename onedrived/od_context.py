@@ -1,5 +1,7 @@
+import atexit
 import json
 import logging
+import logging.handlers
 import os
 from pwd import getpwnam
 
@@ -26,12 +28,15 @@ def get_login_username():
 class UserContext:
     """Stores config params for a single local user."""
 
+    KEY_LOGFILE_PATH = 'logfile_path'
+
     DEFAULT_CONFIG = {
         'proxies': {},  # Proxy is of format {'http': url1, 'https': url2}.
         'accounts': {},
         'drives': {},
         'scan_interval_sec': 1800,
         'num_workers': 2,
+        KEY_LOGFILE_PATH: '',
     }
 
     DEFAULT_CONFIG_FILENAME = 'onedrived_config_v2.json'
@@ -42,17 +47,24 @@ class UserContext:
         'num_workers': 'Total number of worker threads.'
     }
 
+    CONFIGURABLE_STR_KEYS = {
+        KEY_LOGFILE_PATH: 'Path to log file. Empty string means writing to stdout.'
+    }
+
     SUPPORTED_PROXY_PROTOCOLS = ('http', 'https')
 
     def __init__(self):
+        # Set up the logger object.
         logging.basicConfig(format='[%(asctime)-15s] %(levelname)s: %(threadName)s: %(message)s')
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-
+        self.logger.propagate = False
+        atexit.register(logging.shutdown)
+        # Information about host and user.
         self.host_name = os.uname()[1]
         self.user_name = get_login_username()
         self.user_uid = getpwnam(self.user_name).pw_uid
         self.user_home = os.path.expanduser('~' + self.user_name)
+        # Configuration of onedrived program.
         if os.path.isdir(xdg.XDG_CONFIG_HOME):
             self.config_dir = xdg.XDG_CONFIG_HOME + '/onedrived'
         else:
@@ -69,6 +81,12 @@ class UserContext:
             mkdir(self.config_dir, self.user_uid, mode=0o700, exist_ok=True)
             with open(self.config_dir + '/' + self.DEFAULT_IGNORE_FILENAME, 'w') as f:
                 f.write(get_resource('data/ignore_v2.txt'))
+
+    def set_logger(self, min_level=logging.WARNING, path=None, max_bytes=10<<100):
+        self.logger.setLevel(min_level)
+        if path:
+            handler = logging.handlers.RotatingFileHandler(path, 'a', maxBytes=max_bytes)
+            self.logger.addHandler(handler)
 
     def add_account(self, account_profile):
         """

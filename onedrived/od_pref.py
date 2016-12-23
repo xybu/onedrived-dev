@@ -411,15 +411,16 @@ def change_config():
 
 @click.command(name='print', short_help='Print all config parameters and their values.')
 def print_config():
-    click.echo(click.style('[int]', bold=True))
-    for k in sorted(context.CONFIGURABLE_INT_KEYS.keys()):
-        click.echo('\n# %s' % context.CONFIGURABLE_INT_KEYS[k])
-        click.echo('%s = %d' % (k, context.config[k]))
-    click.echo()
+    for (section, keys) in (('[int]', context.CONFIGURABLE_INT_KEYS), ('[string]', context.CONFIGURABLE_STR_KEYS)):
+        click.echo(click.style(section, bold=True))
+        for k in sorted(keys.keys()):
+            click.echo('\n# %s' % keys[k])
+            click.echo('%s = %s' % (k, str(context.config[k])))
+        click.echo('\n')
 
     click.echo(click.style('[proxies]', bold=True))
     for k in sorted(context.config['proxies'].keys()):
-        click.echo('%s = %s' % (k, context.config['proxies'][k]))
+        click.echo('\n%s = %s' % (k, context.config['proxies'][k]))
     click.echo()
 
 
@@ -434,6 +435,19 @@ def set_config(key, value):
 @click.argument('key', type=click.Choice(sorted(context.CONFIGURABLE_INT_KEYS.keys())))
 @click.argument('value', type=int)
 def set_int_config(key, value):
+    set_config(key, value)
+
+
+@click.command(name='set-str', short_help='Update string value for specific config key.')
+@click.argument('key', type=click.Choice(sorted(context.CONFIGURABLE_STR_KEYS.keys())))
+@click.argument('value', type=str)
+def set_str_config(key, value):
+    if key == context.KEY_LOGFILE_PATH:
+        try:
+            open(value, 'a').close()
+        except OSError as e:
+            click.echo(click.style('Error: Failed to access log file "%s": %s.' % (value, e), fg='red'))
+            value = ''
     set_config(key, value)
 
 
@@ -474,7 +488,7 @@ if __name__ == '__main__':
     command_map = {
         main: (change_account, change_config, change_drive),
         change_account: (authenticate_account, list_accounts, delete_account),
-        change_config: (set_proxy, del_proxy, set_int_config, print_config),
+        change_config: (set_proxy, del_proxy, set_int_config, set_str_config, print_config),
         change_drive: (list_drives, set_drive, delete_drive)
     }
     for cmd, subcmds in command_map.items():
