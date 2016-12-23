@@ -6,6 +6,7 @@ A Microsoft OneDrive client for Linux.
 """
 
 import os
+import pkgutil
 
 __project__ = 'onedrived'
 __author__ = 'Xiangyu Bu'
@@ -18,3 +19,18 @@ def mkdir(path, uid, mode=0o700, exist_ok=True):
     """Create a path and set up owner uid."""
     os.makedirs(path, mode, exist_ok=exist_ok)
     os.chown(path, uid, -1)
+
+
+def get_resource(rel_path, pkg_name='onedrived', is_text=True):
+    """
+    Read a resource file in data/.
+    :param str file_name:
+    :param str pkg_name:
+    :param True | False is_text: True to indicate the text is UTF-8 encoded.
+    :return str | bytes: Content of the file.
+    """
+    content = pkgutil.get_data(pkg_name, rel_path)
+    if is_text:
+        content = content.decode('utf-8')
+    return content
+

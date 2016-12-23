@@ -8,10 +8,12 @@ import keyring
 import tabulate
 
 from . import __version__
+from . import mkdir
 from . import od_auth
 from . import od_context
 from .od_api_session import OneDriveAPISession
 from .models import pretty_api
+from .models import drive_config
 
 
 def get_keyring_key(account_id):
@@ -23,7 +25,7 @@ def load_context():
     try:
         context.load_config(context.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
-        context.logger.error('Failed to load config file: %s.' % str(e))
+        context.logger.error('Failed to load config file: %s. Use default.' % e)
     return context
 
 
@@ -40,8 +42,18 @@ def print_all_accounts(context):
     for i, account_id in enumerate(all_account_ids):
         account = context.get_account(account_id)
         all_accounts.append((i, account_id, account.account_name, account.account_email))
-    print(tabulate.tabulate(all_accounts, headers='firstrow'))
+    click.echo(tabulate.tabulate(all_accounts, headers='firstrow'))
     return all_account_ids
+
+
+def email_to_account_id(context, email, all_account_ids=None):
+    if all_account_ids is None:
+        all_account_ids = context.all_accounts()
+    for s in all_account_ids:
+        account = context.get_account(s)
+        if account.account_email == email:
+            return s
+    raise ValueError('Did not find existing account with email address "%s".' % email)
 
 
 context = load_context()
@@ -136,14 +148,10 @@ def delete_account(yes=False, index=None, email=None, account_id=None):
             return
 
     if email is not None:
-        for s in all_account_ids:
-            account = context.get_account(s)
-            if account.account_email == email:
-                account_id = s
-                email = None
-                break
-        if email is not None:
-            click.echo(click.style('Did not find existing account with email address "%s".' % email, fg='red'))
+        try:
+            account_id = email_to_account_id(context, email, all_account_ids)
+        except Exception as e:
+            click.echo(click.style(e, fg='red'))
             return
 
     if account_id is not None:
@@ -169,9 +177,10 @@ def change_drive():
 
 
 def print_all_drives():
+    click.echo('Reading drives information from OneDrive server...\n')
     all_drives = {}
     local_drive_ids = context.all_drives()
-    drive_table = [('#', 'Added?', 'Account Email', 'Drive ID', 'Type', 'Quota', 'Status')]
+    drive_table = [('#', 'Account Email', 'Drive ID', 'Type', 'Quota', 'Status')]
     for i in context.all_accounts():
         drive_objs = []
         profile = context.get_account(i)
@@ -185,23 +194,159 @@ def print_all_drives():
             authenticator.save_session(key=get_keyring_key(i))
             drives = authenticator.client.drives.get()
         for d in drives:
-            added_symbol = 'Y' if d.id in local_drive_ids else ' '
             drive_objs.append(d)
-            drive_table.append((len(drive_table) - 1, added_symbol, profile.account_email,
+            drive_table.append((len(drive_table) - 1, profile.account_email,
                                 d.id, d.drive_type, pretty_api.pretty_quota(d.quota), d.status.state))
         all_drives[i] = (profile, authenticator, drive_objs)
-    print(tabulate.tabulate(drive_table, headers='firstrow'))
-    return all_drives, drive_table.pop(0)
+    click.echo(click.style('All available Drives of authorized accounts:\n', bold=True))
+    click.echo(tabulate.tabulate(drive_table, headers='firstrow'))
+    return all_drives, drive_table
+
+
+def print_saved_drives():
+    click.echo(click.style('Drives that have been set up:\n', bold=True))
+    for drive_id in context.all_drives():
+        curr_drive_config = context.get_drive(drive_id)
+        curr_account = context.get_account(curr_drive_config.account_id)
+        click.echo(' ' + click.style('Drive "%s":' % curr_drive_config.drive_id, underline=True))
+        click.echo('   Account:     %s (%s)' % (curr_account.account_email, curr_drive_config.account_id))
+        click.echo('   Local root:  %s' % curr_drive_config.localroot_path)
+        click.echo('   Ignore file: %s' % curr_drive_config.ignorefile_path)
+        click.echo()
 
 
 @click.command(name='list', short_help='List all available Drives.')
 def list_drives():
-    click.echo('Reading drives information from OneDrive server... This might take a while.\n')
     try:
         print_all_drives()
+        click.echo()
+        print_saved_drives()
     except Exception as e:
         click.echo(click.style('Error: %s.' % e, fg='red'))
-        return None
+        return
+
+@click.command(name='set', short_help='Add a remote Drive to sync with local directory or modify an existing one. '
+                                      'If either --drive-id or --email is missing, use interactive mode.')
+@click.option('--drive-id', '-d', type=str, required=False, default=None,
+              help='ID of the Drive.')
+@click.option('--email', '-e', type=str, required=False, default=None,
+              help='Email of an authorized account.')
+@click.option('--local-root', type=str, required=False, default=None,
+              help='Path to a local directory to sync with the Drive.')
+@click.option('--ignore-file', type=str, required=False, default=None,
+              help='Path to an ignore file specific to the Drive.')
+def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
+    try:
+        all_drives, drive_table = print_all_drives()
+        click.echo()
+    except Exception as e:
+        click.echo(click.style('Error: %s.' % e, fg='red'))
+        return
+
+    interactive = drive_id is None or email is None
+    if interactive:
+        # Interactive mode to ask for which drive to add.
+        index = click.prompt('Please enter row number of the Drive to add or modify (CTRL+C to abort)', type=int)
+        if isinstance(index, int) and index >= 0 and index < len(drive_table):
+            email = drive_table[index + 1][2] # Plus one to offset the header row.
+            drive_id = drive_table[index + 1][3]
+        else:
+            click.echo(click.style('Index is not a valid row number.', fg='red'))
+            return
+
+    try:
+        account_id = email_to_account_id(context, email)
+    except Exception as e:
+        click.echo(click.style(e, fg='red'))
+        return
+
+    # Traverse the Drive objects and see if Drive exists.
+    found_drive = False
+    for d in all_drives[account_id][2]:
+        if drive_id == d.id:
+            found_drive = True
+            break
+    if not found_drive:
+        click.echo(click.style('Did not find Drive "%s".' % drive_id, fg='red'))
+        return
+
+    # Confirm if Drive already exists.
+    drive_exists = drive_id in context.all_drives()
+    curr_drive_config = None
+    if drive_exists:
+        if interactive:
+            click.confirm('Drive "%s" is already set. Overwrite its existing configuration?' % drive_id, abort=True)
+        curr_drive_config = context.get_drive(drive_id)
+
+    click.echo()
+    account_profile = all_drives[account_id][0]
+    click.echo(click.style(
+        'Going to add/edit Drive "%s" of account "%s"...' %(drive_id, account_profile.account_email), fg='cyan'))
+
+    if interactive:
+        local_root = None
+        ignore_file = None
+        if drive_exists:
+            local_root_default = curr_drive_config.localroot_path
+            ignore_file_default = curr_drive_config.ignorefile_path
+        else:
+            local_root_default = context.user_home + '/OneDrive'
+            ignore_file_default = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
+        while local_root is None:
+            local_root = click.prompt('Enter the directory path to sync with this Drive',
+                                      type=str, default=local_root_default)
+            local_root = os.path.abspath(local_root)
+            if not os.path.exists(local_root):
+                if click.confirm('Directory "%s" does not exist. Create it?' % local_root):
+                    try:
+                        mkdir(local_root, context.user_uid)
+                    except OSError as e:
+                        click.echo(click.style('OSError: %s' % e, fg='red'))
+                        local_root = None
+            elif not os.path.isdir(local_root):
+                click.echo(click.style('Path "%s" should be a directory.' % local_root, fg='red'))
+                local_root = None
+            elif not click.confirm('Syncing with directory "%s"?' % local_root):
+                local_root = None
+        while ignore_file is None:
+            ignore_file = click.prompt('Enter the path to ignore file for this Drive',
+                                       type=str, default=ignore_file_default)
+            ignore_file = os.path.abspath(ignore_file)
+            if not os.path.isfile(ignore_file):
+                click.echo(click.style('Path "%s" is not a file.' % ignore_file, fg='red'))
+                ignore_file = None
+    else:
+        # Non-interactive mode. The drive may or may not exist in config, and the cmdline args may or may not be
+        # specified. If drive exists in config, use existing values for missing args. If drive does not exist,
+        # local root is required and ignore file is optional (use default if missing).
+        try:
+            if local_root is None:
+                if drive_exists:
+                    local_root = curr_drive_config.localroot_path
+                else:
+                    raise ValueError('Please specify the local directory for the Drive with "--local-root" argument.')
+            local_root = os.path.abspath(local_root)
+            if not os.path.isdir(local_root):
+                raise ValueError('Path "%s" should be an existing directory.' % local_root)
+            if ignore_file is None and drive_exists:
+                ignore_file = curr_drive_config.ignorefile_path
+            if ignore_file is None or not os.path.isfile(ignore_file):
+                click.echo(click.style('Warning: ignore file path does not point to a file. Use default.', fg='yellow'))
+                ignore_file = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
+            if drive_exists and local_root == curr_drive_config.localroot_path and \
+                    ignore_file == curr_drive_config.ignorefile_path:
+                click.echo(click.style('No parameter was changed. Skipped operation.', fg='yellow'))
+                return
+        except ValueError as e:
+            click.echo(click.style(str(e), fg='red'))
+            return
+
+    d = context.add_drive(drive_config.LocalDriveConfig(drive_id, account_id, ignore_file, local_root))
+    save_context(context)
+    click.echo(click.style('\nSuccessfully configured Drive %s of account %s (%s):' % (
+        d.drive_id, account_profile.account_email, d.account_id), fg='green'))
+    click.echo('  Local directory: ' + d.localroot_path)
+    click.echo('  Ignore file path: ' + d.ignorefile_path)
 
 
 @click.group(name='config', short_help='Modify config (e.g., proxies, intervals) for current user.')
@@ -249,6 +394,7 @@ if __name__ == '__main__':
     change_config.add_command(set_proxy)
     change_config.add_command(del_proxy)
     change_drive.add_command(list_drives)
+    change_drive.add_command(set_drive)
     main.add_command(change_account)
     main.add_command(change_config)
     main.add_command(change_drive)

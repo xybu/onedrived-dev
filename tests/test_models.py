@@ -8,7 +8,7 @@ from onedrived import models
 
 class TestAccountProfile(unittest.TestCase):
     def test_properties(self):
-        data = json.loads(get_resource('json_data/me_profile_response.json'))
+        data = json.loads(get_resource('json_data/me_profile_response.json', pkg_name='tests'))
         account = models.account_profile.OneDriveAccountProfile(data)
         self.assertEqual(data['id'], account.account_id)
         self.assertEqual(data['name'], account.account_name)
