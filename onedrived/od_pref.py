@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import urllib
 import click
 import keyring
@@ -41,7 +40,7 @@ def print_all_accounts(ctx):
     all_account_ids = ctx.all_accounts()
     for i, account_id in enumerate(all_account_ids):
         account = ctx.get_account(account_id)
-        all_accounts.append((i, account_id, account.account_name, account.account_email))
+        all_accounts.append((str(i), account_id, account.account_name, account.account_email))
     click.echo(tabulate.tabulate(all_accounts, headers='firstrow'))
     return all_account_ids
 
@@ -206,7 +205,7 @@ def print_all_drives():
             drives = authenticator.client.drives.get()
         for d in drives:
             drive_objs.append(d)
-            drive_table.append((len(drive_table) - 1, profile.account_email,
+            drive_table.append((str(len(drive_table) - 1), profile.account_email,
                                 d.id, d.drive_type, pretty_api.pretty_quota(d.quota), d.status.state))
         all_drives[i] = (profile, authenticator, drive_objs)
     click.echo(click.style('All available Drives of authorized accounts:\n', bold=True))
@@ -358,8 +357,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
             if ignore_file is None or not os.path.isfile(ignore_file):
                 click.echo(click.style('Warning: ignore file path does not point to a file. Use default.', fg='yellow'))
                 ignore_file = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
-            if drive_exists and local_root == curr_drive_config.localroot_path and \
-                            ignore_file == curr_drive_config.ignorefile_path:
+            if drive_exists and local_root == curr_drive_config.localroot_path and ignore_file == curr_drive_config.ignorefile_path:
                 click.echo(click.style('No parameter was changed. Skipped operation.', fg='yellow'))
                 return
         except ValueError as e:
@@ -411,6 +409,34 @@ def change_config():
     pass
 
 
+@click.command(name='print', short_help='Print all config parameters and their values.')
+def print_config():
+    click.echo(click.style('[int]', bold=True))
+    for k in sorted(context.CONFIGURABLE_INT_KEYS.keys()):
+        click.echo('\n# %s' % context.CONFIGURABLE_INT_KEYS[k])
+        click.echo('%s = %d' % (k, context.config[k]))
+    click.echo()
+
+    click.echo(click.style('[proxies]', bold=True))
+    for k in sorted(context.config['proxies'].keys()):
+        click.echo('%s = %s' % (k, context.config['proxies'][k]))
+    click.echo()
+
+
+def set_config(key, value):
+    if key not in context.DEFAULT_CONFIG:
+        raise ValueError('"%s" is not a valid config key.' % key)
+    context.config[key] = value
+    click.echo('config.%s = %s' % (key, str(value)))
+
+
+@click.command(name='set-int', short_help='Update integer value for specific config key.')
+@click.argument('key', type=click.Choice(sorted(context.CONFIGURABLE_INT_KEYS.keys())))
+@click.argument('value', type=int)
+def set_int_config(key, value):
+    set_config(key, value)
+
+
 @click.command(name='set-proxy',
                short_help='Use proxy to connect to OneDrive server. ' +
                           'If a proxy of the same protocol has been set, the old proxy will be replaced.' +
@@ -445,15 +471,13 @@ def del_proxy(protocol):
 
 
 if __name__ == '__main__':
-    change_account.add_command(authenticate_account)
-    change_account.add_command(list_accounts)
-    change_account.add_command(delete_account)
-    change_config.add_command(set_proxy)
-    change_config.add_command(del_proxy)
-    change_drive.add_command(list_drives)
-    change_drive.add_command(set_drive)
-    change_drive.add_command(delete_drive)
-    main.add_command(change_account)
-    main.add_command(change_config)
-    main.add_command(change_drive)
+    command_map = {
+        main: (change_account, change_config, change_drive),
+        change_account: (authenticate_account, list_accounts, delete_account),
+        change_config: (set_proxy, del_proxy, set_int_config, print_config),
+        change_drive: (list_drives, set_drive, delete_drive)
+    }
+    for cmd, subcmds in command_map.items():
+        for c in subcmds:
+            cmd.add_command(c)
     main()

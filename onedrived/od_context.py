@@ -29,11 +29,18 @@ class UserContext:
     DEFAULT_CONFIG = {
         'proxies': {},  # Proxy is of format {'http': url1, 'https': url2}.
         'accounts': {},
-        'drives': {}
+        'drives': {},
+        'scan_interval_sec': 1800,
+        'num_workers': 2,
     }
 
     DEFAULT_CONFIG_FILENAME = 'onedrived_config_v2.json'
     DEFAULT_IGNORE_FILENAME = 'ignore_v2.txt'
+
+    CONFIGURABLE_INT_KEYS = {
+        'scan_interval_sec': 'Interval, in sec, between two actions of scanning the entire repository.',
+        'num_workers': 'Total number of worker threads.'
+    }
 
     SUPPORTED_PROXY_PROTOCOLS = ('http', 'https')
 
