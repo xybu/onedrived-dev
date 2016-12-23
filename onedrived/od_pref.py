@@ -15,6 +15,10 @@ from .models import pretty_api
 from .models import drive_config
 
 
+def error(s):
+    click.echo(click.style(s, fg='red'))
+
+
 def get_keyring_key(account_id):
     return OneDriveAPISession.KEYRING_ACCOUNT_KEY_PREFIX + account_id
 
@@ -24,7 +28,7 @@ def load_context():
     try:
         ctx.load_config(ctx.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
-        ctx.logger.error('Failed to load config file: %s. Use default.' % e)
+        error('Failed to load config file: %s. Use default.' % e)
     return ctx
 
 
@@ -32,7 +36,7 @@ def save_context(ctx):
     try:
         ctx.save_config(ctx.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
-        ctx.logger.error('Failed to save config file: %s. Changes were discarded.' % str(e))
+        error('Failed to save config file: %s. Changes were discarded.' % e)
 
 
 def print_all_accounts(ctx):
@@ -88,7 +92,7 @@ def save_account(authenticator):
         click.echo('\nAll OneDrive accounts associated with user "%s":\n' % context.user_name)
         print_all_accounts(context)
     except Exception as e:
-        click.echo(click.style('Failed to save account info: %s. ' % str(e), fg='red'))
+        error('Failed to save account info: %s.' % e)
 
 
 @click.command(name='add', short_help='Add a new OneDrive account to onedrived.')
@@ -100,7 +104,7 @@ def save_account(authenticator):
               help='If set, add an OneDrive for Business account.')
 def authenticate_account(get_auth_url=False, code=None, for_business=False):
     if for_business:
-        click.echo(click.style('OneDrive for Business is not yet supported.', fg='red'))
+        error('OneDrive for Business is not yet supported.')
         return
     authenticator = od_auth.OneDriveAuthenticator(proxies=context.config['proxies'])
     click.echo('NOTE: To better manage your OneDrive accounts, onedrived needs permission to access your account info '
@@ -115,14 +119,14 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
         url = click.prompt('Paste URL here', type=str)
         code = extract_qs_param(url, 'code')
         if code is None:
-            click.echo(click.style('Error: did not find authorization code in URL.', fg='red'))
+            error('Error: did not find authorization code in URL.')
             return
 
     try:
         authenticator.authenticate(code)
         click.echo(click.style('Successfully authorized onedrived.', fg='green'))
     except Exception as e:
-        click.echo(click.style('Failed to authorize onedrived: %s. ' % str(e), fg='red'))
+        error('Failed to authorize onedrived: %s.' % e)
 
     save_account(authenticator)
 
@@ -155,19 +159,19 @@ def delete_account(yes=False, index=None, email=None, account_id=None):
         if isinstance(index, int) and 0 <= index < len(all_account_ids):
             account_id = all_account_ids[index]
         else:
-            click.echo(click.style('Index is not a valid row number.', fg='red'))
+            error('Index is not a valid row number.')
             return
 
     if email is not None:
         try:
             account_id = email_to_account_id(context, email, all_account_ids)
         except Exception as e:
-            click.echo(click.style(e, fg='red'))
+            error(str(e))
             return
 
     if account_id is not None:
         if account_id not in all_account_ids:
-            click.echo(click.style('Account ID "%s" is not found.' % account_id, fg='red'))
+            error('Account ID "%s" is not found.' % account_id)
             return
         account = context.get_account(account_id)
         prompt_text = 'Are you sure to delete account %s?' % account
@@ -265,7 +269,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
         all_drives, drive_table = print_all_drives()
         click.echo()
     except Exception as e:
-        click.echo(click.style('Error: %s.' % e, fg='red'))
+        error('Error: %s.' % e)
         return
 
     interactive = drive_id is None or email is None
@@ -275,13 +279,13 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
         try:
             email, drive_id = index_to_drive_table_row(index, drive_table)
         except ValueError as e:
-            click.echo(click.style('%s' % e, fg='red'))
+            error(str(e))
             return
 
     try:
         account_id = email_to_account_id(context, email)
     except Exception as e:
-        click.echo(click.style(e, fg='red'))
+        error(str(e))
         return
 
     # Traverse the Drive objects and see if Drive exists.
@@ -291,7 +295,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
             found_drive = True
             break
     if not found_drive:
-        click.echo(click.style('Did not find Drive "%s".' % drive_id, fg='red'))
+        error('Did not find Drive "%s".' % drive_id)
         return
 
     # Confirm if Drive already exists.
@@ -325,10 +329,10 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
                     try:
                         mkdir(local_root, context.user_uid)
                     except OSError as e:
-                        click.echo(click.style('OSError: %s' % e, fg='red'))
+                        error('OSError: %s' % e)
                         local_root = None
             elif not os.path.isdir(local_root):
-                click.echo(click.style('Path "%s" should be a directory.' % local_root, fg='red'))
+                error('Path "%s" should be a directory.' % local_root)
                 local_root = None
             elif not click.confirm('Syncing with directory "%s"?' % local_root):
                 local_root = None
@@ -337,7 +341,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
                                        type=str, default=ignore_file_default)
             ignore_file = os.path.abspath(ignore_file)
             if not os.path.isfile(ignore_file):
-                click.echo(click.style('Path "%s" is not a file.' % ignore_file, fg='red'))
+                error('Path "%s" is not a file.' % ignore_file)
                 ignore_file = None
     else:
         # Non-interactive mode. The drive may or may not exist in config, and the cmdline args may or may not be
@@ -361,7 +365,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
                 click.echo(click.style('No parameter was changed. Skipped operation.', fg='yellow'))
                 return
         except ValueError as e:
-            click.echo(click.style(str(e), fg='red'))
+            error(str(e))
             return
 
     d = context.add_drive(drive_config.LocalDriveConfig(drive_id, account_id, ignore_file, local_root))
@@ -388,11 +392,11 @@ def delete_drive(drive_id=None, yes=False):
         if isinstance(index, int) and 0 <= index < len(all_drive_ids):
             drive_id = all_drive_ids[index]
         else:
-            click.echo(click.style('Error: "%s" is not a valid # number.' % str(index), fg='red'))
+            error('Error: "%s" is not a valid # number.' % str(index))
             return
 
     if drive_id not in all_drive_ids:
-        click.echo(click.style('Error: Drive "%s" is not setup locally.' % drive_id, fg='red'))
+        error('Error: Drive "%s" is not setup locally.' % drive_id)
         return
 
     if yes or click.confirm('Continue to delete Drive "%s" (its local directory will NOT be deleted)?' % drive_id,
@@ -447,7 +451,7 @@ def set_str_config(key, value):
         try:
             open(value, 'a').close()
         except OSError as e:
-            click.echo(click.style('Error: Failed to access log file "%s": %s.' % (value, e), fg='red'))
+            error('Error: Failed to access log file "%s": %s.' % (value, e))
             value = ''
     set_config(key, value)
 
@@ -459,13 +463,13 @@ def set_str_config(key, value):
 @click.argument('url', type=str)
 def set_proxy(url):
     if '://' not in url:
-        click.echo(click.style('Invalid proxy URL. Use format like "https://localhost:8888".', fg='red'))
+        error('Invalid proxy URL. Use format like "https://localhost:8888".')
     else:
         protocol, host = url.split('://', maxsplit=1)
         protocol = protocol.lower()
         if protocol not in context.SUPPORTED_PROXY_PROTOCOLS:
-            click.echo(click.style('Unsupported proxy protocol: "%s". ' % protocol, fg='red'))
-            click.echo(click.style('Supported protocols are: %s.' % context.SUPPORTED_PROXY_PROTOCOLS, fg='red'))
+            error('Unsupported proxy protocol: "%s". ' % protocol)
+            error('Supported protocols are: %s.' % context.SUPPORTED_PROXY_PROTOCOLS)
         else:
             context.config['proxies'][protocol] = url
             click.echo(click.style('Successfully saved proxy "%s".' % url, fg='green'))
@@ -482,7 +486,7 @@ def del_proxy(protocol):
         click.echo(click.style('Successfully deleted proxy for protocol "%s"' % protocol, fg='green'))
         save_context(context)
     else:
-        click.echo(click.style('Proxy for protocol "%s" is not set.' % protocol, fg='red'))
+        error('Proxy for protocol "%s" is not set.' % protocol)
 
 
 if __name__ == '__main__':
