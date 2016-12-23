@@ -1,7 +1,6 @@
 # onedrived-dev
 
 [![License](https://img.shields.io/github/license/xybu/onedrived-dev.svg "MIT License")](LICENSE)
-
 [![Code Climate](https://codeclimate.com/github/xybu/onedrived-dev/badges/gpa.svg)](https://codeclimate.com/github/xybu/onedrived-dev)
 
 ## Introduction
