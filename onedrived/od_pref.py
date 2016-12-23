@@ -7,36 +7,14 @@ import keyring
 import tabulate
 
 from . import __version__
-from . import mkdir
-from . import od_auth
-from . import od_context
-from .od_api_session import OneDriveAPISession
-from .models import pretty_api
-from .models import drive_config
+from . import mkdir, od_auth
+from .od_api_session import OneDriveAPISession, get_keyring_key
+from .od_context import load_context, save_context
+from .models import pretty_api, drive_config
 
 
 def error(s):
     click.echo(click.style(s, fg='red'))
-
-
-def get_keyring_key(account_id):
-    return OneDriveAPISession.KEYRING_ACCOUNT_KEY_PREFIX + account_id
-
-
-def load_context():
-    ctx = od_context.UserContext()
-    try:
-        ctx.load_config(ctx.DEFAULT_CONFIG_FILENAME)
-    except OSError as e:
-        error('Failed to load config file: %s. Use default.' % e)
-    return ctx
-
-
-def save_context(ctx):
-    try:
-        ctx.save_config(ctx.DEFAULT_CONFIG_FILENAME)
-    except OSError as e:
-        error('Failed to save config file: %s. Changes were discarded.' % e)
 
 
 def print_all_accounts(ctx):

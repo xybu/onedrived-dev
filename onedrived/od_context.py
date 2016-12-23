@@ -25,6 +25,22 @@ def get_login_username():
     raise ValueError('Cannot find login name of current user.')
 
 
+def load_context():
+    ctx = UserContext()
+    try:
+        ctx.load_config(ctx.DEFAULT_CONFIG_FILENAME)
+    except OSError as e:
+        logging.error('Failed to load config file: %s. Use default.' % e)
+    return ctx
+
+
+def save_context(ctx):
+    try:
+        ctx.save_config(ctx.DEFAULT_CONFIG_FILENAME)
+    except OSError as e:
+        logging.error('Failed to save config file: %s. Changes were discarded.' % e)
+
+
 class UserContext:
     """Stores config params for a single local user."""
 
@@ -54,11 +70,6 @@ class UserContext:
     SUPPORTED_PROXY_PROTOCOLS = ('http', 'https')
 
     def __init__(self):
-        # Set up the logger object.
-        logging.basicConfig(format='[%(asctime)-15s] %(levelname)s: %(threadName)s: %(message)s')
-        self.logger = logging.getLogger(__name__)
-        self.logger.propagate = False
-        atexit.register(logging.shutdown)
         # Information about host and user.
         self.host_name = os.uname()[1]
         self.user_name = get_login_username()
@@ -74,19 +85,19 @@ class UserContext:
 
     def _create_config_dir_if_missing(self):
         if os.path.exists(self.config_dir) and not os.path.isdir(self.config_dir):
-            self.logger.info('Config dir "' + self.config_dir + '" is not a directory. Delete it.')
+            logging.info('Config dir "' + self.config_dir + '" is not a directory. Delete it.')
             os.remove(self.config_dir)
         if not os.path.exists(self.config_dir):
-            self.logger.info('Config dir "' + self.config_dir + '" does not exist. Create it.')
+            logging.info('Config dir "' + self.config_dir + '" does not exist. Create it.')
             mkdir(self.config_dir, self.user_uid, mode=0o700, exist_ok=True)
             with open(self.config_dir + '/' + self.DEFAULT_IGNORE_FILENAME, 'w') as f:
                 f.write(get_resource('data/ignore_v2.txt'))
 
-    def set_logger(self, min_level=logging.WARNING, path=None, max_bytes=10<<100):
-        self.logger.setLevel(min_level)
+    def set_logger(self, min_level=logging.WARNING, path=None):
+        logging_config = {'level': min_level, 'format': '[%(asctime)-15s] %(levelname)s: %(threadName)s: %(message)s'}
         if path:
-            handler = logging.handlers.RotatingFileHandler(path, 'a', maxBytes=max_bytes)
-            self.logger.addHandler(handler)
+            logging_config['filename'] = path
+        logging.basicConfig(**logging_config)
 
     def add_account(self, account_profile):
         """

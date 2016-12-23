@@ -5,6 +5,10 @@ import keyring
 import onedrivesdk.session
 
 
+def get_keyring_key(account_id):
+    return OneDriveAPISession.KEYRING_ACCOUNT_KEY_PREFIX + account_id
+
+
 class OneDriveAPISession(onedrivesdk.session.Session):
 
     SESSION_ARG_KEYNAME = 'key'
