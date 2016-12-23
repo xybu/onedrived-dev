@@ -21,39 +21,47 @@ def get_keyring_key(account_id):
 
 
 def load_context():
-    context = od_context.UserContext()
+    ctx = od_context.UserContext()
     try:
-        context.load_config(context.DEFAULT_CONFIG_FILENAME)
+        ctx.load_config(ctx.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
-        context.logger.error('Failed to load config file: %s. Use default.' % e)
-    return context
+        ctx.logger.error('Failed to load config file: %s. Use default.' % e)
+    return ctx
 
 
-def save_context(context):
+def save_context(ctx):
     try:
-        context.save_config(context.DEFAULT_CONFIG_FILENAME)
+        ctx.save_config(ctx.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
-        context.logger.error('Failed to save config file: %s. Changes were discarded.' % str(e))
+        ctx.logger.error('Failed to save config file: %s. Changes were discarded.' % str(e))
 
 
-def print_all_accounts(context):
+def print_all_accounts(ctx):
     all_accounts = [('#', 'Account ID', 'Owner Name', 'Email Address')]
-    all_account_ids = context.all_accounts()
+    all_account_ids = ctx.all_accounts()
     for i, account_id in enumerate(all_account_ids):
-        account = context.get_account(account_id)
+        account = ctx.get_account(account_id)
         all_accounts.append((i, account_id, account.account_name, account.account_email))
     click.echo(tabulate.tabulate(all_accounts, headers='firstrow'))
     return all_account_ids
 
 
-def email_to_account_id(context, email, all_account_ids=None):
+def email_to_account_id(ctx, email, all_account_ids=None):
     if all_account_ids is None:
-        all_account_ids = context.all_accounts()
+        all_account_ids = ctx.all_accounts()
     for s in all_account_ids:
-        account = context.get_account(s)
+        account = ctx.get_account(s)
         if account.account_email == email:
             return s
     raise ValueError('Did not find existing account with email address "%s".' % email)
+
+
+def extract_qs_param(url, key):
+    if url is not None and '?' in url:
+        qs_dict = urllib.parse.parse_qs(url.split('?')[1])
+        if key in qs_dict:
+            return qs_dict[key]
+    return None
 
 
 context = load_context()
@@ -69,6 +77,19 @@ def main():
              short_help='Add new OneDrive account to onedrived, list all existing ones, or remove some.')
 def change_account():
     pass
+
+
+def save_account(authenticator):
+    try:
+        account_profile = authenticator.get_profile(proxies=context.config['proxies'])
+        authenticator.save_session(key=get_keyring_key(account_profile.account_id))
+        context.add_account(account_profile)
+        save_context(context)
+        click.echo(click.style('Successfully added account for %s!' % account_profile, fg='green'))
+        click.echo('\nAll OneDrive accounts associated with user "%s":\n' % context.user_name)
+        print_all_accounts(context)
+    except Exception as e:
+        click.echo(click.style('Failed to save account info: %s. ' % str(e), fg='red'))
 
 
 @click.command(name='add', short_help='Add a new OneDrive account to onedrived.')
@@ -93,28 +114,19 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
         click.echo('The authentication web page will finish with a blank page whose URL starts with ' +
                    '"' + click.style(authenticator.APP_REDIRECT_URL, bold=True) + '". Paste this URL here.')
         url = click.prompt('Paste URL here', type=str)
-        if url is not None and '?' in url:
-            qs_dict = urllib.parse.parse_qs(url.split('?')[1])
-            if 'code' in qs_dict:
-                code = qs_dict['code']
+        code = extract_qs_param(url, 'code')
         if code is None:
             click.echo(click.style('Error: did not find authorization code in URL.', fg='red'))
             return
+
     try:
         authenticator.authenticate(code)
         click.echo(click.style('Successfully authorized onedrived.', fg='green'))
     except Exception as e:
         click.echo(click.style('Failed to authorize onedrived: %s. ' % str(e), fg='red'))
-    try:
-        account_profile = authenticator.get_profile(proxies=context.config['proxies'])
-        authenticator.save_session(key=get_keyring_key(account_profile.account_id))
-        context.add_account(account_profile)
-        save_context(context)
-        click.echo(click.style('Successfully added account for %s!' % account_profile, fg='green'))
-        click.echo('\nAll OneDrive accounts associated with user "%s":\n' % context.user_name)
-        print_all_accounts(context)
-    except Exception as e:
-        click.echo(click.style('Failed to save account info: %s. ' % str(e), fg='red'))
+
+    save_account(authenticator)
+
 
 @click.command(name='list', short_help='List all linked accounts.')
 def list_accounts():
@@ -141,7 +153,7 @@ def delete_account(yes=False, index=None, email=None, account_id=None):
         index = click.prompt('Please enter row number of the account to delete (CTRL+C to abort)', type=int)
 
     if index is not None:
-        if isinstance(index, int) and index >= 0 and index < len(all_account_ids):
+        if isinstance(index, int) and 0 <= index < len(all_account_ids):
             account_id = all_account_ids[index]
         else:
             click.echo(click.style('Index is not a valid row number.', fg='red'))
@@ -221,7 +233,7 @@ def print_saved_drives():
 
 
 def index_to_drive_table_row(index, drive_table):
-    if isinstance(index, int) and index >= 0 and index < len(drive_table):
+    if isinstance(index, int) and 0 <= index < len(drive_table):
         email = drive_table[index + 1][2]  # Plus one to offset the header row.
         drive_id = drive_table[index + 1][3]
         return email, drive_id
@@ -237,6 +249,7 @@ def list_drives():
     except Exception as e:
         click.echo(click.style('Error: %s.' % e, fg='red'))
         return
+
 
 @click.command(name='set', short_help='Add a remote Drive to sync with local directory or modify an existing one. '
                                       'If either --drive-id or --email is missing, use interactive mode.')
@@ -293,7 +306,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
     click.echo()
     account_profile = all_drives[account_id][0]
     click.echo(click.style(
-        'Going to add/edit Drive "%s" of account "%s"...' %(drive_id, account_profile.account_email), fg='cyan'))
+        'Going to add/edit Drive "%s" of account "%s"...' % (drive_id, account_profile.account_email), fg='cyan'))
 
     if interactive:
         local_root = None
@@ -346,7 +359,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
                 click.echo(click.style('Warning: ignore file path does not point to a file. Use default.', fg='yellow'))
                 ignore_file = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
             if drive_exists and local_root == curr_drive_config.localroot_path and \
-                    ignore_file == curr_drive_config.ignorefile_path:
+                            ignore_file == curr_drive_config.ignorefile_path:
                 click.echo(click.style('No parameter was changed. Skipped operation.', fg='yellow'))
                 return
         except ValueError as e:
@@ -374,7 +387,7 @@ def delete_drive(drive_id=None, yes=False):
             click.echo(click.style('Please specify the Drive ID to delete.', fg='red'))
             return
         index = click.prompt('Please enter the # number of the Drive to delete (CTRL+C to abort)', type=int)
-        if isinstance(index, int) and index >= 0 and index < len(all_drive_ids):
+        if isinstance(index, int) and 0 <= index < len(all_drive_ids):
             drive_id = all_drive_ids[index]
         else:
             click.echo(click.style('Error: "%s" is not a valid # number.' % str(index), fg='red'))
@@ -421,7 +434,7 @@ def set_proxy(url):
 @click.command(name='del-proxy',
                short_help='Delete a previously added proxy from config. For example, to delete ' +
                           'proxy "https://localhost:8888", use "https" in argument "protocol".')
-@click.argument('protocol', type=click.Choice((context.SUPPORTED_PROXY_PROTOCOLS)))
+@click.argument('protocol', type=click.Choice(context.SUPPORTED_PROXY_PROTOCOLS))
 def del_proxy(protocol):
     if protocol.lower() in context.config['proxies']:
         del context.config['proxies'][protocol.lower()]

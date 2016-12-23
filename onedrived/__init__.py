@@ -24,7 +24,7 @@ def mkdir(path, uid, mode=0o700, exist_ok=True):
 def get_resource(rel_path, pkg_name='onedrived', is_text=True):
     """
     Read a resource file in data/.
-    :param str file_name:
+    :param str rel_path:
     :param str pkg_name:
     :param True | False is_text: True to indicate the text is UTF-8 encoded.
     :return str | bytes: Content of the file.

@@ -2,6 +2,7 @@
 Some formatter functions for onedrive-python-sdk API objects.
 """
 
+
 def pretty_print_bytes(size, precision=2):
     suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
     index = 0

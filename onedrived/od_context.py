@@ -6,8 +6,8 @@ from pwd import getpwnam
 import xdg
 
 from . import mkdir, get_resource
-from .models import account_profile
-from .models import drive_config
+from .models import account_profile as _account_profile
+from .models import drive_config as _drive_config
 
 
 def is_invalid_username(s):
@@ -27,7 +27,7 @@ class UserContext:
     """Stores config params for a single local user."""
 
     DEFAULT_CONFIG = {
-        'proxies': {}, # Proxy is of format {'http': url1, 'https': url2}.
+        'proxies': {},  # Proxy is of format {'http': url1, 'https': url2}.
         'accounts': {},
         'drives': {}
     }
@@ -78,7 +78,7 @@ class UserContext:
         :param str account_id: ID of the account to query.
         :return models.account_profile.OneDriveAccountProfile: An OneDriveAccountProfile object of the account profile.
         """
-        return account_profile.OneDriveAccountProfile(self.config['accounts'][account_id])
+        return _account_profile.OneDriveAccountProfile(self.config['accounts'][account_id])
 
     def delete_account(self, account_id):
         """
@@ -105,7 +105,7 @@ class UserContext:
         :param str drive_id:
         :return models.drive_config.LocalDriveConfig:
         """
-        return drive_config.LocalDriveConfig(**self.config['drives'][drive_id])
+        return _drive_config.LocalDriveConfig(**self.config['drives'][drive_id])
 
     def delete_drive(self, drive_id):
         del self.config['drives'][drive_id]
