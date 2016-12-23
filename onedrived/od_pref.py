@@ -428,6 +428,7 @@ def set_config(key, value):
     if key not in context.DEFAULT_CONFIG:
         raise ValueError('"%s" is not a valid config key.' % key)
     context.config[key] = value
+    save_context(context)
     click.echo('config.%s = %s' % (key, str(value)))
 
 
