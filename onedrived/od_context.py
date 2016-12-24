@@ -30,7 +30,7 @@ def load_context():
     try:
         ctx.load_config(ctx.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
-        logging.error('Failed to load config file: %s. Use default.' % e)
+        logging.error('Failed to load config file: %s. Use default.', e)
     return ctx
 
 
@@ -38,7 +38,7 @@ def save_context(ctx):
     try:
         ctx.save_config(ctx.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
-        logging.error('Failed to save config file: %s. Changes were discarded.' % e)
+        logging.error('Failed to save config file: %s. Changes were discarded.', e)
 
 
 class UserContext:
