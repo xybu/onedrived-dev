@@ -1,4 +1,3 @@
-import atexit
 import json
 import logging
 import logging.handlers
@@ -17,7 +16,7 @@ def is_invalid_username(s):
 
 
 def get_login_username():
-    # TODO: Allow for sudoing or not? If so, prepend SUDO_USER.
+    # If allow for sudo, prepend SUDO_USER.
     for key in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
         s = os.getenv(key)
         if not is_invalid_username(s):
@@ -99,14 +98,17 @@ class UserContext:
             logging_config['filename'] = path
         logging.basicConfig(**logging_config)
 
+    def _add_and_return(self, config_key, id_key, obj):
+        self.config[config_key][getattr(obj, id_key)] = obj.data
+        return obj
+
     def add_account(self, account_profile):
         """
         Add a new account to config file.
         :param models.account_profile.OneDriveAccountProfile account_profile:
         :return models.account_profile.OneDriveAccountProfile: The account profile argument.
         """
-        self.config['accounts'][account_profile.account_id] = account_profile.data
-        return account_profile
+        return self._add_and_return('accounts', 'account_id', account_profile)
 
     def get_account(self, account_id):
         """
@@ -133,8 +135,7 @@ class UserContext:
         :param models.drive_config.LocalDriveConfig drive_config:
         :return models.drive_config.LocalDriveConfig drive_config:
         """
-        self.config['drives'][drive_config.drive_id] = drive_config.data
-        return drive_config
+        return self._add_and_return('drives', 'drive_id', drive_config)
 
     def get_drive(self, drive_id):
         """
