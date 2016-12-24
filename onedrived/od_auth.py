@@ -5,6 +5,7 @@ Core component for user authentication and authorization.
 :license: MIT
 """
 
+import logging
 import requests
 import onedrivesdk
 import onedrivesdk.helpers.http_provider_with_proxy
@@ -18,8 +19,9 @@ def get_authenticator_and_drives(context, account_id):
     try:
         authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
         drives = authenticator.client.drives.get()
-    except RuntimeError:
+    except RuntimeError as e:
         # Try to refresh the session.
+        logging.error('Error loading session: %s. Try refreshing token.', e)
         authenticator.client.auth_provider.refresh_token()
         authenticator.save_session(key=od_api_session.get_keyring_key(account_id))
         drives = authenticator.client.drives.get()
