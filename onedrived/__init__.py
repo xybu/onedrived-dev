@@ -33,4 +33,3 @@ def get_resource(rel_path, pkg_name='onedrived', is_text=True):
     if is_text:
         content = content.decode('utf-8')
     return content
-
