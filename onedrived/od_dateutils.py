@@ -1,6 +1,4 @@
 from calendar import timegm
-from datetime import datetime
-
 from ciso8601 import parse_datetime
 
 
@@ -31,16 +29,7 @@ def datetime_to_timestamp(d):
     return timegm(d.utctimetuple()) + d.microsecond / 1e6
 
 
-def timestamp_to_datetime(t):
-    """
-    Convert a UNIX timestamp to a datetime object. Precision loss may occur.
-    :param float t: A UNIX timestamp.
-    :return datetime.datetime: An equivalent datetime object.
-    """
-    return datetime.utcfromtimestamp(t)
-
-
-def compare_timestamps(t1, t2):
+def diff_timestamps(t1, t2):
     if t1 - t2 > 0.001:
         return 1
     elif t2 - t1 > 0.001:
