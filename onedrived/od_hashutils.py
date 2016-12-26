@@ -1,5 +1,4 @@
 import hashlib
-import zlib
 
 
 def hash_match(local_abspath, remote_item):
@@ -9,43 +8,24 @@ def hash_match(local_abspath, remote_item):
     :return True | False:
     """
     file_facet = remote_item.file
-    if file_facet is not None:
+    if file_facet:
         hash_facet = file_facet.hashes
-        if hash_facet is not None:
-            return (hash_facet.crc32_hash and hash_facet.crc32_hash == crc32_value(local_abspath) or
-                    hash_facet.sha1_hash and hash_facet.sha1_hash == hash_value(local_abspath))
+        if hash_facet:
+            return hash_facet.sha1_hash and hash_facet.sha1_hash == sha1_value(local_abspath)
     return False
 
 
-def hash_value(file_path, block_size=2<<21, algorithm=hashlib.sha1()):
+def sha1_value(file_path, block_size=2<<22):
     """
     Calculate the MD5 or SHA hash value of the data of the specified file.
     :param str file_path:
     :param int block_size:
-    :param algorithm: A hash function defined in hashlib.
     :return str:
     """
+    alg = hashlib.sha1()
     with open(file_path, 'rb') as f:
-        while True:
+        data = f.read(block_size)
+        while len(data):
+            alg.update(data)
             data = f.read(block_size)
-            if not data:
-                break
-            algorithm.update(data)
-    return algorithm.hexdigest().upper()
-
-
-def crc32_value(file_path, block_size=2<<21):
-    """
-    Calculate the CRC32 value of the data of the specified file.
-    :param str file_path:
-    :param int block_size:
-    :return str:
-    """
-    crc = 0
-    with open(file_path, 'rb') as f:
-        while True:
-            data = f.read(block_size)
-            if not data:
-                break
-            crc = zlib.crc32(data, crc)
-    return '%08X' % (crc & 0xFFFFFFFF)
+    return alg.hexdigest().upper()
