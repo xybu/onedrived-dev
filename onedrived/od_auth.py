@@ -8,6 +8,7 @@ Core component for user authentication and authorization.
 import logging
 import requests
 import onedrivesdk
+import onedrivesdk.error
 import onedrivesdk.helpers.http_provider_with_proxy
 
 from . import od_api_session
@@ -19,11 +20,9 @@ def get_authenticator_and_drives(context, account_id):
     try:
         authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
         drives = authenticator.client.drives.get()
-    except RuntimeError as e:
-        # Try to refresh the session.
+    except (onedrivesdk.error.OneDriveError, RuntimeError) as e:
         logging.error('Error loading session: %s. Try refreshing token.', e)
-        authenticator.client.auth_provider.refresh_token()
-        authenticator.save_session(key=od_api_session.get_keyring_key(account_id))
+        authenticator.refresh_session(account_id)
         drives = authenticator.client.drives.get()
     return authenticator, drives
 
@@ -70,6 +69,14 @@ class OneDriveAuthenticator:
             raise ValueError('Failed to read user profile.')
         data = response.json()
         return account_profile.OneDriveAccountProfile(data)
+
+    @property
+    def session_expires_in_sec(self):
+        return self.client.auth_provider._session.expires_in_sec
+
+    def refresh_session(self, account_id):
+        self.client.auth_provider.refresh_token()
+        self.save_session(key=od_api_session.get_keyring_key(account_id))
 
     def save_session(self, key):
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}

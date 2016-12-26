@@ -24,8 +24,8 @@ def get_login_username():
     raise ValueError('Cannot find login name of current user.')
 
 
-def load_context():
-    ctx = UserContext()
+def load_context(loop=None):
+    ctx = UserContext(loop=loop)
     try:
         ctx.load_config(ctx.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
@@ -68,7 +68,7 @@ class UserContext:
 
     SUPPORTED_PROXY_PROTOCOLS = ('http', 'https')
 
-    def __init__(self):
+    def __init__(self, loop):
         # Information about host and user.
         self.host_name = os.uname()[1]
         self.user_name = get_login_username()
@@ -81,6 +81,7 @@ class UserContext:
             self.config_dir = self.user_home + '/.onedrived'
         self._create_config_dir_if_missing()
         self.config = self.DEFAULT_CONFIG
+        self.loop = loop
 
     def _create_config_dir_if_missing(self):
         if os.path.exists(self.config_dir) and not os.path.isdir(self.config_dir):
@@ -91,6 +92,14 @@ class UserContext:
             mkdir(self.config_dir, self.user_uid, mode=0o700, exist_ok=True)
             with open(self.config_dir + '/' + self.DEFAULT_IGNORE_FILENAME, 'w') as f:
                 f.write(get_resource('data/ignore_v2.txt'))
+
+    @property
+    def loop(self):
+        return self._loop
+
+    @loop.setter
+    def loop(self, v):
+        self._loop = v
 
     def set_logger(self, min_level=logging.WARNING, path=None):
         logging_config = {'level': min_level, 'format': '[%(asctime)-15s] %(levelname)s: %(threadName)s: %(message)s'}

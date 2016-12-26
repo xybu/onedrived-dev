@@ -30,27 +30,31 @@ class TaskPool:
         :param onedrived.tasks.base.TaskBase task: The task to add.
         """
         logging.debug('Adding task %s...' % task)
-        self._lock.acquire()
-        if task.local_abspath in self.tasks_by_path:
-            self._lock.release()
-            return
-        self.queued_tasks.append(task)
-        self.tasks_by_path[task.local_abspath] = task
-        self._lock.release()
+        with self._lock:
+            if task.local_abspath in self.tasks_by_path:
+                return False
+            self.queued_tasks.append(task)
+            self.tasks_by_path[task.local_abspath] = task
         self.semaphore.release()
+        return True
 
     def pop_task(self):
         """
         Pop the oldest task. It's required that the caller first acquire the semaphore.
         :return onedrived.tasks.base.TaskBase | None: The first qualified task, or None.
         """
-        logging.debug('Getting task...')
+        # logging.debug('Getting task...')
         with self._lock:
             ret = None
             if len(self.queued_tasks):
                 ret = self.queued_tasks.pop(0)
                 del self.tasks_by_path[ret.local_abspath]
             return ret
+
+    @property
+    def outstanding_task_count(self):
+        with self._lock:
+            return len(self.queued_tasks)
 
     def has_pending_task(self, local_path):
         with self._lock:

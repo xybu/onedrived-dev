@@ -11,6 +11,7 @@ import sqlite3
 import threading
 
 from . import get_resource as _get_resource
+from .od_api_helper import get_item_modified_datetime
 from .od_dateutils import str_to_datetime, datetime_to_str
 from .models.path_filter import PathFilter as _PathFilter
 
@@ -18,8 +19,8 @@ from .models.path_filter import PathFilter as _PathFilter
 class ItemRecord:
 
     def __init__(self, row):
-        self.item_id, self.type, self.item_name, self.parent_id, self.parent_path, self.e_tag, self.c_tag, self.size, \
-        self.created_time, self.modified_time, self.status, self.crc32_hash, self.sha1_hash = row
+        self.item_id, self.type, self.item_name, self.parent_id, self.parent_path, self.e_tag, self.c_tag, \
+        self.size, self.size_local, self.created_time, self.modified_time, self.status, self.sha1_hash = row
         self.created_time = str_to_datetime(self.created_time)
         self.modified_time = str_to_datetime(self.modified_time)
 
@@ -38,6 +39,8 @@ class ItemRecordStatus:
 
 class OneDriveLocalRepository:
 
+    SESSION_EXPIRE_THRESHOLD_SEC = 120
+
     def __init__(self, context, authenticator, drive, drive_config):
         """
         :param od_context.UserContext context:
@@ -53,6 +56,7 @@ class OneDriveLocalRepository:
         self._lock = threading.Lock()
         self._init_path_filter(ignore_file=drive_config.ignorefile_path)
         self._init_item_store()
+        self.refresh_session()
 
     @property
     def _item_store_path(self):
@@ -74,6 +78,16 @@ class OneDriveLocalRepository:
         self._conn.commit()
         atexit.register(self.close)
 
+    def refresh_session(self):
+        logging.debug('Refreshing repository session.')
+        self.authenticator.refresh_session(self.account_id)
+        logging.info('Session for account %s will expire in %d seconds.',
+                     self.account_id, self.authenticator.session_expires_in_sec)
+        if self.context.loop:
+            t = self.authenticator.session_expires_in_sec - self.SESSION_EXPIRE_THRESHOLD_SEC
+            logging.debug('Will refresh session in %d seconds.', t)
+            self.context.loop.call_later(t, self.refresh_session)
+
     def close(self):
         self._cursor.close()
         self._conn.close()
@@ -87,25 +101,24 @@ class OneDriveLocalRepository:
         """
         with self._lock:
             q = self._conn.execute('SELECT item_id, type, item_name, parent_id, parent_path, etag, ctag, size, '
-                                   'created_time, modified_time, status, crc32_hash, sha1_hash FROM items WHERE ' +
-                                   'item_name=? AND parent_path=? LIMIT 1', (item_name, parent_path))
+                                   'size_local, created_time, modified_time, status, sha1_hash FROM items ' +
+                                   'WHERE item_name=? AND parent_path=? LIMIT 1', (item_name, parent_path))
             rec = q.fetchone()
             return ItemRecord(rec) if rec else rec
 
-    def update_item(self, item, parent_relpath, status=ItemRecordStatus.OK):
+    def update_item(self, item, parent_relpath, size_local=0, status=ItemRecordStatus.OK):
         """
         :param onedrivesdk.model.item.Item remote_item:
         :param str parent_relpath:
+        :param int size_local:
         :param str status:
         """
-        crc32_hash = None
         sha1_hash = None
         file_facet = item.file
         if file_facet:
             item_type = ItemRecordType.FILE
             hash_facet = file_facet.hashes
             if hash_facet:
-                crc32_hash = hash_facet.crc32_hash
                 sha1_hash = hash_facet.sha1_hash
         elif item.folder:
             item_type = ItemRecordType.FOLDER
@@ -113,12 +126,13 @@ class OneDriveLocalRepository:
             raise ValueError('Unknown type of item "%s (%s)".' % (item.name, item.id))
         parent_reference = item.parent_reference
         created_time_str = datetime_to_str(item.created_date_time)
-        modified_time_str = datetime_to_str(item.last_modified_date_time)
+        modified_time, modified_time_w = get_item_modified_datetime(item)
+        modified_time_str = datetime_to_str(modified_time)
         with self._lock:
             self._cursor.execute(
                 'INSERT OR REPLACE INTO items (item_id, type, item_name, parent_id, parent_path, etag, '
-                'ctag, size, created_time, modified_time, status, crc32_hash, sha1_hash)'
+                'ctag, size, size_local, created_time, modified_time, status, sha1_hash)'
                 ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 (item.id, item_type, item.name, parent_reference.id, parent_relpath, item.e_tag, item.c_tag,
-                item.size, created_time_str, modified_time_str, status, crc32_hash, sha1_hash))
+                item.size, size_local, created_time_str, modified_time_str, status, sha1_hash))
             self._conn.commit()

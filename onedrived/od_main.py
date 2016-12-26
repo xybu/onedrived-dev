@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import asyncio
+import itertools
 import logging
 import os
 import signal
 import sys
-import time
-
 import click
 import daemonocle.cli
 
@@ -17,7 +17,7 @@ from . import od_threads
 from . import od_repo
 
 
-context = load_context()
+context = load_context(asyncio.get_event_loop())
 pidfile = context.config_dir + '/onedrived.pid'
 task_workers = []
 task_pool = None
@@ -25,6 +25,7 @@ task_pool = None
 
 def shutdown_callback(msg, code):
     logging.info('Shutting down.')
+    context.loop.stop()
     task_pool.close(len(task_workers))
     od_threads.TaskWorkerThread.exit()
     for w in task_workers:
@@ -39,7 +40,7 @@ def shutdown_callback(msg, code):
 def get_repo_table(context):
     """
     :param onedrived.od_context.UserContext context:
-    :return dict[str, [od_repo.OneDriveLocalRepository]]:
+    :return dict[str, [onedrived.od_repo.OneDriveLocalRepository]]:
     """
     all_accounts = {}
     all_account_ids = context.all_accounts()
@@ -56,6 +57,30 @@ def get_repo_table(context):
             profile = context.get_account(account_id)
             logging.info('No Drive associated with account "%s" (%s).', profile.account_email, account_id)
     return all_accounts
+
+
+def gen_start_repo_tasks(all_accounts, task_pool):
+    """
+    :param dict[str, [onedrived.od_repo.OneDriveLocalRepository]] all_accounts:
+    :param onedrived.od_task.TaskPool task_pool:
+    """
+    if task_pool.outstanding_task_count == 0:
+        for repo in itertools.chain.from_iterable(all_accounts.values()):
+            task_pool.add_task(tasks.start_repo.StartRepositoryTask(repo, task_pool))
+            logging.info('Scheduled deep-sync for Drive %s of account %s.', repo.drive.id, repo.account_id)
+    context.loop.call_later(context.config['scan_interval_sec'], gen_start_repo_tasks, all_accounts, task_pool)
+
+
+def delete_temp_files(all_accounts):
+    """
+    Delete all onedrived temporary files from repository.
+    :param dict[str, [onedrived.od_repo.OneDriveLocalRepository]] all_accounts:
+    :return:
+    """
+    logging.info('Sweeping onedrived temporary files from local repositories.')
+    for repo in itertools.chain.from_iterable(all_accounts.values()):
+        if os.path.isdir(repo.local_root):
+            os.system('find "%s" -type f -name "%s" -delete' % (repo.local_root, repo.path_filter.get_temp_name('*')))
 
 
 @click.command(cls=daemonocle.cli.DaemonCLI,
@@ -76,6 +101,7 @@ def main():
 
     # Initialize account information.
     all_accounts = get_repo_table(context)
+    delete_temp_files(all_accounts)
 
     # Start task pool and task worker.
     global task_pool
@@ -85,12 +111,11 @@ def main():
         w.start()
         task_workers.append(w)
 
-    while True:
-        for account_id, local_repos in all_accounts.items():
-            for r in local_repos:
-                logging.info('Scheduled deep-sync for Drive %s of account %s.', r.drive.id, account_id)
-                task_pool.add_task(tasks.start_repo.StartRepositoryTask(r, task_pool))
-        time.sleep(context.config['scan_interval_sec'])
+    context.loop.call_soon(gen_start_repo_tasks, all_accounts, task_pool)
+    try:
+        context.loop.run_forever()
+    finally:
+        context.loop.close()
 
 if __name__ == '__main__':
     main()

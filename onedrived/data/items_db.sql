@@ -6,10 +6,10 @@ CREATE TABLE IF NOT EXISTS items (
   parent_path   TEXT,
   etag          TEXT,
   ctag          TEXT,
-  size          INT,
+  size          UNSIGNED BIG INT,
+  size_local    UNSIGNED BIG INT,
   created_time  TEXT,
   modified_time TEXT,
   status        TEXT,
-  crc32_hash    TEXT,
   sha1_hash     TEXT
 );
