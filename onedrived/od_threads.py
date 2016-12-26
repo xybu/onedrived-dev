@@ -20,10 +20,9 @@ class TaskWorkerThread(threading.Thread):
     def run(self):
         logging.debug('Started.')
         while not self.exit_signal:
-            logging.debug('Inside loop.')
-            logging.debug('Getting semaphore.')
+            # logging.debug('Getting semaphore.')
             self.task_pool.semaphore.acquire()
-            logging.debug('Got semaphore.')
+            # logging.debug('Got semaphore.')
             if self.exit_signal:
                 break
             task = self.task_pool.pop_task()
