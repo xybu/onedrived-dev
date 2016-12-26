@@ -17,7 +17,7 @@ def hash_match(local_abspath, remote_item):
     return False
 
 
-def hash_value(file_path, block_size=1048576, algorithm=hashlib.sha1()):
+def hash_value(file_path, block_size=2<<21, algorithm=hashlib.sha1()):
     """
     Calculate the MD5 or SHA hash value of the data of the specified file.
     :param str file_path:
@@ -34,7 +34,7 @@ def hash_value(file_path, block_size=1048576, algorithm=hashlib.sha1()):
     return algorithm.hexdigest().upper()
 
 
-def crc32_value(file_path, block_size=1048576):
+def crc32_value(file_path, block_size=2<<21):
     """
     Calculate the CRC32 value of the data of the specified file.
     :param str file_path:
@@ -48,4 +48,4 @@ def crc32_value(file_path, block_size=1048576):
             if not data:
                 break
             crc = zlib.crc32(data, crc)
-    return str(crc).upper()
+    return '%08X' % (crc & 0xFFFFFFFF)
