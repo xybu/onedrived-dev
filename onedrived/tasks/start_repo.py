@@ -15,7 +15,7 @@ class StartRepositoryTask(_TaskBase):
         :param onedrived.od_task.TaskPool task_pool:
         """
         super().__init__(repo, task_pool)
-        self._local_abspath = repo.local_root
+        self.local_abspath = repo.local_root
 
     def __repr__(self):
         return type(self).__name__ + '(drive=' + self.repo.drive.id + ')'
