@@ -21,6 +21,17 @@ def mkdir(path, uid, mode=0o700, exist_ok=True):
     os.chown(path, uid, -1)
 
 
+def fix_owner_and_timestamp(path, uid, t):
+    """
+    :param str path:
+    :param int uid:
+    :param int | float ts:
+    :return:
+    """
+    os.chown(path, uid, -1)
+    os.utime(path, (t, t))
+
+
 def get_resource(rel_path, pkg_name='onedrived', is_text=True):
     """
     Read a resource file in data/.

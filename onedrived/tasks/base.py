@@ -7,11 +7,14 @@ class TaskBase:
         """
         self.repo = repo
         self.task_pool = task_pool
-        self._local_abspath = None
 
     @property
     def local_abspath(self):
         return self._local_abspath
+
+    @local_abspath.setter
+    def local_abspath(self, path):
+        self._local_abspath = path
 
     def handle(self):
         raise NotImplementedError('Subclass should override this stub.')
