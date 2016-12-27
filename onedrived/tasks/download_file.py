@@ -1,12 +1,14 @@
 import logging
 import os
+
 import onedrivesdk.error
 
+from .base import TaskBase as _TaskBase
 from .. import fix_owner_and_timestamp
+from ..od_api_helper import get_item_modified_datetime
 from ..od_dateutils import datetime_to_timestamp
 from ..od_hashutils import sha1_value
-from ..od_api_helper import get_item_modified_datetime
-from .base import TaskBase as _TaskBase
+
 
 class DownloadFileTask(_TaskBase):
 
@@ -51,4 +53,4 @@ class DownloadFileTask(_TaskBase):
                 logging.error('Hash mismatch for downloaded file "%s".', self.local_abspath)
                 os.remove(tmp_path)
         except (onedrivesdk.error.OneDriveError, OSError) as e:
-            logging.error('Error when downloading file "%s": %s', self.remote_item.id, e)
+            logging.error('Error when downloading file "%s": %s.', self.remote_item.id, e)
