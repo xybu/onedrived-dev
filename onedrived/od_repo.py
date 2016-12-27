@@ -92,7 +92,7 @@ class OneDriveLocalRepository:
         self._cursor.close()
         self._conn.close()
 
-    def get_item_by_path(self, item_name, parent_path):
+    def get_item_by_path(self, item_name, parent_relpath):
         """
         Fetch a record form database. Return None if not found.
         :param str item_name:
@@ -102,15 +102,15 @@ class OneDriveLocalRepository:
         with self._lock:
             q = self._conn.execute('SELECT item_id, type, item_name, parent_id, parent_path, etag, ctag, size, '
                                    'size_local, created_time, modified_time, status, sha1_hash FROM items ' +
-                                   'WHERE item_name=? AND parent_path=? LIMIT 1', (item_name, parent_path))
+                                   'WHERE item_name=? AND parent_path=? LIMIT 1', (item_name, parent_relpath))
             rec = q.fetchone()
             return ItemRecord(rec) if rec else rec
 
-    def delete_item(self, parent_relpath, item_name, is_folder=False):
+    def delete_item(self, item_name, parent_relpath, is_folder=False):
         """
         Delete the specified item from database. If it is a directory, then also delete all its children items.
-        :param str parent_relpath: Relative path of its parent item.
         :param str item_name: Name of the item.
+        :param str parent_relpath: Relative path of its parent item.
         :param True | False is_folder: True to indicate that the item is a folder (delete all children).
         """
         with self._lock:

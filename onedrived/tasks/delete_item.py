@@ -40,7 +40,7 @@ class DeleteRemoteItemTask(_TaskBase):
                 logging.error('API Error occurred when deleting "%s": %s.', self.rel_path, e)
                 self.repo.authenticator.refresh_session(self.repo.account_id)
                 item_request.delete()
-            self.repo.delete_item(self.parent_relpath, self.item_name, self.is_folder)
+            self.repo.delete_item(self.item_name, self.parent_relpath, self.is_folder)
             logging.info('Deleted remote item "%s".', self.rel_path)
         except (onedrivesdk.error.OneDriveError, OSError) as e:
             logging.error('Error deleting item "%s": %s.', self.rel_path, e)
