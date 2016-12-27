@@ -11,9 +11,9 @@ import sqlite3
 import threading
 
 from . import get_resource as _get_resource
+from .models.path_filter import PathFilter as _PathFilter
 from .od_api_helper import get_item_modified_datetime
 from .od_dateutils import str_to_datetime, datetime_to_str
-from .models.path_filter import PathFilter as _PathFilter
 
 
 class ItemRecord:
@@ -105,6 +105,20 @@ class OneDriveLocalRepository:
                                    'WHERE item_name=? AND parent_path=? LIMIT 1', (item_name, parent_path))
             rec = q.fetchone()
             return ItemRecord(rec) if rec else rec
+
+    def delete_item(self, parent_relpath, item_name, is_folder=False):
+        """
+        Delete the specified item from database. If it is a directory, then also delete all its children items.
+        :param str parent_relpath: Relative path of its parent item.
+        :param str item_name: Name of the item.
+        :param True | False is_folder: True to indicate that the item is a folder (delete all children).
+        """
+        with self._lock:
+            if is_folder:
+                self._cursor.execute('DELETE FROM items WHERE parent_path LIKE ?',
+                                     (parent_relpath + '/' + item_name + '/%',))
+            self._cursor.execute('DELETE FROM items WHERE parent_path=? AND item_name=?', (parent_relpath, item_name))
+            self._conn.commit()
 
     def update_item(self, item, parent_relpath, size_local=0, status=ItemRecordStatus.OK):
         """
