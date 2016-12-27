@@ -11,8 +11,8 @@ import sys
 
 from setuptools import setup, find_packages
 
-from onedrived import __project__, __version__
 from onedrived import __author__, __email__, __homepage__
+from onedrived import __project__, __version__
 
 
 setup_requires = [
@@ -40,6 +40,9 @@ if python_version[0] < 3:
 if python_version == (3, 2):
     test_requires.append('mock>=1.3.0')
 
+if python_version < (3, 4):
+    install_requires.append('asyncio')
+
 setup(
     name=__project__,
     version=__version__,
@@ -62,7 +65,7 @@ setup(
         ],
         'gui_scripts': []
     },
-    setup_requires=['setuptools'],
+    setup_requires=setup_requires,
     install_requires=install_requires,
     tests_require=test_requires,
     test_suite='tests',

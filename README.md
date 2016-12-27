@@ -35,7 +35,7 @@ installed (assuming Ubuntu; names may vary on other distros):
 gcc
 python3-dev
 libssl-dev
-inotify-tools
+inotifytools
 ```
 
 Keyring provides secure storage for your OneDrive credentials (the leak of which may result in

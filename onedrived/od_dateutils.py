@@ -30,9 +30,5 @@ def datetime_to_timestamp(d):
 
 
 def diff_timestamps(t1, t2):
-    if t1 - t2 > 0.001:
-        return 1
-    elif t2 - t1 > 0.001:
-        return -1
-    else:
-        return 0
+    t1 = t1 - t2
+    return 1 if t1 > 0.01 else -1 if t1 < -0.01 else 0
