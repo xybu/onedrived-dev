@@ -1,8 +1,9 @@
 import logging
 import os
 
-from .base import TaskBase as _TaskBase
 from . import merge_dir as _merge_dir
+from .base import TaskBase as _TaskBase
+
 
 class StartRepositoryTask(_TaskBase):
     """A simple task that bootstraps the syncing process of a Drive.

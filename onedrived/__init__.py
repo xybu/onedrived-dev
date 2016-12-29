@@ -25,7 +25,7 @@ def fix_owner_and_timestamp(path, uid, t):
     """
     :param str path:
     :param int uid:
-    :param int | float ts:
+    :param int | float t:
     :return:
     """
     os.chown(path, uid, -1)

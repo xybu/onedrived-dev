@@ -17,8 +17,9 @@ class UploadFileTask(_TaskBase):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:
         :param onedrived.od_task.TaskPool task_pool:
-        :param onedrivesdk.request.item_request_builder.ItemRequestBuilder item_request:
+        :param onedrivesdk.request.item_request_builder.ItemRequestBuilder parent_dir_request:
         :param str parent_relpath:
+        :param str item_name:
         """
         super().__init__(repo, task_pool)
         self.parent_dir_request = parent_dir_request
@@ -27,7 +28,7 @@ class UploadFileTask(_TaskBase):
         self.local_abspath = repo.local_root + parent_relpath + '/' + item_name
 
     def __repr__(self):
-        return type(self).__name__ + '(%s)' % (self.local_abspath)
+        return type(self).__name__ + '(%s)' % self.local_abspath
 
     def update_item(self, modified_item):
         item_request = self.repo.authenticator.client.item(drive=self.repo.drive.id, id=modified_item.id)

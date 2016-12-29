@@ -6,16 +6,16 @@ import logging
 import os
 import signal
 import sys
+
 import click
 import daemonocle.cli
 
-from .od_auth import get_authenticator_and_drives
-from .od_context import load_context
-from . import tasks
+from . import od_repo
 from . import od_task
 from . import od_threads
-from . import od_repo
-
+from . import tasks
+from .od_auth import get_authenticator_and_drives
+from .od_context import load_context
 
 context = load_context(asyncio.get_event_loop())
 pidfile = context.config_dir + '/onedrived.pid'
@@ -23,6 +23,7 @@ task_workers = []
 task_pool = None
 
 
+# noinspection PyUnusedLocal
 def shutdown_callback(msg, code):
     logging.info('Shutting down.')
     context.loop.stop()
@@ -32,29 +33,29 @@ def shutdown_callback(msg, code):
         w.join()
     try:
         os.remove(pidfile)
-    except:
+    except OSError:
         pass
     logging.shutdown()
 
 
-def get_repo_table(context):
+def get_repo_table(ctx):
     """
-    :param onedrived.od_context.UserContext context:
+    :param onedrived.od_context.UserContext ctx:
     :return dict[str, [onedrived.od_repo.OneDriveLocalRepository]]:
     """
     all_accounts = {}
-    all_account_ids = context.all_accounts()
+    all_account_ids = ctx.all_accounts()
     if len(all_account_ids) == 0:
         logging.critical('onedrived is not linked with any OneDrive account. Please configure onedrived first.')
         sys.exit(1)
     for account_id in all_account_ids:
-        authenticator, drives = get_authenticator_and_drives(context, account_id)
-        local_repos = [od_repo.OneDriveLocalRepository(context, authenticator, d, context.get_drive(d.id))
-                       for d in drives if d.id in context.config['drives']]
+        authenticator, drives = get_authenticator_and_drives(ctx, account_id)
+        local_repos = [od_repo.OneDriveLocalRepository(ctx, authenticator, d, ctx.get_drive(d.id))
+                       for d in drives if d.id in ctx.config['drives']]
         if len(local_repos) > 0:
             all_accounts[account_id] = local_repos
         else:
-            profile = context.get_account(account_id)
+            profile = ctx.get_account(account_id)
             logging.info('No Drive associated with account "%s" (%s).', profile.account_email, account_id)
     return all_accounts
 

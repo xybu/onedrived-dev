@@ -101,7 +101,8 @@ class UserContext:
     def loop(self, v):
         self._loop = v
 
-    def set_logger(self, min_level=logging.WARNING, path=None):
+    @staticmethod
+    def set_logger(min_level=logging.WARNING, path=None):
         logging_config = {'level': min_level, 'format': '[%(asctime)-15s] %(levelname)s: %(threadName)s: %(message)s'}
         if path:
             logging_config['filename'] = path

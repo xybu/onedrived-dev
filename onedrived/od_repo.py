@@ -18,11 +18,10 @@ from .od_dateutils import str_to_datetime, datetime_to_str
 
 
 class ItemRecord:
-
     def __init__(self, row):
         self.item_id, self.type, self.item_name, self.parent_id, self.parent_path, self.e_tag, self.c_tag, \
-        self.size, self.size_local, self.created_time, self.modified_time, self.status, self.sha1_hash, \
-        self.record_time_str = row
+            self.size, self.size_local, self.created_time, self.modified_time, self.status, self.sha1_hash, \
+            self.record_time_str = row
         self.created_time = str_to_datetime(self.created_time)
         self.modified_time = str_to_datetime(self.modified_time)
 
@@ -38,7 +37,6 @@ class ItemRecordStatus:
 
 
 class OneDriveLocalRepository:
-
     SESSION_EXPIRE_THRESHOLD_SEC = 120
 
     def __init__(self, context, authenticator, drive, drive_config):
@@ -96,7 +94,7 @@ class OneDriveLocalRepository:
         """
         Fetch a record form database. Return None if not found.
         :param str item_name:
-        :param str parent_path:
+        :param str parent_relpath:
         :return ItemRecord | None:
         """
         with self._lock:
@@ -122,10 +120,10 @@ class OneDriveLocalRepository:
 
     def update_item(self, item, parent_relpath, size_local=0, status=ItemRecordStatus.OK):
         """
-        :param onedrivesdk.model.item.Item remote_item:
+        :param onedrivesdk.model.item.Item item:
         :param str parent_relpath:
         :param int size_local:
-        :param str status:
+        :param int status:
         """
         sha1_hash = None
         file_facet = item.file

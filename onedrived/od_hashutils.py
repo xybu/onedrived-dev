@@ -15,7 +15,7 @@ def hash_match(local_abspath, remote_item):
     return False
 
 
-def sha1_value(file_path, block_size=2<<22):
+def sha1_value(file_path, block_size=2 << 22):
     """
     Calculate the MD5 or SHA hash value of the data of the specified file.
     :param str file_path:

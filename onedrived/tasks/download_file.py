@@ -25,7 +25,7 @@ class DownloadFileTask(_TaskBase):
         self.local_abspath = repo.local_root + parent_relpath + '/' + remote_item.name
 
     def __repr__(self):
-        return type(self).__name__ + '(%s)' % (self.local_abspath)
+        return type(self).__name__ + '(%s)' % self.local_abspath
 
     def handle(self):
         logging.info('Downloading file "%s" to "%s".', self.remote_item.id, self.local_abspath)
@@ -40,8 +40,8 @@ class DownloadFileTask(_TaskBase):
                 logging.error('API Error occurred when downloading "%s": %s.', self.local_abspath, e)
                 self.repo.authenticator.refresh_session(self.repo.account_id)
                 item_request.download(tmp_path)
-            hash = self.remote_item.file.hashes
-            if hash is None or hash.sha1_hash is None or hash.sha1_hash == sha1_value(tmp_path):
+            hashes = self.remote_item.file.hashes
+            if hashes is None or hashes.sha1_hash is None or hashes.sha1_hash == sha1_value(tmp_path):
                 item_size_local = os.path.getsize(tmp_path)
                 os.rename(tmp_path, self.local_abspath)
                 fix_owner_and_timestamp(self.local_abspath, self.repo.context.user_uid,
