@@ -29,19 +29,27 @@ class CreateFolderTask(_TaskBase):
     def __repr__(self):
         return type(self).__name__ + '(%s, upload=%s)' % (self.local_abspath, self.upload_if_success)
 
+    @staticmethod
+    def _get_folder_pseudo_item(item_name):
+        item = Item()
+        item.name = item_name
+        item.folder = Folder()
+        return item
+
+    def _get_item_request(self):
+        if self.parent_relpath == '':
+            return self.repo.authenticator.client.item(drive=self.repo.drive.id, id='root')
+        else:
+            return self.repo.authenticator.client.item(drive=self.repo.drive.id, path=self.parent_relpath)
+
     def handle(self):
         logging.info('Creating remote item for local dir "%s".', self.local_abspath)
         try:
             if self.abort_if_local_gone and not os.path.isdir(self.local_abspath):
                 logging.warning('Local dir "%s" is gone. Skip creating remote item for it.', self.local_abspath)
                 return
-            item = Item()
-            item.name = self.item_name
-            item.folder = Folder()
-            if self.parent_relpath == '':
-                item_request = self.repo.authenticator.client.item(drive=self.repo.drive.id, id='root')
-            else:
-                item_request = self.repo.authenticator.client.item(drive=self.repo.drive.id, path=self.parent_relpath)
+            item = self._get_folder_pseudo_item(self.item_name)
+            item_request = self._get_item_request()
             try:
                 item = item_request.children.add(item)
             except onedrivesdk.error.OneDriveError as e:
