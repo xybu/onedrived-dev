@@ -3,8 +3,9 @@ import os
 import shutil
 
 import onedrivesdk.error
+from send2trash import send2trash
 
-from . import download_file, upload_file, delete_item
+from . import download_file, upload_file, delete_item, create_folder
 from .base import TaskBase as _TaskBase
 from .. import mkdir, fix_owner_and_timestamp
 from ..od_api_helper import get_item_modified_datetime
@@ -15,7 +16,7 @@ from ..od_repo import ItemRecordType
 
 class MergeDirectoryTask(_TaskBase):
 
-    def __init__(self, repo, task_pool, rel_path, item_request=None):
+    def __init__(self, repo, task_pool, rel_path, item_request):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:
         :param onedrived.od_task.TaskPool task_pool:
@@ -120,6 +121,20 @@ class MergeDirectoryTask(_TaskBase):
         """
         # In this case we have all three pieces of information -- remote item metadata, database record, and local inode
         # stats. The best case is that all of them agree, and the worst case is that they all disagree.
+
+        if os.path.isdir(item_local_abspath):
+            # Remote item is a file yet the local item is a folder.
+            if item_record and item_record.type == ItemRecordType.FOLDER:
+                # TODO: Use the logic in handle_local_folder to solve this.
+                send2trash(item_local_abspath)
+                self.repo.delete_item(remote_item.name, self.rel_path, True)
+            else:
+                # When db record does not exist or says the path is a file, then it does not agree with local inode
+                # and the information is useless. We delete it and sync both remote and local items.
+                if item_record:
+                    self.repo.delete_item(remote_item.name, self.rel_path, False)
+            return self._handle_remote_file_without_record(remote_item, None, item_local_abspath, all_local_items)
+
         remote_mtime, remote_mtime_w = get_item_modified_datetime(remote_item)
         local_mtime_ts = item_stat.st_mtime if item_stat else None
         remote_mtime_ts = datetime_to_timestamp(remote_mtime)
@@ -214,6 +229,10 @@ class MergeDirectoryTask(_TaskBase):
             # download the file and update record.
             self.task_pool.add_task(
                 download_file.DownloadFileTask(self.repo, self.task_pool, remote_item, self.rel_path))
+        elif os.path.isdir(item_local_abspath):
+            # Remote path is file yet local path is a dir.
+            logging.info('Path "%s" is a folder yet the remote item is a file. Keep both.', item_local_abspath)
+            self._rename_local_and_download_remote(remote_item, all_local_items)
         else:
             # We first compare timestamp and size -- if both properties match then we think the items are identical
             # and just update the database record. Otherwise if sizes are equal, we calculate hash of local item to
@@ -235,14 +254,30 @@ class MergeDirectoryTask(_TaskBase):
             else:
                 self._rename_local_and_download_remote(remote_item, all_local_items)
 
+    @staticmethod
+    def _remote_dir_matches_record(remote_item, record):
+        return record and record.type == ItemRecordType.FOLDER and record.c_tag == remote_item.c_tag and \
+                    record.e_tag == remote_item.e_tag and record.size == remote_item.size
+
     def _handle_remote_folder(self, remote_item, item_local_abspath, record, all_local_items):
         try:
             if os.path.isfile(item_local_abspath):
-                # Remote item is a directory but local item is a file. Rename the file to something else and proceed.
+                # Remote item is a directory but local item is a file.
+                if self._remote_dir_matches_record(remote_item, record):
+                    # The remote item is very LIKELY to be outdated.
+                    logging.warning('Local path "%s" is a file but its remote counterpart is a folder which seems to '
+                                    'be synced before. Will delete the remote folder. To restore it, go to '
+                                    'OneDrive.com and move the folder out of Recycle Bin.', item_local_abspath)
+                    delete_item.DeleteRemoteItemTask(
+                        self.repo, self.task_pool, self.rel_path, remote_item.name, remote_item.id, True).handle()
+                    self.task_pool.add_task(upload_file.UploadFileTask(
+                        self.repo, self.task_pool, self.item_request, self.rel_path, remote_item.name))
+                    return
+                # If the remote metadata doesn't agree with record, keep both by renaming the local file.
                 all_local_items.add(self._rename_with_local_suffix(remote_item.name))
 
             if not os.path.exists(item_local_abspath):
-                if record is not None and record.item_id == remote_item.id:
+                if self._remote_dir_matches_record(remote_item, record):
                     logging.debug('Local dir "%s" is gone but db record matches remote metadata. Delete remote dir.',
                                   item_local_abspath)
                     self.task_pool.add_task(delete_item.DeleteRemoteItemTask(
@@ -274,7 +309,7 @@ class MergeDirectoryTask(_TaskBase):
         # So we have three pieces of information -- the remote item metadata, the record in database, and the inode
         # on local file system. For the case of handling a remote item, the last two may be missing.
         item_local_abspath = self.local_abspath + '/' + remote_item.name
-        record = self.repo.get_item_by_path(item_name=remote_item.name, parent_path=self.rel_path)
+        record = self.repo.get_item_by_path(item_name=remote_item.name, parent_relpath=self.rel_path)
         try:
             stat = self.get_os_stat(item_local_abspath)
         except OSError as e:
@@ -294,16 +329,49 @@ class MergeDirectoryTask(_TaskBase):
         else:
             self._handle_remote_file_with_record(remote_item, record, stat, item_local_abspath, all_local_items)
 
-    def _handle_local_folder(self, item_name, record, item_local_abspath):
+    def _handle_local_folder(self, item_name, item_record, item_local_abspath):
         """
         :param str item_name:
-        :param onedrived.od_repo.ItemRecord | None record:
+        :param onedrived.od_repo.ItemRecord | None item_record:
         :param str item_local_abspath:
         """
-        if record is not None:
-            pass
-        else:
-            pass
+        if item_record is not None and item_record.type == ItemRecordType.FOLDER:
+            send2trash(item_local_abspath)
+            self.repo.delete_item(item_name, self.rel_path, True)
+            return
+            # try:
+            #     # If there is any file accessed after the time when the record was created, do not delete the directory.
+            #     # Instead, upload it back.
+            #     # As a note, the API will return HTTP 404 Not Found after the item was deleted. So we cannot know from
+            #     # API when the item was deleted. Otherwise this deletion time should be the timestamp to use.
+            #     # TODO: A second best timestamp is the latest timestamp of any children item under this dir.
+            #     visited_files = subprocess.check_output(
+            #         ['find', item_local_abspath, '-type', 'f',
+            #         '(', '-newermt', item_record.record_time_str, '-o',
+            #          '-newerat', item_record.record_time_str, ')', '-print'], universal_newlines=True)
+            #     if visited_files == '':
+            #         logging.info('Local item "%s" was deleted remotely and not used since %s. Delete it locally.',
+            #                      item_local_abspath, item_record.record_time_str)
+            #         send2trash(item_local_abspath)
+            #         self.repo.delete_item(item_name, self.rel_path, True)
+            #         return
+            #     logging.info('Local directory "%s" was deleted remotely but locally used. Upload it back.')
+            # except subprocess.CalledProcessError as e:
+            #     logging.error('Error enumerating files in "%s" accessed after "%s": %s.',
+            #                   item_local_abspath, item_record.record_time_str, e)
+            # except OSError as e:
+            #     logging.error('Error checking local folder "%s": %s.', item_local_abspath, e)
+
+        if item_record:
+            # Delete old records of this item and its children. Also delete if the record corrupts (i.e., says a file
+            # instead of a directory).
+            self.repo.delete_item(item_name, self.rel_path, True)
+
+        # Either we decide to upload the item above, or the folder does not exist remotely and we have no reference
+        # whether it existed remotely or not in the past. Better upload it back.
+        logging.info('Local directory "%s" seems new. Upload it.', item_local_abspath)
+        self.task_pool.add_task(create_folder.CreateFolderTask(
+            self.repo, self.task_pool, item_name, self.rel_path, True, True))
 
     def _handle_local_file(self, item_name, item_record, item_stat, item_local_abspath):
         """
@@ -324,12 +392,12 @@ class MergeDirectoryTask(_TaskBase):
                 (diff_timestamps(item_stat.st_mtime, record_mtime_ts) == 0 or
                  item_record.sha1_hash and item_record.sha1_hash == sha1_value(item_local_abspath)):
                 logging.debug('Local file "%s" used to exist remotely but not found. Delete it.', item_local_abspath)
-                os.remove(item_local_abspath)
+                send2trash(item_local_abspath)
                 self.repo.delete_item(item_record.item_name, item_record.parent_path, False)
                 return
             logging.debug('Local file "%s" is different from when it was last synced. Upload it.', item_local_abspath)
         else:
-            logging.debug('Local file "%s" is new to OneDrive. Upload it.')
+            logging.debug('Local file "%s" is new to OneDrive. Upload it.', item_local_abspath)
 
         self.task_pool.add_task(upload_file.UploadFileTask(
             self.repo, self.task_pool, self.item_request, self.rel_path, item_name))
@@ -342,7 +410,7 @@ class MergeDirectoryTask(_TaskBase):
                 # stat can be None because the function can be called long after dir is listed.
                 stat = self.get_os_stat(item_local_abspath)
                 self._handle_local_file(item_name, record, stat, item_local_abspath)
-            elif os.path.isdir(item_local_abspath) or os.path.ismount(item_local_abspath):
+            elif os.path.isdir(item_local_abspath):
                 self._handle_local_folder(item_name, record, item_local_abspath)
             else:
                 logging.warning('Unsupported type of local item "%s". Skip it and remove record.', item_local_abspath)

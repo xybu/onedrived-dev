@@ -9,6 +9,7 @@ import atexit
 import logging
 import sqlite3
 import threading
+from datetime import datetime
 
 from . import get_resource as _get_resource
 from .models.path_filter import PathFilter as _PathFilter
@@ -20,21 +21,20 @@ class ItemRecord:
 
     def __init__(self, row):
         self.item_id, self.type, self.item_name, self.parent_id, self.parent_path, self.e_tag, self.c_tag, \
-        self.size, self.size_local, self.created_time, self.modified_time, self.status, self.sha1_hash = row
+        self.size, self.size_local, self.created_time, self.modified_time, self.status, self.sha1_hash, \
+        self.record_time_str = row
         self.created_time = str_to_datetime(self.created_time)
         self.modified_time = str_to_datetime(self.modified_time)
 
 
 class ItemRecordType:
-
-    FILE = 'file'
-    FOLDER = 'folder'
+    FOLDER = 0
+    FILE = 1
 
 
 class ItemRecordStatus:
-
-    OK = 'ok'
-    MOVE_FROM = 'MOVE_FROM'
+    OK = 0
+    MOVING_FROM = 1
 
 
 class OneDriveLocalRepository:
@@ -100,9 +100,9 @@ class OneDriveLocalRepository:
         :return ItemRecord | None:
         """
         with self._lock:
-            q = self._conn.execute('SELECT item_id, type, item_name, parent_id, parent_path, etag, ctag, size, '
-                                   'size_local, created_time, modified_time, status, sha1_hash FROM items ' +
-                                   'WHERE item_name=? AND parent_path=? LIMIT 1', (item_name, parent_relpath))
+            q = self._conn.execute('SELECT id, type, name, parent_id, parent_path, etag, ctag, size, size_local, '
+                                   'created_time, modified_time, status, sha1_hash, record_time FROM items ' +
+                                   'WHERE name=? AND parent_path=? LIMIT 1', (item_name, parent_relpath))
             rec = q.fetchone()
             return ItemRecord(rec) if rec else rec
 
@@ -117,7 +117,7 @@ class OneDriveLocalRepository:
             if is_folder:
                 self._cursor.execute('DELETE FROM items WHERE parent_path LIKE ?',
                                      (parent_relpath + '/' + item_name + '/%',))
-            self._cursor.execute('DELETE FROM items WHERE parent_path=? AND item_name=?', (parent_relpath, item_name))
+            self._cursor.execute('DELETE FROM items WHERE parent_path=? AND name=?', (parent_relpath, item_name))
             self._conn.commit()
 
     def update_item(self, item, parent_relpath, size_local=0, status=ItemRecordStatus.OK):
@@ -144,9 +144,10 @@ class OneDriveLocalRepository:
         modified_time_str = datetime_to_str(modified_time)
         with self._lock:
             self._cursor.execute(
-                'INSERT OR REPLACE INTO items (item_id, type, item_name, parent_id, parent_path, etag, '
-                'ctag, size, size_local, created_time, modified_time, status, sha1_hash)'
-                ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                'INSERT OR REPLACE INTO items (id, type, name, parent_id, parent_path, etag, '
+                'ctag, size, size_local, created_time, modified_time, status, sha1_hash, record_time)'
+                ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 (item.id, item_type, item.name, parent_reference.id, parent_relpath, item.e_tag, item.c_tag,
-                item.size, size_local, created_time_str, modified_time_str, status, sha1_hash))
+                 item.size, size_local, created_time_str, modified_time_str, status, sha1_hash,
+                 str(datetime.utcnow().isoformat()) + 'Z'))
             self._conn.commit()

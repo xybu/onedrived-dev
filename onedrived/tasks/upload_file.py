@@ -1,14 +1,14 @@
-from datetime import datetime
 import logging
 import os
+from datetime import datetime
 
 import onedrivesdk.error
-from onedrivesdk.model.item import Item, FileSystemInfo
+from onedrivesdk import Item, FileSystemInfo
 
 from .base import TaskBase as _TaskBase
 from .. import fix_owner_and_timestamp
-from ..od_dateutils import datetime_to_timestamp
 from ..od_api_helper import get_item_modified_datetime
+from ..od_dateutils import datetime_to_timestamp
 
 
 class UploadFileTask(_TaskBase):

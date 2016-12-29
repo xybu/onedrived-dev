@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS items (
-  item_id       TEXT UNIQUE PRIMARY KEY ON CONFLICT REPLACE,
-  type          TEXT,
-  item_name     TEXT,
+  id            TEXT UNIQUE PRIMARY KEY ON CONFLICT REPLACE,
+  type          INT,
+  name          TEXT,
   parent_id     TEXT,
   parent_path   TEXT,
   etag          TEXT,
@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS items (
   size_local    UNSIGNED BIG INT,
   created_time  TEXT,
   modified_time TEXT,
-  status        TEXT,
-  sha1_hash     TEXT
+  status        INT,
+  sha1_hash     TEXT,
+  record_time   TEXT
 );
