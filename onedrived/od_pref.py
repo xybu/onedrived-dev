@@ -209,8 +209,8 @@ def print_saved_drives():
 
 def index_to_drive_table_row(index, drive_table):
     if isinstance(index, int) and 0 <= index < len(drive_table):
-        email = drive_table[index + 1][2]  # Plus one to offset the header row.
-        drive_id = drive_table[index + 1][3]
+        email = drive_table[index + 1][1]  # Plus one to offset the header row.
+        drive_id = drive_table[index + 1][2]
         return email, drive_id
     raise ValueError('Index is not a valid row number.')
 
