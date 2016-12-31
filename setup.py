@@ -42,6 +42,7 @@ if python_version == (3, 2):
 
 if python_version < (3, 4):
     install_requires.append('asyncio')
+    install_requires.append('enum34')
 
 setup(
     name=__project__,
