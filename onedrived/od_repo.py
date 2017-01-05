@@ -99,7 +99,7 @@ class OneDriveLocalRepository:
         """
         with self._lock:
             q = self._conn.execute('SELECT id, type, name, parent_id, parent_path, etag, ctag, size, size_local, '
-                                   'created_time, modified_time, status, sha1_hash, record_time FROM items ' +
+                                   'created_time, modified_time, status, sha1_hash, record_time FROM items '
                                    'WHERE name=? AND parent_path=? LIMIT 1', (item_name, parent_relpath))
             rec = q.fetchone()
             return ItemRecord(rec) if rec else rec
