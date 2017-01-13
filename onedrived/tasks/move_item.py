@@ -29,6 +29,8 @@ class MoveItemTask(_TaskBase):
             new_parent_relpath = parent_relpath
         if new_name is None:
             new_name = item_name
+        if new_parent_relpath == parent_relpath and new_name == item_name:
+            raise ValueError('Old path and new path are the same. No move is needed.')
         self.new_parent_relpath = new_parent_relpath
         self.new_name = new_name
         self.new_relpath = new_parent_relpath + '/' + new_name
@@ -37,8 +39,10 @@ class MoveItemTask(_TaskBase):
         item = Item()
         if self.new_parent_relpath != self.parent_relpath:
             ref = ItemReference()
-            ref.drive_id = self.repo.drive.id
-            ref.path = self.new_parent_relpath
+            # Refer to https://dev.onedrive.com/items/move.htm for Move API request.
+            ref.path = '/drives/' + self.repo.drive.id + '/root:'
+            if self.new_parent_relpath != '':
+                ref.path += self.new_parent_relpath
             item.parent_reference = ref
         if self.new_name != self.item_name:
             item.name = self.new_name
@@ -46,7 +50,7 @@ class MoveItemTask(_TaskBase):
 
     def __repr__(self):
         return type(self).__name__ + '(from=%s, to=%s, is_folder=%s)' % (
-            self.local_abspath, self.new_parent_relpath, self.is_folder)
+            self.rel_path, self.new_relpath, self.is_folder)
 
     def handle(self):
         logging.info('Moving item "%s" to "%s".', self.rel_path, self.new_relpath)

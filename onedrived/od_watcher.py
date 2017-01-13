@@ -4,7 +4,6 @@ import threading
 
 import onedrivesdk.error
 from bidict import loosebidict
-from click import style
 from inotify_simple import flags as _inotify_flags, masks as _inotify_masks, INotify as _INotify
 
 from . import tasks
@@ -52,14 +51,14 @@ class LocalRepositoryWatcher:
         self.local_repos[repo.local_root] = repo
 
     def add_watch(self, local_abspath):
-        print(style('Adding watcher for "%s"' % local_abspath, fg='red'))
+        logging.debug('Adding watcher for "%s"', local_abspath)
         with self._lock:
             if local_abspath not in self.watch_descriptors:
                 wd = self.notifier.add_watch(local_abspath, self.FLAGS)
                 self.watch_descriptors[wd] = local_abspath
 
     def rm_watch(self, local_abspath):
-        print(style('Removing watcher for "%s"' % local_abspath, fg='red'))
+        logging.debug('Removing watcher for "%s"', local_abspath)
         with self._lock:
             if local_abspath in self.watch_descriptors:
                 wd = self.watch_descriptors.inv.pop(local_abspath)
@@ -417,10 +416,7 @@ class LocalRepositoryWatcher:
             return
         events = self.notifier.read(timeout=0, read_delay=self.FD_READ_DELAY_MSEC)
         if len(events):
-            print(style('*' * 80, fg='blue'))
             move_pairs, all_events = self._recognize_event_patterns(events)
-            print(move_pairs)
             for ev, flags in all_events:
                 self.handle_event(ev, flags, move_pairs)
-            print(style('*' * 80, fg='blue'))
         self._lock.release()
