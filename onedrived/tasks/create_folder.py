@@ -6,6 +6,7 @@ from onedrivesdk import Item, Folder
 
 from . import merge_dir
 from .base import TaskBase as _TaskBase
+from ..od_api_helper import item_request_call
 
 
 class CreateFolderTask(_TaskBase):
@@ -50,12 +51,7 @@ class CreateFolderTask(_TaskBase):
                 return
             item = self._get_folder_pseudo_item(self.item_name)
             item_request = self._get_item_request()
-            try:
-                item = item_request.children.add(item)
-            except onedrivesdk.error.OneDriveError as e:
-                logging.error('API Error occurred when creating dir for "%s": %s.', self.local_abspath, e)
-                self.repo.authenticator.refresh_session(self.repo.account_id)
-                item = item_request.children.add(item)
+            item = item_request_call(self.repo, item_request.children.add, item)
             self.repo.update_item(item, self.parent_relpath, 0)
             logging.info('Created remote item for local dir "%s".', self.local_abspath)
             if self.upload_if_success:
@@ -63,5 +59,7 @@ class CreateFolderTask(_TaskBase):
                 self.task_pool.add_task(merge_dir.MergeDirectoryTask(
                     self.repo, self.task_pool, self.parent_relpath + '/' + self.item_name,
                     self.repo.authenticator.client.item(drive=self.repo.drive.id, id=item.id)))
+            return True
         except (onedrivesdk.error.OneDriveError, OSError) as e:
             logging.error('Error when creating remote dir of "%s": %s.', self.local_abspath, e)
+            return False

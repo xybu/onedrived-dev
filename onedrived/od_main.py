@@ -16,6 +16,7 @@ from . import od_threads
 from . import tasks
 from .od_auth import get_authenticator_and_drives
 from .od_context import load_context
+from .od_watcher import LocalRepositoryWatcher
 
 context = load_context(asyncio.get_event_loop())
 pidfile = context.config_dir + '/onedrived.pid'
@@ -112,8 +113,13 @@ def main():
         w.start()
         task_workers.append(w)
 
-    context.loop.call_soon(gen_start_repo_tasks, all_accounts, task_pool)
+    watcher = LocalRepositoryWatcher(task_pool=task_pool, loop=context.loop)
+    for repo in itertools.chain.from_iterable(all_accounts.values()):
+        watcher.add_repo(repo)
+    context.watcher = watcher
+
     try:
+        context.loop.call_soon(gen_start_repo_tasks, all_accounts, task_pool)
         context.loop.run_forever()
     finally:
         context.loop.close()

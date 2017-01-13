@@ -69,6 +69,9 @@ class UserContext:
     SUPPORTED_PROXY_PROTOCOLS = ('http', 'https')
 
     def __init__(self, loop):
+        """
+        :param asyncio.SelectorEventLoop | None loop:
+        """
         # Information about host and user.
         self.host_name = os.uname()[1]
         self.user_name = get_login_username()
@@ -82,6 +85,7 @@ class UserContext:
         self._create_config_dir_if_missing()
         self.config = self.DEFAULT_CONFIG
         self.loop = loop
+        self._watcher = None
 
     def _create_config_dir_if_missing(self):
         if os.path.exists(self.config_dir) and not os.path.isdir(self.config_dir):
@@ -95,11 +99,25 @@ class UserContext:
 
     @property
     def loop(self):
+        """
+        :return asyncio.SelectorEventLoop | None:
+        """
         return self._loop
 
     @loop.setter
     def loop(self, v):
         self._loop = v
+
+    @property
+    def watcher(self):
+        """
+        :return onedrived.od_watcher.LocalRepositoryWatcher:
+        """
+        return self._watcher
+
+    @watcher.setter
+    def watcher(self, watcher):
+        self._watcher = watcher
 
     @staticmethod
     def set_logger(min_level=logging.WARNING, path=None):

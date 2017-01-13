@@ -8,13 +8,14 @@ from send2trash import send2trash
 from . import download_file, upload_file, delete_item, create_folder
 from .base import TaskBase as _TaskBase
 from .. import mkdir, fix_owner_and_timestamp
-from ..od_api_helper import get_item_modified_datetime
+from ..od_api_helper import get_item_modified_datetime, item_request_call
 from ..od_dateutils import datetime_to_timestamp, diff_timestamps
 from ..od_hashutils import hash_match, sha1_value
-from ..od_repo import ItemRecordType
+from ..od_repo import ItemRecordType, ItemRecordStatus
 
 
 class MergeDirectoryTask(_TaskBase):
+
     def __init__(self, repo, task_pool, rel_path, item_request):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:
@@ -36,6 +37,7 @@ class MergeDirectoryTask(_TaskBase):
         as it goes.
         :return [str]: A list of entry names.
         """
+        # TODO: This logic can be improved if remote info is provided.
         ent_list = set()
         ent_count = dict()
         for ent in os.listdir(self.local_abspath):
@@ -88,12 +90,19 @@ class MergeDirectoryTask(_TaskBase):
             logging.error('Error syncing "%s": %s.', self.local_abspath, e)
             return
 
+        self.repo.context.watcher.rm_watch(self.local_abspath)
+
         try:
-            all_remote_items = self.item_request.children.get()
+            all_remote_items = item_request_call(self.repo, self.item_request.children.get)
         except onedrivesdk.error.OneDriveError as e:
-            logging.error('API Error when syncing "%s": %s.', self.local_abspath, e)
-            self.repo.authenticator.refresh_session(self.repo.account_id)
-            all_remote_items = self.item_request.children.get()
+            logging.error('Encountered API Error: %s. Skip directory "%s".', e, self.rel_path)
+            # Unmark the records under this dir so that they will not be swept in the next round.
+            if self.rel_path == '':
+                self.repo.mark_all_items(mark=ItemRecordStatus.OK)
+            else:
+                parent_relpath, dirname = os.path.split(self.rel_path)
+                self.repo.unmark_items(item_name=dirname, parent_relpath=parent_relpath, is_folder=True)
+            return
 
         for remote_item in all_remote_items:
             remote_is_folder = remote_item.folder is not None
@@ -105,6 +114,8 @@ class MergeDirectoryTask(_TaskBase):
 
         for n in all_local_items:
             self._handle_local_item(n)
+
+        self.repo.context.watcher.add_watch(self.local_abspath)
 
     def _rename_local_and_download_remote(self, remote_item, all_local_items):
         all_local_items.add(self._rename_with_local_suffix(remote_item.name))
@@ -322,8 +333,19 @@ class MergeDirectoryTask(_TaskBase):
             return self._handle_remote_folder(remote_item, item_local_abspath, record, all_local_items)
 
         if remote_item.file is None:
-            logging.info('Remote item "%s/%s" is neither a directory nor a file. Skip it.',
-                         self.rel_path, remote_item.name)
+            if remote_item.name in all_local_items:
+                logging.info('Remote item "%s/%s" is neither a file nor a directory yet local counterpart exists. '
+                             'Rename local item.', self.rel_path, remote_item.name)
+                all_local_items.discard(remote_item.name)
+                try:
+                    new_name = self._rename_with_local_suffix(remote_item.name)
+                    all_local_items.add(new_name)
+                except OSError as e:
+                    logging.error('Error renaming "%s/%s": %s. Skip this item due to unsolvable type conflict.',
+                                  self.rel_path, remote_item.name, e)
+            else:
+                logging.info('Remote item "%s/%s" is neither a file nor a directory. Skip it.',
+                             self.rel_path, remote_item.name)
             return
 
         if record is None:

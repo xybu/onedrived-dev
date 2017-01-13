@@ -124,6 +124,31 @@ class OneDriveLocalRepository:
                                  (status, parent_relpath, item_name))
             self._conn.commit()
 
+    def unmark_items(self, item_name, parent_relpath, is_folder=False):
+        """
+        :param str item_name: Name of the item.
+        :param str parent_relpath: Relative path of its parent item.
+        :param True | False is_folder: True to indicate that the item is a folder (delete all children).
+        """
+        with self._lock:
+            if is_folder:
+                self._cursor.execute('UPDATE items SET status=? WHERE parent_path LIKE ?',
+                                     (ItemRecordStatus.OK, parent_relpath + '/' + item_name + '/%'))
+            self._cursor.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
+                                 (ItemRecordStatus.OK, parent_relpath, item_name))
+            self._conn.commit()
+
+    def mark_all_items(self, mark=ItemRecordStatus.MARKED):
+        with self._lock:
+            self._cursor.execute('UPDATE items SET status=?', (mark, ))
+            self._conn.commit()
+
+    def sweep_marked_items(self):
+        with self._lock:
+            self._cursor.execute('DELETE FROM items WHERE status=?', (ItemRecordStatus.MARKED, ))
+            self._conn.commit()
+            logging.info('Deleted %d dead records from database.', self._cursor.rowcount)
+
     def update_item(self, item, parent_relpath, size_local=0, status=ItemRecordStatus.OK):
         """
         :param onedrivesdk.model.item.Item item:
@@ -155,14 +180,3 @@ class OneDriveLocalRepository:
                  item.size, size_local, created_time_str, modified_time_str, status, sha1_hash,
                  str(datetime.utcnow().isoformat()) + 'Z'))
             self._conn.commit()
-
-    def mark_all_items(self):
-        with self._lock:
-            self._cursor.execute('UPDATE items SET status=?', (ItemRecordStatus.MARKED, ))
-            self._conn.commit()
-
-    def sweep_marked_items(self):
-        with self._lock:
-            self._cursor.execute('DELETE FROM items WHERE status=?', (ItemRecordStatus.MARKED, ))
-            self._conn.commit()
-            logging.info('Deleted %d dead records from database.', self._cursor.rowcount)
