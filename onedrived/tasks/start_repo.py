@@ -24,6 +24,10 @@ class StartRepositoryTask(_TaskBase):
     def handle(self):
         try:
             if os.path.isdir(self.repo.local_root):
+                # Clean up dead records in the database.
+                self.repo.sweep_marked_items()
+                self.repo.mark_all_items()
+                # And add a recursive merge task to task queue.
                 item_request = self.repo.authenticator.client.item(drive=self.repo.drive.id, path='/')
                 self.task_pool.add_task(_merge_dir.MergeDirectoryTask(self.repo, self.task_pool, '', item_request))
             else:

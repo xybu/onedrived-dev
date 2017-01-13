@@ -33,7 +33,7 @@ class ItemRecordType:
 
 class ItemRecordStatus:
     OK = 0
-    MOVING_FROM = 1
+    MARKED = 255
 
 
 class OneDriveLocalRepository:
@@ -118,6 +118,12 @@ class OneDriveLocalRepository:
             self._cursor.execute('DELETE FROM items WHERE parent_path=? AND name=?', (parent_relpath, item_name))
             self._conn.commit()
 
+    def update_status(self, item_name, parent_relpath, status=ItemRecordStatus.OK):
+        with self._lock:
+            self._cursor.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
+                                 (status, parent_relpath, item_name))
+            self._conn.commit()
+
     def update_item(self, item, parent_relpath, size_local=0, status=ItemRecordStatus.OK):
         """
         :param onedrivesdk.model.item.Item item:
@@ -149,3 +155,14 @@ class OneDriveLocalRepository:
                  item.size, size_local, created_time_str, modified_time_str, status, sha1_hash,
                  str(datetime.utcnow().isoformat()) + 'Z'))
             self._conn.commit()
+
+    def mark_all_items(self):
+        with self._lock:
+            self._cursor.execute('UPDATE items SET status=?', (ItemRecordStatus.MARKED, ))
+            self._conn.commit()
+
+    def sweep_marked_items(self):
+        with self._lock:
+            self._cursor.execute('DELETE FROM items WHERE status=?', (ItemRecordStatus.MARKED, ))
+            self._conn.commit()
+            logging.info('Deleted %d dead records from database.', self._cursor.rowcount)
