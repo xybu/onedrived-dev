@@ -193,7 +193,8 @@ class LocalRepositoryWatcher:
 
         self._handle_unpaired_move_to(to_ev, to_flags, to_repo, to_parent_dir, to_parent_relpath)
 
-    def _get_remote_item(self, repo, relpath):
+    @staticmethod
+    def _get_remote_item(repo, relpath):
         item_request = repo.authenticator.client.item(drive=repo.drive.id, path=relpath)
         try:
             return item_request, item_request_call(repo, item_request.get)

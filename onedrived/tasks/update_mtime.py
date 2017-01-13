@@ -18,7 +18,6 @@ class UpdateTimestampTask(_TaskBase):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:
         :param onedrived.od_task.TaskPool task_pool:
-        :param onedrivesdk.request.item_request_builder.ItemRequestBuilder parent_dir_request:
         :param str parent_relpath:
         :param str item_name:
         """

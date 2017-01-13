@@ -15,7 +15,6 @@ from ..od_repo import ItemRecordType, ItemRecordStatus
 
 
 class MergeDirectoryTask(_TaskBase):
-
     def __init__(self, repo, task_pool, rel_path, item_request):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:
@@ -163,7 +162,8 @@ class MergeDirectoryTask(_TaskBase):
             return local_sha1_hash
 
         if (remote_item.id == item_record.item_id and remote_item.c_tag == item_record.c_tag or
-                remote_item.size == item_record.size and diff_timestamps(remote_mtime_ts, record_mtime_ts) == 0):
+                        remote_item.size == item_record.size and
+                        diff_timestamps(remote_mtime_ts, record_mtime_ts) == 0):
             # The remote item metadata matches the database record. So this item has been synced before.
             if item_stat is None:
                 # The local file was synced but now is gone. Delete remote one as well.
