@@ -12,6 +12,10 @@ import threading
 class TaskPool:
     """
     An in-memory storage for tasks.
+
+    Some notes:
+      (1) Tried to let worker threads and inotify watcher communicate by reading/writing a "working path set" but
+          because workers tend to delete path before watcher can read it.
     """
 
     def __init__(self):
