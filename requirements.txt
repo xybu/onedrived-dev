@@ -9,5 +9,5 @@ requests>2.9.1
 tabulate>=0.7.7
 daemonocle>=1.0.1
 ciso8601>=1.0.3
-inotify-simple
+inotify_simple
 bidict
