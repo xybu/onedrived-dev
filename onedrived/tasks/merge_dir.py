@@ -254,15 +254,19 @@ class MergeDirectoryTask(_TaskBase):
             # information is lost.
             remote_mtime, remote_mtime_w = get_item_modified_datetime(remote_item)
             remote_mtime_ts = datetime_to_timestamp(remote_mtime)
-            equal_attr = (remote_item.size == item_stat.st_size and
-                          diff_timestamps(remote_mtime_ts, item_stat.st_mtime) == 0)
+            equal_ts = diff_timestamps(remote_mtime_ts, item_stat.st_mtime) == 0
+            equal_attr = remote_item.size == item_stat.st_size and equal_ts
             # Because of the size mismatch issue, we can't use size not being equal as a shortcut for hash not being
             # equal. When the bug is fixed we can do it.
             if equal_attr or hash_match(item_local_abspath, remote_item):
-                if not equal_attr:
-                    logging.info('Local file "%s" has same content but wrong timestamp. Fix it.', item_local_abspath)
+                if not equal_ts:
+                    logging.info('Local file "%s" has same content but wrong timestamp. '
+                                 'Remote: mtime=%s, w=%s, ts=%s, size=%d. '
+                                 'Local: ts=%s, size=%d. Fix it.',
+                                 item_local_abspath,
+                                 remote_mtime, remote_mtime_w, remote_mtime_ts, remote_item.size,
+                                 item_stat.st_mtime, item_stat.st_size)
                     fix_owner_and_timestamp(item_local_abspath, self.repo.context.user_uid, remote_mtime_ts)
-                    self.repo.update_item(remote_item, self.rel_path, item_stat.st_size)
                 self.repo.update_item(remote_item, self.rel_path, item_stat.st_size)
             else:
                 self._rename_local_and_download_remote(remote_item, all_local_items)
