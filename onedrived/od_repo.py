@@ -132,7 +132,7 @@ class OneDriveLocalRepository:
                 item_relpath = parent_relpath + '/' + item_name
                 self._cursor.execute('UPDATE items SET parent_path=? || substr(parent_path, ?) '
                                      'WHERE parent_path=? OR parent_path LIKE ?',
-                                     (new_parent_relpath + '/' + new_name, len(item_relpath),
+                                     (new_parent_relpath + '/' + new_name, len(item_relpath) + 1,
                                       item_relpath, item_relpath + '/%'))
             self._cursor.execute('UPDATE items SET parent_path=?, name=? WHERE parent_path=? AND name=?',
                                  (new_parent_relpath, new_name, parent_relpath, item_name))

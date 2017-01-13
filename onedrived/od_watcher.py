@@ -414,9 +414,11 @@ class LocalRepositoryWatcher:
         return move_pairs, all_events
 
     def process_events(self):
+        logging.debug('Received inotify events. Acquiring lock.')
         with self._lock:
             events = self.notifier.read(timeout=0, read_delay=self.FD_READ_DELAY_MSEC)
             if len(events):
                 move_pairs, all_events = self._recognize_event_patterns(events)
+                logging.debug('Read the following events: %s.', all_events)
                 for ev, flags in all_events:
                     self.handle_event(ev, flags, move_pairs)
