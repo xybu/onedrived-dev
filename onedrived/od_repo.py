@@ -113,9 +113,29 @@ class OneDriveLocalRepository:
         """
         with self._lock:
             if is_folder:
-                self._cursor.execute('DELETE FROM items WHERE parent_path LIKE ?',
-                                     (parent_relpath + '/' + item_name + '/%',))
+                item_relpath = parent_relpath + '/' + item_name
+                self._cursor.execute('DELETE FROM items WHERE parent_path=? OR parent_path LIKE ?',
+                                     (item_relpath, item_relpath + '/%'))
             self._cursor.execute('DELETE FROM items WHERE parent_path=? AND name=?', (parent_relpath, item_name))
+            self._conn.commit()
+
+    def move_item(self, item_name, parent_relpath, new_name, new_parent_relpath, is_folder=False):
+        """
+        :param str item_name: Name of the item.
+        :param str parent_relpath: Relative path of its parent item.
+        :param str new_name: Name of the item.
+        :param str new_parent_relpath: Relative path of its parent item.
+        :param True | False is_folder: True to indicate that the item is a folder (delete all children).
+        """
+        with self._lock:
+            if is_folder:
+                item_relpath = parent_relpath + '/' + item_name
+                self._cursor.execute('UPDATE items SET parent_path=? || substr(parent_path, ?) '
+                                     'WHERE parent_path=? OR parent_path LIKE ?',
+                                     (new_parent_relpath + '/' + new_name, len(item_relpath),
+                                      item_relpath, item_relpath + '/%'))
+            self._cursor.execute('UPDATE items SET parent_path=?, name=? WHERE parent_path=? AND name=?',
+                                 (new_parent_relpath, new_name, parent_relpath, item_name))
             self._conn.commit()
 
     def update_status(self, item_name, parent_relpath, status=ItemRecordStatus.OK):
@@ -132,8 +152,9 @@ class OneDriveLocalRepository:
         """
         with self._lock:
             if is_folder:
-                self._cursor.execute('UPDATE items SET status=? WHERE parent_path LIKE ?',
-                                     (ItemRecordStatus.OK, parent_relpath + '/' + item_name + '/%'))
+                item_relpath = parent_relpath + '/' + item_name
+                self._cursor.execute('UPDATE items SET status=? WHERE parent_path=? OR parent_path LIKE ?',
+                                     (ItemRecordStatus.OK, item_relpath, item_relpath + '/%'))
             self._cursor.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
                                  (ItemRecordStatus.OK, parent_relpath, item_name))
             self._conn.commit()

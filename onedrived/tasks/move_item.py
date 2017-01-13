@@ -60,7 +60,10 @@ class MoveItemTask(_TaskBase):
         try:
             item = item_request_call(self.repo, item_request.update, self._get_new_item())
             # TODO: update all records or rebuild records after deletion?
-            self.repo.delete_item(self.item_name, self.parent_relpath, self.is_folder)
+            # self.repo.delete_item(self.item_name, self.parent_relpath, self.is_folder)
+            self.repo.move_item(item_name=self.item_name, parent_relpath=self.parent_relpath,
+                                new_name=self.new_name, new_parent_relpath=self.new_parent_relpath,
+                                is_folder=self.is_folder)
             self.repo.update_item(item, self.new_parent_relpath, 0)
             return True
         except (onedrivesdk.error.OneDriveError, OSError) as e:
