@@ -414,11 +414,9 @@ class LocalRepositoryWatcher:
         return move_pairs, all_events
 
     def process_events(self):
-        while not self._lock.acquire(blocking=False, timeout=self.BUSY_RETRY_INTERVAL_SEC):
-            logging.warning('Failed to acquire the lock. Will retry in %d sec.', self.BUSY_RETRY_INTERVAL_SEC)
-        events = self.notifier.read(timeout=0, read_delay=self.FD_READ_DELAY_MSEC)
-        if len(events):
-            move_pairs, all_events = self._recognize_event_patterns(events)
-            for ev, flags in all_events:
-                self.handle_event(ev, flags, move_pairs)
-        self._lock.release()
+        with self._lock:
+            events = self.notifier.read(timeout=0, read_delay=self.FD_READ_DELAY_MSEC)
+            if len(events):
+                move_pairs, all_events = self._recognize_event_patterns(events)
+                for ev, flags in all_events:
+                    self.handle_event(ev, flags, move_pairs)
