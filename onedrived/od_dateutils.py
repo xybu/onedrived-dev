@@ -1,32 +1,31 @@
-from calendar import timegm
-from ciso8601 import parse_datetime
+import arrow
 
 
 def datetime_to_str(d):
     """
-    :param datetime.datetime d:
+    :param arrow.Arrow d:
     :return str:
     """
-    datetime_str = d.isoformat()
-    if '+' in datetime_str:
-        datetime_str = datetime_str[: datetime_str.index('+')]
-    return datetime_str + 'Z'
+    datetime_str = d.to('utc').isoformat()
+    if datetime_str.endswith('+00:00'):
+        datetime_str = datetime_str[:-6] + 'Z'
+    return datetime_str
 
 
 def str_to_datetime(s):
     """
     :param str s:
-    :return datetime.datetime:
+    :return arrow.Arrow:
     """
-    return parse_datetime(s)
+    return arrow.get(s)
 
 
 def datetime_to_timestamp(d):
     """
-    :param datetime.datetime d: A datetime object.
+    :param arrow.Arrow d: A datetime object.
     :return float: An equivalent UNIX timestamp.
     """
-    return timegm(d.utctimetuple()) + d.microsecond / 1e6
+    return d.float_timestamp
 
 
 def diff_timestamps(t1, t2):
