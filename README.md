@@ -48,7 +48,46 @@ Python-based pre-requisites are listed in `requirements.txt` and can be easily i
 
 ## Installation
 
-TBA.
+To install `onedrived`, make sure old versions of `onedrived` are uninstalled, then install all pre-requisite packages
+and install `onedrived` using PIP3. The following instructions assume Ubuntu 16.04.
+
+### Uninstall old `onedrived`
+
+If you have old versions of `onedrived` in system, please uninstall it before proceeding:
+
+```bash
+$ sudo pip3 uninstall onedrive_d
+$ rm -rf ~/.onedrive ~/.onedrived
+```
+
+### Install Pre-requisites
+
+```bash
+# Install gcc and other C-level pre-requisites.
+$ sudo apt install build-essential python3-dev libssl-dev inotifytools
+
+# Install pip3.
+$ wget -O- https://bootstrap.pypa.io/get-pip.py | sudo python3
+```
+
+### Install `onedrived`
+
+You can either install `onedrived` by `pip3` or pull the code and install manually.
+
+To install latest `onedrived` from source with `pip3`:
+
+```bash
+# Remove "--user" to install onedrived system-wide.
+$ pip3 install --user git+ssh://git@github.com/xybu/onedrived-dev.git
+```
+
+OR you can manually pull the code and install it:
+
+```bash
+$ git clone https://github.com/xybu/onedrived-dev.git
+$ cd onedrived-dev
+$ ./setup.py install --user
+```
 
 ## Usage
 
@@ -56,7 +95,14 @@ Not usable yet.
 
 ## Uninstallation
 
-TBA.
+Use `pip3` to uninstall `onedrived` from system:
+
+```bash
+$ pip3 uninstall onedrived
+```
+
+If `--user` argument was not used when installing (that is, `onedrived` was installed as a system-level package), you
+will need root permission to run the command above.
 
 ## License
 
