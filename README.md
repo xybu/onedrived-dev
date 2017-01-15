@@ -1,6 +1,8 @@
 # onedrived-dev
 
+[![Build Status](https://travis-ci.org/xybu/onedrived-dev.svg?branch=master)](https://travis-ci.org/xybu/onedrived-dev)
 [![License](https://img.shields.io/github/license/xybu/onedrived-dev.svg "MIT License")](LICENSE)
+[![Coverage Status](https://coveralls.io/repos/github/xybu/onedrived-dev/badge.svg)](https://coveralls.io/github/xybu/onedrived-dev)
 [![Code Climate](https://codeclimate.com/github/xybu/onedrived-dev/badges/gpa.svg)](https://codeclimate.com/github/xybu/onedrived-dev)
 
 ## Introduction
