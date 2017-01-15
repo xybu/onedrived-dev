@@ -1,0 +1,39 @@
+language: python
+
+python:
+#  - 3.2
+  - 3.3
+  - 3.4
+  - 3.5
+  - 3.5-dev
+
+cache: pip
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - inotify-tools
+      - python3-dev
+      - gcc
+      - libssl-dev
+
+install:
+  - pip install -U pip
+  - pip3 install -U setuptools
+  - pip3 install coverage
+  - pip3 install coveralls
+  - python3 setup.py install
+
+before_script:
+  - python3 --version
+
+script:
+  - coverage3 run --branch --source=onedrived setup.py test
+
+after_success:
+  - coverage3 report -m
+  - coveralls
+
+notifications:
+  email: false
