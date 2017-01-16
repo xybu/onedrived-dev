@@ -14,7 +14,7 @@ class TestTaskPool(unittest.TestCase):
     def setUp(self):
         self.task_pool = od_task.TaskPool()
 
-    def test_add_and_pop(self):
+    def test_add_pop(self):
         ts = [self._get_dummy_task(local_abspath='/1'), self._get_dummy_task(local_abspath='/2')]
         for i, t in enumerate(ts):
             self.assertEqual(i, self.task_pool.outstanding_task_count)
