@@ -3,7 +3,7 @@ import unittest
 
 import onedrivesdk
 
-from onedrived import models
+from onedrived import od_models
 from onedrived import get_resource
 
 
@@ -11,7 +11,7 @@ class TestAccountProfile(unittest.TestCase):
 
     def setUp(self):
         self.data = json.loads(get_resource('data/me_profile_response.json', pkg_name='tests'))
-        self.account = models.account_profile.OneDriveAccountProfile(self.data)
+        self.account = od_models.account_profile.OneDriveAccountProfile(self.data)
 
     def test_properties(self):
         self.assertEqual(self.data['id'], self.account.account_id)
@@ -20,14 +20,14 @@ class TestAccountProfile(unittest.TestCase):
         self.assertEqual(self.data['first_name'], self.account.account_firstname)
         self.assertEqual(self.data['last_name'], self.account.account_lastname)
 
-    def test_tostring(self):
+    def test_to_string(self):
         self.assertIsInstance(str(self.account), str)
 
 
 class TestPathFilter(unittest.TestCase):
     def setUp(self):
         self.rules = get_resource('data/ignore_list.txt', pkg_name='tests').splitlines()
-        self.filter = models.path_filter.PathFilter(self.rules)
+        self.filter = od_models.path_filter.PathFilter(self.rules)
 
     def assert_cases(self, cases):
         """
@@ -107,30 +107,27 @@ class TestPathFilter(unittest.TestCase):
 class TestPrettyApi(unittest.TestCase):
 
     def test_pretty_print_bytes(self):
-        self.assertEqual('0.000 B', models.pretty_api.pretty_print_bytes(size=0, precision=3))
-        self.assertEqual('1.00 KB', models.pretty_api.pretty_print_bytes(size=1025, precision=2))
-        self.assertEqual('1.0 MB', models.pretty_api.pretty_print_bytes(size=1048576, precision=1))
-        self.assertEqual('1.50 GB', models.pretty_api.pretty_print_bytes(size=1610612736, precision=2))
+        self.assertEqual('0.000 B', od_models.pretty_api.pretty_print_bytes(size=0, precision=3))
+        self.assertEqual('1.00 KB', od_models.pretty_api.pretty_print_bytes(size=1025, precision=2))
+        self.assertEqual('1.0 MB', od_models.pretty_api.pretty_print_bytes(size=1048576, precision=1))
+        self.assertEqual('1.50 GB', od_models.pretty_api.pretty_print_bytes(size=1610612736, precision=2))
 
     def test_pretty_quota(self):
         quota = onedrivesdk.Quota(json.loads(get_resource('data/quota_response.json', 'tests')))
-        self.assertIsInstance(models.pretty_api.pretty_quota(quota), str)
+        self.assertIsInstance(od_models.pretty_api.pretty_quota(quota), str)
 
 
 class TestDriveConfig(unittest.TestCase):
 
     def setUp(self):
         self.drive_dict = json.loads(get_resource('data/drive_config_item.json', 'tests'))
-        self.drive_config = models.drive_config.LocalDriveConfig(**self.drive_dict)
+        self.drive_config = od_models.drive_config.LocalDriveConfig(**self.drive_dict)
 
     def test_properties(self):
         self.assertEqual(self.drive_dict['account_id'], self.drive_config.account_id)
         self.assertEqual(self.drive_dict['drive_id'], self.drive_config.drive_id)
         self.assertEqual(self.drive_dict['ignorefile_path'], self.drive_config.ignorefile_path)
         self.assertEqual(self.drive_dict['localroot_path'], self.drive_config.localroot_path)
-
-    def test_to_dict(self):
-        self.assertDictEqual(self.drive_dict, self.drive_config.data)
 
 
 if __name__ == '__main__':

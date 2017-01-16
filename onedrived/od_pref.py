@@ -9,7 +9,7 @@ import tabulate
 
 from . import __version__
 from . import mkdir, od_auth
-from .models import pretty_api, drive_config
+from .od_models import pretty_api, drive_config
 from .od_api_session import OneDriveAPISession, get_keyring_key
 from .od_context import load_context, save_context
 

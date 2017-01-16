@@ -1,11 +1,11 @@
 import logging
 import os
 
-from . import merge_dir as _merge_dir
-from .base import TaskBase as _TaskBase
+from . import base
+from . import merge_dir
 
 
-class StartRepositoryTask(_TaskBase):
+class StartRepositoryTask(base.TaskBase):
     """A simple task that bootstraps the syncing process of a Drive.
     It checks if the root path is a directory, and if so, create a task to merge the remote root with local root.
     """
@@ -29,7 +29,8 @@ class StartRepositoryTask(_TaskBase):
                 self.repo.mark_all_items()
                 # And add a recursive merge task to task queue.
                 item_request = self.repo.authenticator.client.item(drive=self.repo.drive.id, path='/')
-                self.task_pool.add_task(_merge_dir.MergeDirectoryTask(self.repo, self.task_pool, '', item_request))
+                self.task_pool.add_task(merge_dir.MergeDirectoryTask(
+                    self.repo, self.task_pool, '', item_request))
             else:
                 raise OSError('Local root of Drive %s does not exist or is not a directory. Please check "%s".' %
                               (self.repo.drive.id, self.repo.local_root))

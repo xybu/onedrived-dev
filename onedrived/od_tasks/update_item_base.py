@@ -1,7 +1,7 @@
-from .base import TaskBase as _TaskBase
+from onedrived import od_tasks
 
 
-class UpdateItemTaskBase(_TaskBase):
+class UpdateItemTaskBase(od_tasks.base.TaskBase):
 
     def __init__(self, repo, task_pool, parent_relpath, item_name, item_id=None, is_folder=False):
         """

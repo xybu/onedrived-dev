@@ -1,13 +1,13 @@
 import unittest
 
 from onedrived import od_task
-from onedrived import tasks
+from onedrived.od_tasks.base import TaskBase
 
 
 class TestTaskPool(unittest.TestCase):
 
     def _get_dummy_task(self, local_abspath=None):
-        t = tasks.base.TaskBase(repo=None, task_pool=self.task_pool)
+        t = TaskBase(repo=None, task_pool=self.task_pool)
         t.local_abspath = local_abspath
         return t
 

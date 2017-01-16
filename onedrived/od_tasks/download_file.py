@@ -3,7 +3,7 @@ import os
 
 import onedrivesdk.error
 
-from .base import TaskBase as _TaskBase
+from . import base
 from .. import fix_owner_and_timestamp
 from ..od_api_helper import get_item_modified_datetime
 from ..od_api_helper import item_request_call
@@ -11,7 +11,7 @@ from ..od_dateutils import datetime_to_timestamp
 from ..od_hashutils import sha1_value
 
 
-class DownloadFileTask(_TaskBase):
+class DownloadFileTask(base.TaskBase):
 
     def __init__(self, repo, task_pool, remote_item, parent_relpath):
         """

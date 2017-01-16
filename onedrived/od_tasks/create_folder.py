@@ -4,12 +4,12 @@ import os
 import onedrivesdk.error
 from onedrivesdk import Item, Folder
 
+from . import base
 from . import merge_dir
-from .base import TaskBase as _TaskBase
-from ..od_api_helper import item_request_call
+from .. import od_api_helper
 
 
-class CreateFolderTask(_TaskBase):
+class CreateFolderTask(base.TaskBase):
 
     def __init__(self, repo, task_pool, item_name, parent_relpath, upload_if_success=True, abort_if_local_gone=True):
         """
@@ -51,7 +51,7 @@ class CreateFolderTask(_TaskBase):
                 return
             item = self._get_folder_pseudo_item(self.item_name)
             item_request = self._get_item_request()
-            item = item_request_call(self.repo, item_request.children.add, item)
+            item = od_api_helper.item_request_call(self.repo, item_request.children.add, item)
             self.repo.update_item(item, self.parent_relpath, 0)
             logging.info('Created remote item for local dir "%s".', self.local_abspath)
             if self.upload_if_success:

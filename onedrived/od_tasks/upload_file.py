@@ -3,11 +3,11 @@ import os
 
 import onedrivesdk.error
 
-from .update_mtime import UpdateTimestampTask as _UpdateTimestampTask
+from . import update_mtime
 from ..od_api_helper import item_request_call
 
 
-class UploadFileTask(_UpdateTimestampTask):
+class UploadFileTask(update_mtime.UpdateTimestampTask):
 
     def __init__(self, repo, task_pool, parent_dir_request, parent_relpath, item_name):
         """

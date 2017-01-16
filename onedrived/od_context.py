@@ -7,8 +7,8 @@ from pwd import getpwnam
 import xdg
 
 from . import mkdir, get_resource
-from .models import account_profile as _account_profile
-from .models import drive_config as _drive_config
+from .od_models import account_profile as _account_profile
+from .od_models import drive_config as _drive_config
 
 
 def is_invalid_username(s):
@@ -127,23 +127,23 @@ class UserContext:
             logging_config['filename'] = path
         logging.basicConfig(**logging_config)
 
-    def _add_and_return(self, config_key, id_key, obj):
-        self.config[config_key][getattr(obj, id_key)] = obj.data
+    def _add_and_return(self, config_key, id_key, obj, data):
+        self.config[config_key][getattr(obj, id_key)] = data
         return obj
 
     def add_account(self, account_profile):
         """
         Add a new account to config file.
-        :param models.account_profile.OneDriveAccountProfile account_profile:
-        :return models.account_profile.OneDriveAccountProfile: The account profile argument.
+        :param od_models.account_profile.OneDriveAccountProfile account_profile:
+        :return od_models.account_profile.OneDriveAccountProfile: The account profile argument.
         """
-        return self._add_and_return('accounts', 'account_id', account_profile)
+        return self._add_and_return('accounts', 'account_id', account_profile, account_profile.data)
 
     def get_account(self, account_id):
         """
         Return profile of a saved account.
         :param str account_id: ID of the account to query.
-        :return models.account_profile.OneDriveAccountProfile: An OneDriveAccountProfile object of the account profile.
+        :return od_models.account_profile.OneDriveAccountProfile: An OneDriveAccountProfile object of the account profile.
         """
         return _account_profile.OneDriveAccountProfile(self.config['accounts'][account_id])
 
@@ -161,15 +161,15 @@ class UserContext:
     def add_drive(self, drive_config):
         """
         Add a new drive to local config.
-        :param models.drive_config.LocalDriveConfig drive_config:
-        :return models.drive_config.LocalDriveConfig drive_config:
+        :param od_models.drive_config.LocalDriveConfig drive_config:
+        :return od_models.drive_config.LocalDriveConfig drive_config:
         """
-        return self._add_and_return('drives', 'drive_id', drive_config)
+        return self._add_and_return('drives', 'drive_id', drive_config, drive_config._asdict())
 
     def get_drive(self, drive_id):
         """
         :param str drive_id:
-        :return models.drive_config.LocalDriveConfig:
+        :return od_models.drive_config.LocalDriveConfig:
         """
         return _drive_config.LocalDriveConfig(**self.config['drives'][drive_id])
 

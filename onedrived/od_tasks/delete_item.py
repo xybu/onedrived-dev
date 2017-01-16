@@ -2,11 +2,11 @@ import logging
 
 import onedrivesdk.error
 
-from .update_item_base import UpdateItemTaskBase as _TaskBase
-from ..od_api_helper import item_request_call
+from . import update_item_base
+from .. import od_api_helper
 
 
-class DeleteRemoteItemTask(_TaskBase):
+class DeleteRemoteItemTask(update_item_base.UpdateItemTaskBase):
 
     def __init__(self, repo, task_pool, parent_relpath, item_name, item_id=None, is_folder=False):
         """
@@ -27,7 +27,7 @@ class DeleteRemoteItemTask(_TaskBase):
         logging.info('Deleting remote item "%s".', self.rel_path)
         item_request = self.get_item_request()
         try:
-            item_request_call(self.repo, item_request.delete)
+            od_api_helper.item_request_call(self.repo, item_request.delete)
             self.repo.delete_item(self.item_name, self.parent_relpath, self.is_folder)
             logging.info('Deleted remote item "%s".', self.rel_path)
             return True

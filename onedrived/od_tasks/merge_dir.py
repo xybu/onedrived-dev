@@ -5,8 +5,7 @@ import shutil
 import onedrivesdk.error
 from send2trash import send2trash
 
-from . import download_file, upload_file, delete_item, create_folder
-from .base import TaskBase as _TaskBase
+from . import base, create_folder, delete_item, download_file, upload_file
 from .. import mkdir, fix_owner_and_timestamp
 from ..od_api_helper import get_item_modified_datetime, item_request_call
 from ..od_dateutils import datetime_to_timestamp, diff_timestamps
@@ -14,7 +13,7 @@ from ..od_hashutils import hash_match, sha1_value
 from ..od_repo import ItemRecordType, ItemRecordStatus
 
 
-class MergeDirectoryTask(_TaskBase):
+class MergeDirectoryTask(base.TaskBase):
     def __init__(self, repo, task_pool, rel_path, item_request):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:

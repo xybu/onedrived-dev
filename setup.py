@@ -65,5 +65,6 @@ setup(
     install_requires=install_requires,
     tests_require=test_requires,
     test_suite='tests',
-    zip_safe=False
+    zip_safe=False,
+
 )

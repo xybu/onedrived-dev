@@ -12,7 +12,7 @@ import onedrivesdk.error
 import onedrivesdk.helpers.http_provider_with_proxy
 
 from . import od_api_session
-from .models import account_profile
+from .od_models import account_profile
 
 
 def get_authenticator_and_drives(context, account_id):
@@ -60,7 +60,7 @@ class OneDriveAuthenticator:
         Fetch basic profile of the specified user (Live ID).
         :param str user_id: (Optional) ID of the target user.
         :param dict[str, str] proxies: (Optional) Proxies to issue the HTTP request.
-        :return models.account_profile.OneDriveUserProfile: An OneDriveUserProfile object that models the user info.
+        :return od_models.account_profile.OneDriveUserProfile: An OneDriveUserProfile object that od_models the user info.
         """
         url = 'https://apis.live.net/v5.0/' + user_id
         headers = {'Authorization': 'Bearer ' + self.client.auth_provider.access_token}

@@ -11,7 +11,7 @@ import threading
 
 class TaskPool:
     """
-    An in-memory storage for tasks.
+    An in-memory storage for od_tasks.
 
     Some notes:
       (1) Tried to let worker threads and inotify watcher communicate by reading/writing a "working path set" but
@@ -45,7 +45,7 @@ class TaskPool:
     def pop_task(self):
         """
         Pop the oldest task. It's required that the caller first acquire the semaphore.
-        :return onedrived.tasks.base.TaskBase | None: The first qualified task, or None.
+        :return onedrived.od_tasks.base.TaskBase | None: The first qualified task, or None.
         """
         # logging.debug('Getting task...')
         with self._lock:

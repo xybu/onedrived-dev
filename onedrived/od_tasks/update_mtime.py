@@ -5,14 +5,14 @@ from datetime import datetime
 import onedrivesdk.error
 from onedrivesdk import Item, FileSystemInfo
 
-from .update_item_base import UpdateItemTaskBase as _TaskBase
+from . import update_item_base
 from .. import fix_owner_and_timestamp
 from ..od_api_helper import get_item_modified_datetime
 from ..od_api_helper import item_request_call
 from ..od_dateutils import datetime_to_timestamp
 
 
-class UpdateTimestampTask(_TaskBase):
+class UpdateTimestampTask(update_item_base.UpdateItemTaskBase):
 
     def __init__(self, repo, task_pool, parent_relpath, item_name):
         """

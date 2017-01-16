@@ -3,11 +3,11 @@ import logging
 import onedrivesdk.error
 from onedrivesdk import Item, ItemReference
 
-from .update_item_base import UpdateItemTaskBase as _TaskBase
+from . import update_item_base
 from ..od_api_helper import item_request_call
 
 
-class MoveItemTask(_TaskBase):
+class MoveItemTask(update_item_base.UpdateItemTaskBase):
 
     def __init__(self, repo, task_pool, parent_relpath, item_name,
                  new_parent_relpath=None, new_name=None, item_id=None, is_folder=False):
