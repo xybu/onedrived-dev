@@ -104,6 +104,7 @@ class UserContext:
         """
         return self._loop
 
+    # noinspection PyAttributeOutsideInit
     @loop.setter
     def loop(self, v):
         self._loop = v
