@@ -65,8 +65,9 @@ class TaskPool:
             return local_path in self.tasks_by_path
 
     def remove_children_tasks(self, local_parent_path):
+        p = local_parent_path + '/'
         with self._lock:
             for t in self.queued_tasks[:]:
-                if t.local_abspath.startswith(local_parent_path):
+                if t.local_abspath.startswith(p) or t.local_abspath == local_parent_path:
                     self.queued_tasks.remove(t)
                     del self.tasks_by_path[t.local_abspath]
