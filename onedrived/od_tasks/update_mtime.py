@@ -14,17 +14,14 @@ from ..od_dateutils import datetime_to_timestamp
 
 class UpdateTimestampTask(update_item_base.UpdateItemTaskBase):
 
-    def __init__(self, repo, task_pool, parent_relpath, item_name):
+    def __init__(self, repo, task_pool, parent_relpath, item_name, item_id=None, is_folder=False):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:
         :param onedrived.od_task.TaskPool task_pool:
         :param str parent_relpath:
         :param str item_name:
         """
-        super().__init__(repo, task_pool, parent_relpath, item_name, item_id=None, is_folder=False)
-        self.parent_relpath = parent_relpath
-        self.item_name = item_name
-        self.local_abspath = repo.local_root + parent_relpath + '/' + item_name
+        super().__init__(repo, task_pool, parent_relpath, item_name, item_id, is_folder)
 
     def __repr__(self):
         return type(self).__name__ + '(%s)' % self.local_abspath
