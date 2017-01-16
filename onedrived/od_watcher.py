@@ -6,7 +6,7 @@ import onedrivesdk.error
 from bidict import loosebidict
 from inotify_simple import flags as _inotify_flags, masks as _inotify_masks, INotify as _INotify
 
-from . import od_tasks
+from .od_tasks import create_folder, delete_item, move_item, merge_dir, update_mtime, upload_file
 from .od_models.path_filter import PathFilter
 from .od_api_helper import item_request_call
 from .od_hashutils import hash_match
@@ -109,10 +109,10 @@ class LocalRepositoryWatcher:
             new_name = get_filename_with_incremented_count(item_name)
             logging.info('Remote item "%s" in Drive %s is not a directory. Try renaming it to "%s".',
                          rel_path, repo.drive.id, new_name)
-            if not od_tasks.move_item.MoveItemTask(repo=repo, task_pool=self.task_pool,
+            if not move_item.MoveItemTask(repo=repo, task_pool=self.task_pool,
                                                    parent_relpath=parent_relpath, item_name=item_name,
                                                    new_name=new_name, is_folder=False).handle():
-                if not od_tasks.delete_item.DeleteRemoteItemTask(repo=repo, task_pool=self.task_pool,
+                if not delete_item.DeleteRemoteItemTask(repo=repo, task_pool=self.task_pool,
                                                                  parent_relpath=parent_relpath,
                                                                  item_name=item_name, is_folder=False).handle():
                     logging.warning('Failed to rename or delete remote item "%s" in Drive %s.',
@@ -122,7 +122,7 @@ class LocalRepositoryWatcher:
             if e.code != onedrivesdk.error.ErrorCode.ItemNotFound:
                 return False
 
-        if not od_tasks.create_folder.CreateFolderTask(repo=repo, task_pool=self.task_pool,
+        if not create_folder.CreateFolderTask(repo=repo, task_pool=self.task_pool,
                                                        item_name=item_name, parent_relpath=parent_relpath,
                                                        upload_if_success=False, abort_if_local_gone=True).handle():
             logging.critical('Failed to create remote directory "%s" on Drive %s.', rel_path, repo.drive.id)
@@ -138,8 +138,8 @@ class LocalRepositoryWatcher:
 
     def _squash_tasks(self, repo, rel_path):
         for t in self.task_queue.copy():
-            if (isinstance(t, od_tasks.merge_dir.MergeDirectoryTask) or
-                    isinstance(t, od_tasks.delete_item.DeleteRemoteItemTask)) and t.repo is repo:
+            if (isinstance(t, merge_dir.MergeDirectoryTask) or
+                    isinstance(t, delete_item.DeleteRemoteItemTask)) and t.repo is repo:
                 if t.rel_path == rel_path or rel_path.startswith(t.rel_path + '/'):
                     # A dir merge already exists, making this new task unnecessary.
                     raise ParentTaskExistsException(t)
@@ -151,7 +151,7 @@ class LocalRepositoryWatcher:
     def _add_merge_dir_task(self, repo, rel_path):
         try:
             self._squash_tasks(repo, rel_path)
-            self.task_queue.append(od_tasks.merge_dir.MergeDirectoryTask(
+            self.task_queue.append(merge_dir.MergeDirectoryTask(
                 repo=repo, task_pool=self.task_pool, rel_path=rel_path,
                 item_request=self._get_item_request_by_relpath(repo, rel_path)))
         except ParentTaskExistsException as e:
@@ -206,7 +206,7 @@ class LocalRepositoryWatcher:
                 (from_item_record.type == ItemRecordType.FOLDER) == (_inotify_flags.ISDIR in to_flags):
             logging.info('Use Move API to move item "%s/%s" in Drive %s to "%s/%s".',
                          from_parent_relpath, from_ev.name, from_repo.drive.id, to_parent_relpath, to_ev.name)
-            if od_tasks.move_item.MoveItemTask(
+            if move_item.MoveItemTask(
                     repo=to_repo, task_pool=self.task_pool, parent_relpath=from_parent_relpath, item_name=from_ev.name,
                     new_parent_relpath=to_parent_relpath, new_name=to_ev.name, item_id=from_item_record.item_id,
                     is_folder=_inotify_flags.ISDIR in from_flags).handle():
@@ -262,7 +262,7 @@ class LocalRepositoryWatcher:
             logging.info('Will remove item "%s/%s" in Drive %s.', from_parent_relpath, from_ev.name, from_repo.drive.id)
             try:
                 self._squash_tasks(from_repo, item_relpath)
-                self.task_queue.append(od_tasks.delete_item.DeleteRemoteItemTask(
+                self.task_queue.append(delete_item.DeleteRemoteItemTask(
                     repo=from_repo, task_pool=self.task_pool, parent_relpath=from_parent_relpath,
                     item_name=from_ev.name,
                     item_id=from_item_record.item_id, is_folder=from_item_record.type == ItemRecordType.FOLDER))
@@ -310,7 +310,7 @@ class LocalRepositoryWatcher:
                 new_name = get_filename_with_incremented_count(item.name)
                 can_upload = False
                 try:
-                    can_upload = od_tasks.move_item.MoveItemTask(
+                    can_upload = move_item.MoveItemTask(
                         repo=to_repo, task_pool=self.task_pool,
                         parent_relpath=to_parent_relpath, item_name=item.name, item_id=item.id,
                         new_parent_relpath=to_parent_relpath, new_name=new_name, is_folder=item_is_folder).handle()
@@ -328,7 +328,7 @@ class LocalRepositoryWatcher:
                 self._add_merge_dir_task(to_repo, item_relpath)
                 return
             elif item_is_file and not event_is_dir:
-                if hash_match(item_local_abspath, item) and od_tasks.update_mtime.UpdateTimestampTask(
+                if hash_match(item_local_abspath, item) and update_mtime.UpdateTimestampTask(
                         repo=to_repo, task_pool=self.task_pool,
                         parent_relpath=to_parent_relpath, item_name=to_ev.name).handle():
                     logging.info('Local file "%s" has same data as remote counterpart. Updated timestamp and record.',
@@ -342,13 +342,13 @@ class LocalRepositoryWatcher:
                 return
 
         if _inotify_flags.ISDIR in to_flags:
-            self.task_queue.append(od_tasks.create_folder.CreateFolderTask(
+            self.task_queue.append(create_folder.CreateFolderTask(
                 repo=to_repo, task_pool=self.task_pool, item_name=to_ev.name, parent_relpath=to_parent_relpath,
                 upload_if_success=True, abort_if_local_gone=True))
             # After the directory is created, it will be merged and thus the watcher updated.
         else:
             to_dir_request = self._get_item_request_by_relpath(to_repo, to_parent_relpath)
-            self.task_queue.append(od_tasks.upload_file.UploadFileTask(
+            self.task_queue.append(upload_file.UploadFileTask(
                 repo=to_repo, task_pool=self.task_pool,
                 parent_dir_request=to_dir_request, parent_relpath=to_parent_relpath, item_name=to_ev.name))
 

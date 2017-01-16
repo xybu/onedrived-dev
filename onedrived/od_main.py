@@ -13,7 +13,7 @@ import daemonocle.cli
 from . import od_repo
 from . import od_task
 from . import od_threads
-from . import od_tasks
+from .od_tasks import start_repo
 from .od_auth import get_authenticator_and_drives
 from .od_context import load_context
 from .od_watcher import LocalRepositoryWatcher
@@ -68,7 +68,7 @@ def gen_start_repo_tasks(all_accounts, task_pool):
     """
     if task_pool.outstanding_task_count == 0:
         for repo in itertools.chain.from_iterable(all_accounts.values()):
-            task_pool.add_task(od_tasks.start_repo.StartRepositoryTask(repo, task_pool))
+            task_pool.add_task(start_repo.StartRepositoryTask(repo, task_pool))
             logging.info('Scheduled deep-sync for Drive %s of account %s.', repo.drive.id, repo.account_id)
     context.loop.call_later(context.config['scan_interval_sec'], gen_start_repo_tasks, all_accounts, task_pool)
 
