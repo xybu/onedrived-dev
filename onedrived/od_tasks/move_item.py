@@ -1,4 +1,5 @@
 import logging
+import os
 
 import onedrivesdk.error
 from onedrivesdk import Item, ItemReference
@@ -58,13 +59,14 @@ class MoveItemTask(update_item_base.UpdateItemTaskBase):
         # The routine assumes that the directory to save the new path exists remotely.
         item_request = self.get_item_request()
         try:
+            size = 0 if self.is_folder else os.stat(self.repo.local_root + self.new_relpath).st_size
             item = item_request_call(self.repo, item_request.update, self._get_new_item())
             # TODO: update all records or rebuild records after deletion?
             # self.repo.delete_item(self.item_name, self.parent_relpath, self.is_folder)
             self.repo.move_item(item_name=self.item_name, parent_relpath=self.parent_relpath,
                                 new_name=self.new_name, new_parent_relpath=self.new_parent_relpath,
                                 is_folder=self.is_folder)
-            self.repo.update_item(item, self.new_parent_relpath, 0)
+            self.repo.update_item(item, self.new_parent_relpath, size_local=size)
             return True
         except (onedrivesdk.error.OneDriveError, OSError) as e:
             logging.error('Error moving item "%s" to "%s": %s.', self.rel_path, self.new_relpath, e)
