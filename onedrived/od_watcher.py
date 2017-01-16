@@ -14,6 +14,13 @@ from .od_repo import ItemRecordType
 from .od_stringutils import get_filename_with_incremented_count
 
 
+class ParentTaskExistsException(Exception):
+
+    def __init__(self, task):
+        super().__init__()
+        self.task = task
+
+
 class LocalRepositoryWatcher:
 
     FLAGS = _inotify_flags.CREATE | _inotify_flags.CLOSE_WRITE | _inotify_flags.DELETE | _inotify_masks.MOVE
@@ -30,6 +37,7 @@ class LocalRepositoryWatcher:
         self._lock = threading.RLock()
         self.watch_descriptors = loosebidict()
         self.local_repos = dict()
+        self.task_queue = []
         self.task_pool = task_pool
         self.notifier = _INotify()
         if loop is None:
@@ -87,6 +95,8 @@ class LocalRepositoryWatcher:
             return True
         item_request = repo.authenticator.client.item(drive=repo.drive.id, path=rel_path)
         parent_relpath, item_name = os.path.split(rel_path)
+        if parent_relpath == '/':
+            parent_relpath = ''
 
         try:
             item = item_request_call(repo, item_request.get)
@@ -126,10 +136,26 @@ class LocalRepositoryWatcher:
         else:
             return repo.authenticator.client.item(drive=repo.drive.id, path=rel_path)
 
+    def _squash_tasks(self, repo, rel_path):
+        for t in self.task_queue.copy():
+            if (isinstance(t, tasks.merge_dir.MergeDirectoryTask) or
+                    isinstance(t, tasks.delete_item.DeleteRemoteItemTask)) and t.repo is repo:
+                if t.rel_path == rel_path or rel_path.startswith(t.rel_path + '/'):
+                    # A dir merge already exists, making this new task unnecessary.
+                    raise ParentTaskExistsException(t)
+                if t.rel_path.startswith(rel_path + '/'):
+                    # This new merge task merges parent of an existing dir merge. Remove the old merge.
+                    logging.info('Removed %s because its parent "%s" will be covered by another task.', t, rel_path)
+                    self.task_queue.remove(t)
+
     def _add_merge_dir_task(self, repo, rel_path):
-        item_request = self._get_item_request_by_relpath(repo, rel_path)
-        self.task_pool.add_task(tasks.merge_dir.MergeDirectoryTask(
-            repo=repo, task_pool=self.task_pool, rel_path=rel_path, item_request=item_request))
+        try:
+            self._squash_tasks(repo, rel_path)
+            self.task_queue.append(tasks.merge_dir.MergeDirectoryTask(
+                repo=repo, task_pool=self.task_pool, rel_path=rel_path,
+                item_request=self._get_item_request_by_relpath(repo, rel_path)))
+        except ParentTaskExistsException as e:
+            logging.info('Task on path "%s" will be covered by %s. Skip adding.', rel_path, e.task)
 
     @staticmethod
     def _local_abspath_to_relpath(repo, local_abspath):
@@ -234,10 +260,14 @@ class LocalRepositoryWatcher:
 
         if item and from_item_record and item.id == from_item_record.item_id and item.e_tag == from_item_record.e_tag:
             logging.info('Will remove item "%s/%s" in Drive %s.', from_parent_relpath, from_ev.name, from_repo.drive.id)
-            self.task_pool.add_task(tasks.delete_item.DeleteRemoteItemTask(
-                repo=from_repo, task_pool=self.task_pool, parent_relpath=from_parent_relpath,
-                item_name=from_ev.name,
-                item_id=from_item_record.item_id, is_folder=from_item_record.type == ItemRecordType.FOLDER))
+            try:
+                self._squash_tasks(from_repo, item_relpath)
+                self.task_queue.append(tasks.delete_item.DeleteRemoteItemTask(
+                    repo=from_repo, task_pool=self.task_pool, parent_relpath=from_parent_relpath,
+                    item_name=from_ev.name,
+                    item_id=from_item_record.item_id, is_folder=from_item_record.type == ItemRecordType.FOLDER))
+            except ParentTaskExistsException as e:
+                logging.info('Task on path "%s" will be covered by %s. Skip adding.', item_relpath, e.task)
         else:
             logging.info('Uncertain status of item "%s" in Drive %s for %s. Fallback to dir merge.',
                          item_relpath, from_repo.drive.id, str(from_ev))
@@ -295,8 +325,7 @@ class LocalRepositoryWatcher:
             elif item_is_folder and event_is_dir:
                 # A dir of same name already exists remotely but we don't know if it has been synced before or
                 # was created on another machine. Merge the two directories.
-                self.task_pool.add_task(tasks.merge_dir.MergeDirectoryTask(
-                    repo=to_repo, task_pool=self.task_pool, rel_path=item_relpath, item_request=item_request))
+                self._add_merge_dir_task(to_repo, item_relpath)
                 return
             elif item_is_file and not event_is_dir:
                 if hash_match(item_local_abspath, item) and tasks.update_mtime.UpdateTimestampTask(
@@ -313,13 +342,13 @@ class LocalRepositoryWatcher:
                 return
 
         if _inotify_flags.ISDIR in to_flags:
-            self.task_pool.add_task(tasks.create_folder.CreateFolderTask(
+            self.task_queue.append(tasks.create_folder.CreateFolderTask(
                 repo=to_repo, task_pool=self.task_pool, item_name=to_ev.name, parent_relpath=to_parent_relpath,
                 upload_if_success=True, abort_if_local_gone=True))
             # After the directory is created, it will be merged and thus the watcher updated.
         else:
             to_dir_request = self._get_item_request_by_relpath(to_repo, to_parent_relpath)
-            self.task_pool.add_task(tasks.upload_file.UploadFileTask(
+            self.task_queue.append(tasks.upload_file.UploadFileTask(
                 repo=to_repo, task_pool=self.task_pool,
                 parent_dir_request=to_dir_request, parent_relpath=to_parent_relpath, item_name=to_ev.name))
 
@@ -414,6 +443,11 @@ class LocalRepositoryWatcher:
         return move_pairs, all_events
 
     def process_events(self):
+        """
+        When there is inotify events available, async loop schedules this function in MainThread. Also it seems that
+        async loop will not schedule it if this function is in the middle of execution.
+        :return:
+        """
         logging.debug('Received inotify events. Acquiring lock.')
         with self._lock:
             events = self.notifier.read(timeout=0, read_delay=self.FD_READ_DELAY_MSEC)
@@ -422,3 +456,8 @@ class LocalRepositoryWatcher:
                 logging.debug('Read the following events: %s.', all_events)
                 for ev, flags in all_events:
                     self.handle_event(ev, flags, move_pairs)
+                try:
+                    while True:
+                        self.task_pool.add_task(self.task_queue.pop())
+                except IndexError:
+                    pass
