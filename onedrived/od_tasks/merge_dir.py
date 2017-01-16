@@ -180,6 +180,8 @@ class MergeDirectoryTask(base.TaskBase):
                                  item_local_abspath, local_mtime_ts, remote_mtime_ts)
                     fix_owner_and_timestamp(item_local_abspath, self.repo.context.user_uid, remote_mtime_ts)
                     self.repo.update_item(remote_item, self.rel_path, item_stat.st_size)
+                else:
+                    self.repo.unmark_items(item_record.item_name, item_record.parent_path, is_folder=False)
             else:
                 # Content of local file has changed. Because we assume the remote item was synced before, we overwrite
                 # the remote item with local one.

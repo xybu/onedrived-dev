@@ -70,10 +70,8 @@ class OneDriveLocalRepository:
         self.path_filter = _PathFilter(rules)
 
     def _init_item_store(self):
-        self._conn = sqlite3.connect(self._item_store_path, isolation_level=None, check_same_thread=False)
-        self._cursor = self._conn.cursor()
-        self._cursor.execute(_get_resource('data/items_db.sql', pkg_name='onedrived'))
-        self._conn.commit()
+        self._conn = sqlite3.connect(self._item_store_path, check_same_thread=False)
+        self._conn.execute(_get_resource('data/items_db.sql', pkg_name='onedrived'))
         atexit.register(self.close)
 
     def refresh_session(self):
@@ -87,7 +85,6 @@ class OneDriveLocalRepository:
             self.context.loop.call_later(t, self.refresh_session)
 
     def close(self):
-        self._cursor.close()
         self._conn.close()
 
     def get_item_by_path(self, item_name, parent_relpath):
@@ -111,13 +108,13 @@ class OneDriveLocalRepository:
         :param str parent_relpath: Relative path of its parent item.
         :param True | False is_folder: True to indicate that the item is a folder (delete all children).
         """
-        with self._lock:
+        with self._lock, self._conn:
+            cursor = self._conn.cursor()
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
-                self._cursor.execute('DELETE FROM items WHERE parent_path=? OR parent_path LIKE ?',
+                cursor.execute('DELETE FROM items WHERE parent_path=? OR parent_path LIKE ?',
                                      (item_relpath, item_relpath + '/%'))
-            self._cursor.execute('DELETE FROM items WHERE parent_path=? AND name=?', (parent_relpath, item_name))
-            self._conn.commit()
+            cursor.execute('DELETE FROM items WHERE parent_path=? AND name=?', (parent_relpath, item_name))
 
     def move_item(self, item_name, parent_relpath, new_name, new_parent_relpath, is_folder=False):
         """
@@ -127,22 +124,21 @@ class OneDriveLocalRepository:
         :param str new_parent_relpath: Relative path of its parent item.
         :param True | False is_folder: True to indicate that the item is a folder (delete all children).
         """
-        with self._lock:
+        with self._lock, self._conn:
+            cursor = self._conn.cursor()
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
-                self._cursor.execute('UPDATE items SET parent_path=? || substr(parent_path, ?) '
+                cursor.execute('UPDATE items SET parent_path=? || substr(parent_path, ?) '
                                      'WHERE parent_path=? OR parent_path LIKE ?',
                                      (new_parent_relpath + '/' + new_name, len(item_relpath) + 1,
                                       item_relpath, item_relpath + '/%'))
-            self._cursor.execute('UPDATE items SET parent_path=?, name=? WHERE parent_path=? AND name=?',
+            cursor.execute('UPDATE items SET parent_path=?, name=? WHERE parent_path=? AND name=?',
                                  (new_parent_relpath, new_name, parent_relpath, item_name))
-            self._conn.commit()
 
     def update_status(self, item_name, parent_relpath, status=ItemRecordStatus.OK):
-        with self._lock:
-            self._cursor.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
+        with self._lock, self._conn:
+            self._conn.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
                                  (status, parent_relpath, item_name))
-            self._conn.commit()
 
     def unmark_items(self, item_name, parent_relpath, is_folder=False):
         """
@@ -150,25 +146,23 @@ class OneDriveLocalRepository:
         :param str parent_relpath: Relative path of its parent item.
         :param True | False is_folder: True to indicate that the item is a folder (delete all children).
         """
-        with self._lock:
+        with self._lock, self._conn:
+            cursor = self._conn.cursor()
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
-                self._cursor.execute('UPDATE items SET status=? WHERE parent_path=? OR parent_path LIKE ?',
+                cursor.execute('UPDATE items SET status=? WHERE parent_path=? OR parent_path LIKE ?',
                                      (ItemRecordStatus.OK, item_relpath, item_relpath + '/%'))
-            self._cursor.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
+            cursor.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
                                  (ItemRecordStatus.OK, parent_relpath, item_name))
-            self._conn.commit()
 
     def mark_all_items(self, mark=ItemRecordStatus.MARKED):
-        with self._lock:
-            self._cursor.execute('UPDATE items SET status=?', (mark, ))
-            self._conn.commit()
+        with self._lock, self._conn:
+            self._conn.execute('UPDATE items SET status=?', (mark, ))
 
     def sweep_marked_items(self):
-        with self._lock:
-            self._cursor.execute('DELETE FROM items WHERE status=?', (ItemRecordStatus.MARKED, ))
-            self._conn.commit()
-            logging.info('Deleted %d dead records from database.', self._cursor.rowcount)
+        with self._lock, self._conn:
+            q = self._conn.execute('DELETE FROM items WHERE status=?', (ItemRecordStatus.MARKED, ))
+            logging.info('Deleted %d dead records from database.', q.rowcount)
 
     def update_item(self, item, parent_relpath, size_local=0, status=ItemRecordStatus.OK):
         """
@@ -192,12 +186,11 @@ class OneDriveLocalRepository:
         modified_time, modified_time_w = get_item_modified_datetime(item)
         modified_time_str = datetime_to_str(modified_time)
         created_time_str = datetime_to_str(get_item_created_datetime(item))
-        with self._lock:
-            self._cursor.execute(
+        with self._lock, self._conn:
+            self._conn.execute(
                 'INSERT OR REPLACE INTO items (id, type, name, parent_id, parent_path, etag, '
                 'ctag, size, size_local, created_time, modified_time, status, sha1_hash, record_time)'
                 ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 (item.id, item_type, item.name, parent_reference.id, parent_relpath, item.e_tag, item.c_tag,
                  item.size, size_local, created_time_str, modified_time_str, status, sha1_hash,
                  str(datetime.utcnow().isoformat()) + 'Z'))
-            self._conn.commit()
