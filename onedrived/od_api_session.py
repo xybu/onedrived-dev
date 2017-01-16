@@ -1,7 +1,7 @@
 import binascii
 import pickle
-from time import time
 import zlib
+from time import time
 
 import keyring
 import onedrivesdk.session
@@ -17,20 +17,6 @@ class OneDriveAPISession(onedrivesdk.session.Session):
     KEYRING_SERVICE_NAME = 'onedrived_v2'
     KEYRING_ACCOUNT_KEY_PREFIX = 'user.'
     PICKLE_PROTOCOL = 3
-    #
-    # def __init__(self,
-    #              token_type,
-    #              expires_in,
-    #              scope_string,
-    #              access_token,
-    #              client_id,
-    #              auth_server_url,
-    #              redirect_uri,
-    #              refresh_token=None,
-    #              client_secret=None):
-    #     super().__init__(token_type=token_type, expires_in=expires_in, scope_string=scope_string,
-    #                      access_token=access_token, client_id=client_id, auth_server_url=auth_server_url,
-    #                      redirect_uri=redirect_uri, refresh_token=refresh_token, client_secret=client_secret)
 
     @property
     def expires_in_sec(self):

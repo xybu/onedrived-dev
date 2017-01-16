@@ -12,6 +12,7 @@ class TaskBase:
     def local_abspath(self):
         return self._local_abspath
 
+    # noinspection PyAttributeOutsideInit
     @local_abspath.setter
     def local_abspath(self, path):
         self._local_abspath = path
