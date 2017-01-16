@@ -1,13 +1,13 @@
 import unittest
 
 from onedrived import od_task
-from onedrived import tasks
+from onedrived.tasks.base import TaskBase
 
 
 class TestTaskPool(unittest.TestCase):
 
     def _get_dummy_task(self, local_abspath=None):
-        t = tasks.base.TaskBase(repo=None, task_pool=self.task_pool)
+        t = TaskBase(repo=None, task_pool=self.task_pool)
         t.local_abspath = local_abspath
         return t
 
@@ -39,6 +39,7 @@ class TestTaskPool(unittest.TestCase):
         self.assertEqual(2, self.task_pool.outstanding_task_count)
         self.assertEqual('/foo2', self.task_pool.pop_task().local_abspath)
         self.assertEqual('/foo2/bar', self.task_pool.pop_task().local_abspath)
+
 
 if __name__ == '__main__':
     unittest.main()

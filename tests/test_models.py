@@ -3,7 +3,8 @@ import unittest
 
 import onedrivesdk
 
-from onedrived import models, get_resource
+from onedrived import models
+from tests import get_resource
 
 
 class TestAccountProfile(unittest.TestCase):

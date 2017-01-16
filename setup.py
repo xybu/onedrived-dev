@@ -9,15 +9,13 @@ A Microsoft OneDrive client for Linux.
 
 import sys
 
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
-from onedrived import __author__, __email__, __homepage__
-from onedrived import __project__, __version__
+from onedrived import __author__, __email__, __homepage__, __project__, __version__
 
-
-setup_requires = [
-    'setuptools'
-]
 
 with open('requirements.txt', 'r') as f:
     install_requires = f.readlines()
@@ -29,8 +27,6 @@ test_requires = [
 
 with open('README.md', 'r') as f:
     readme = f.read()
-
-packages = find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"])
 
 python_version = sys.version_info
 
@@ -53,7 +49,7 @@ setup(
     description='A Microsoft OneDrive client for Linux written in Python 3.',
     license='MIT',
     long_description=readme,
-    packages=packages,
+    packages=['onedrived'],
     include_package_data=True,
     package_data={
             'onedrived': ['lang/*', 'data/*']
@@ -66,10 +62,8 @@ setup(
         ],
         'gui_scripts': []
     },
-    setup_requires=setup_requires,
     install_requires=install_requires,
     tests_require=test_requires,
     test_suite='tests',
-    zip_safe=False,
-    requires=setup_requires
+    zip_safe=False
 )
