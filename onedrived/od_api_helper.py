@@ -24,6 +24,10 @@ def get_item_modified_datetime(item):
         return od_dateutils.str_to_datetime(item._prop_dict['lastModifiedDateTime']), False
 
 
+def get_item_created_datetime(item):
+    return od_dateutils.str_to_datetime(item._prop_dict['createdDateTime'])
+
+
 def item_request_call(repo, request_func, *args, **kwargs):
     while True:
         try:

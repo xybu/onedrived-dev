@@ -13,7 +13,7 @@ from datetime import datetime
 
 from . import get_resource as _get_resource
 from .models.path_filter import PathFilter as _PathFilter
-from .od_api_helper import get_item_modified_datetime
+from .od_api_helper import get_item_modified_datetime, get_item_created_datetime
 from .od_dateutils import str_to_datetime, datetime_to_str
 
 
@@ -189,9 +189,9 @@ class OneDriveLocalRepository:
         else:
             raise ValueError('Unknown type of item "%s (%s)".' % (item.name, item.id))
         parent_reference = item.parent_reference
-        created_time_str = datetime_to_str(item.created_date_time)
         modified_time, modified_time_w = get_item_modified_datetime(item)
         modified_time_str = datetime_to_str(modified_time)
+        created_time_str = datetime_to_str(get_item_created_datetime(item))
         with self._lock:
             self._cursor.execute(
                 'INSERT OR REPLACE INTO items (id, type, name, parent_id, parent_path, etag, '
