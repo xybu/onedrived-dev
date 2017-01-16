@@ -40,5 +40,6 @@ class TestTaskPool(unittest.TestCase):
         self.assertEqual('/foo2', self.task_pool.pop_task().local_abspath)
         self.assertEqual('/foo2/bar', self.task_pool.pop_task().local_abspath)
 
+
 if __name__ == '__main__':
     unittest.main()
