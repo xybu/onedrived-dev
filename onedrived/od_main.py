@@ -28,7 +28,8 @@ task_pool = None
 def shutdown_callback(msg, code):
     logging.info('Shutting down.')
     context.loop.stop()
-    task_pool.close(len(task_workers))
+    if task_pool:
+        task_pool.close(len(task_workers))
     od_threads.TaskWorkerThread.exit()
     for w in task_workers:
         w.join()

@@ -1,0 +1,17 @@
+{
+  "id": "0123456789abc",
+  "driveType": "personal",
+  "owner": {
+    "user": {
+      "id": "12391913bac",
+      "displayName": "Ryan Gregg"
+    }
+  },
+  "quota": {
+    "total": 1024000,
+    "used": 514000,
+    "remaining": 1010112,
+    "deleted": 0,
+    "state": "normal"
+  }
+}

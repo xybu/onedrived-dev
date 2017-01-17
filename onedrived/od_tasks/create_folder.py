@@ -5,7 +5,6 @@ import onedrivesdk.error
 from onedrivesdk import Item, Folder
 
 from . import base
-from . import merge_dir
 from .. import od_api_helper
 
 
@@ -56,10 +55,13 @@ class CreateFolderTask(base.TaskBase):
             logging.info('Created remote item for local dir "%s".', self.local_abspath)
             if self.upload_if_success:
                 logging.info('Adding task to merge "%s" after remote item was created.', self.local_abspath)
-                self.task_pool.add_task(merge_dir.MergeDirectoryTask(
+                self.task_pool.add_task(MergeDirectoryTask(
                     self.repo, self.task_pool, self.parent_relpath + '/' + self.item_name,
                     self.repo.authenticator.client.item(drive=self.repo.drive.id, id=item.id)))
             return True
         except (onedrivesdk.error.OneDriveError, OSError) as e:
             logging.error('Error when creating remote dir of "%s": %s.', self.local_abspath, e)
             return False
+
+
+from .merge_dir import MergeDirectoryTask

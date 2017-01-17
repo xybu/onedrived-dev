@@ -7,6 +7,16 @@ from onedrived import od_models
 from onedrived import get_resource
 
 
+def get_sample_drive():
+    drive_response = json.loads(get_resource('data/drive_response.json', 'tests'))
+    return onedrivesdk.Drive(drive_response)
+
+
+def get_sample_drive_config():
+    drive_dict = json.loads(get_resource('data/drive_config_item.json', 'tests'))
+    return drive_dict, od_models.drive_config.LocalDriveConfig(**drive_dict)
+
+
 class TestAccountProfile(unittest.TestCase):
 
     def setUp(self):
@@ -120,8 +130,7 @@ class TestPrettyApi(unittest.TestCase):
 class TestDriveConfig(unittest.TestCase):
 
     def setUp(self):
-        self.drive_dict = json.loads(get_resource('data/drive_config_item.json', 'tests'))
-        self.drive_config = od_models.drive_config.LocalDriveConfig(**self.drive_dict)
+        self.drive_dict, self.drive_config = get_sample_drive_config()
 
     def test_properties(self):
         self.assertEqual(self.drive_dict['account_id'], self.drive_config.account_id)

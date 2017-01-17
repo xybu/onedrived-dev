@@ -40,6 +40,9 @@ if python_version < (3, 4):
     install_requires.append('asyncio')
     install_requires.append('enum34')
 
+if python_version < (3, 5):
+    install_requires.append('dbus-python')
+
 setup(
     name=__project__,
     version=__version__,
@@ -66,5 +69,4 @@ setup(
     tests_require=test_requires,
     test_suite='tests',
     zip_safe=False,
-
 )

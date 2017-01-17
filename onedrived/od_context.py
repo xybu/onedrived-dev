@@ -70,7 +70,7 @@ class UserContext:
 
     def __init__(self, loop):
         """
-        :param asyncio.SelectorEventLoop | None loop:
+        :param asyncio.AbstractEventLoop | None loop:
         """
         # Information about host and user.
         self.host_name = os.uname()[1]

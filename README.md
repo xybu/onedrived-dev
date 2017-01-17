@@ -46,6 +46,7 @@ The use of low-level tools and APIs like `inotify` and `keyring` introduces low-
 * `python3-dev`
 * `libssl-dev`
 * `inotify-tools`
+* `python3-dbus`
 
 On other distros like Fedora names of those packages may vary.
 
@@ -70,7 +71,7 @@ $ rm -rf ~/.onedrive ~/.onedrived
 
 ```bash
 # Install gcc and other C-level pre-requisites.
-$ sudo apt install build-essential python3-dev libssl-dev inotifytools
+$ sudo apt install build-essential python3-dev libssl-dev inotifytools python3-dbus
 
 # Install pip3.
 $ wget -O- https://bootstrap.pypa.io/get-pip.py | sudo python3

@@ -16,10 +16,11 @@ sudo: false
 addons:
   apt:
     packages:
+      - build-essential
       - inotify-tools
       - python3-dev
-      - gcc
       - libssl-dev
+      - python3-dbus
 
 install:
   - pip install -U pip
