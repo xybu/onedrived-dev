@@ -36,7 +36,7 @@ It's strongly suggested that you [use the latest PIP](https://pip.pypa.io/en/sta
 # Download pip installation script from official site using wget.
 $ wget -O- https://bootstrap.pypa.io/get-pip.py | sudo python3
 # Upgrade the components (e.g., setuptools) to latest version.
-$ sudo pip3 -U install pip
+$ sudo pip3 install -U pip setuptools
 ```
 
 ### Pre-requisites
@@ -54,6 +54,13 @@ On other distros like Fedora names of those packages may vary.
 Note that `keyring`, which provides secure local storage for OneDrive credentials (the leak of which may result in total compromise of your OneDrive data), may require additional packages (for example, D-Bus
 or FreeDesktop Secret Service) depending on your Linux distro and desktop manager. Please refer to its [installation instructions](https://pypi.python.org/pypi/keyring#installation-instructions) for more details.
 
+To install those dependencies on Ubuntu, use `apt-get` command:
+
+```bash
+# Install gcc and other C-level pre-requisites.
+$ sudo apt-get install build-essential python3-dev libssl-dev inotify-tools python3-dbus
+```
+
 Python-level pre-requisites are listed in `requirements.txt` and will be installed automatically when installing `onedrived`.
 
 ### Uninstall older `onedrived`
@@ -66,17 +73,6 @@ $ sudo pip3 uninstall onedrive_d onedrived
 
 # Remove useless config files.
 $ rm -rf ~/.onedrive ~/.onedrived
-```
-
-### Install pre-requisites
-
-```bash
-# Install gcc and other C-level pre-requisites.
-$ sudo apt install build-essential python3-dev libssl-dev inotifytools python3-dbus
-
-# Install pip3.
-$ wget -O- https://bootstrap.pypa.io/get-pip.py | sudo python3
-$ sudo pip3 install -U pip setuptools
 ```
 
 ### Install `onedrived`
