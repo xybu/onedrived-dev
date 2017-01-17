@@ -25,14 +25,14 @@ addons:
 install:
   - pip install -U pip
   - pip3 install -U setuptools
-  - pip3 install coverage
-  - pip3 install coveralls
+  - pip3 install coverage coveralls pytest
   - python3 setup.py install
 
 before_script:
   - python3 --version
 
 script:
+  - python3 -m pytest
   - coverage3 run --branch --source=onedrived setup.py test
 
 after_success:

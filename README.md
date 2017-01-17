@@ -23,7 +23,8 @@ The guide that follows will assume an environment with Python3 interpreter insta
 $ python3 --version
 ```
 
-If `python3` command is not found, please install `python3` package. For example, on Ubuntu
+If `python3` command is not found, or its version is below `3.3`, please install the latest `python3` package.
+For example, on Ubuntu
 
 ```bash
 $ sudo apt-get install python3
@@ -46,7 +47,7 @@ The use of low-level tools and APIs like `inotify` and `keyring` introduces low-
 * `python3-dev`
 * `libssl-dev`
 * `inotify-tools`
-* `python3-dbus`
+* `python3-dbus` (or probably `libdbus-glib-1-dev`)
 
 On other distros like Fedora names of those packages may vary.
 
@@ -67,7 +68,7 @@ $ sudo pip3 uninstall onedrive_d onedrived
 $ rm -rf ~/.onedrive ~/.onedrived
 ```
 
-### Install Pre-requisites
+### Install pre-requisites
 
 ```bash
 # Install gcc and other C-level pre-requisites.
@@ -75,11 +76,14 @@ $ sudo apt install build-essential python3-dev libssl-dev inotifytools python3-d
 
 # Install pip3.
 $ wget -O- https://bootstrap.pypa.io/get-pip.py | sudo python3
+$ sudo pip3 install -U pip setuptools
 ```
 
 ### Install `onedrived`
 
-You can either install `onedrived` by `pip3` or pull the code and install manually. Note that you may want to check out this repository regularly to have the latest version installed.
+You can either install `onedrived` by `pip3` or pull the code and install manually.
+Note that you may want to check out this repository regularly to have the latest version installed, and run
+the included tests to see whether `onedrived` can actually run on your setup.
 
 #### Install from PyPI with `pip`
 
@@ -95,22 +99,54 @@ Notes:
  2. To install onedrived system-wide (that is, make onedrived program available to all users in the OS), remove argument `--user` from the command).
 
 ```bash
-$ pip3 install --user git+ssh://git@github.com/xybu/onedrived-dev.git
+$ pip3 install --user git+https://github.com/xybu/onedrived-dev.git
 ```
 
 #### Install from source manually
 
-You can manually pull the code and install it:
+First pull the code from GitHub repository:
 
 ```bash
 $ git clone https://github.com/xybu/onedrived-dev.git
 $ cd onedrived-dev
-$ ./setup.py install --user
+
+```
+
+You may want to run the included tests before installing with one of the following commands:
+
+```bash
+# Use the built-in test driver of Python.
+$ python3 ./setup.py test
+
+# Or use py.test if you have it installed.
+$ python3 -m pytest
+```
+
+Then install `onedrived` with one of the following command:
+
+```bash
+# Use pip to install onedrived.
+$ pip3 install -e .
+
+# Or use the built-in setuptools package from Python.
+$ python3 ./setup.py install --user
 ```
 
 ## Usage
 
 Not usable yet.
+
+### Configure `onedrived`
+
+#### Authorizing accounts
+
+#### Adding Drives to `onedrived`
+
+#### Adjusting parameters of `onedrived`
+
+### Run `onedrived` in debug mode
+
+### Run `onedrived` as daemon
 
 ## Uninstallation
 
@@ -126,4 +162,3 @@ will need root permission to run the command above.
 ## License
 
 MIT License.
-

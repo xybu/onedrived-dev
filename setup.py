@@ -21,8 +21,7 @@ with open('requirements.txt', 'r') as f:
     install_requires = f.readlines()
 
 test_requires = [
-    'requests-mock>=0.6',
-    'coverage>=3.7.1'
+    'requests-mock',
 ]
 
 with open('README.md', 'r') as f:
@@ -30,18 +29,8 @@ with open('README.md', 'r') as f:
 
 python_version = sys.version_info
 
-if python_version[0] < 3:
-    raise Exception('onedrived only supports Python 3.x and newer.')
-
-if python_version == (3, 2):
-    test_requires.append('mock>=1.3.0')
-
-if python_version < (3, 4):
-    install_requires.append('asyncio')
-    install_requires.append('enum34')
-
-if python_version < (3, 5):
-    install_requires.append('dbus-python')
+if python_version < (3, 3):
+    raise Exception('%s %s only supports Python 3.3 and newer.' % (__project__, __version__))
 
 setup(
     name=__project__,
@@ -55,18 +44,18 @@ setup(
     packages=['onedrived'],
     include_package_data=True,
     package_data={
-            'onedrived': ['lang/*', 'data/*']
+            'onedrived': ['data/*']
     },
     package_dir={'onedrived': 'onedrived'},
     entry_points={
         'console_scripts': [
-            'onedrived = onedrived.cli.cli_main:main',
-            'onedrived-pref = onedrived.cli.pref_main:main'
+            'onedrived = onedrived.od_main:main',
+            'onedrived-pref = onedrived.od_pref:main'
         ],
         'gui_scripts': []
     },
     install_requires=install_requires,
     tests_require=test_requires,
     test_suite='tests',
-    zip_safe=False,
+    zip_safe=False
 )
