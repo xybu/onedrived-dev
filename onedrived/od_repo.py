@@ -10,6 +10,7 @@ import logging
 import sqlite3
 import threading
 from datetime import datetime
+from contextlib import closing
 
 from . import get_resource as _get_resource
 from .od_models.path_filter import PathFilter as _PathFilter
@@ -108,8 +109,7 @@ class OneDriveLocalRepository:
         :param str parent_relpath: Relative path of its parent item.
         :param True | False is_folder: True to indicate that the item is a folder (delete all children).
         """
-        with self._lock, self._conn:
-            cursor = self._conn.cursor()
+        with self._lock, self._conn, closing(self._conn.cursor()) as cursor:
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
                 cursor.execute('DELETE FROM items WHERE parent_path=? OR parent_path LIKE ?',
@@ -124,8 +124,7 @@ class OneDriveLocalRepository:
         :param str new_parent_relpath: Relative path of its parent item.
         :param True | False is_folder: True to indicate that the item is a folder (delete all children).
         """
-        with self._lock, self._conn:
-            cursor = self._conn.cursor()
+        with self._lock, self._conn, closing(self._conn.cursor()) as cursor:
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
                 cursor.execute('UPDATE items SET parent_path=? || substr(parent_path, ?) '
@@ -146,8 +145,7 @@ class OneDriveLocalRepository:
         :param str parent_relpath: Relative path of its parent item.
         :param True | False is_folder: True to indicate that the item is a folder (delete all children).
         """
-        with self._lock, self._conn:
-            cursor = self._conn.cursor()
+        with self._lock, self._conn, closing(self._conn.cursor()) as cursor:
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
                 cursor.execute('UPDATE items SET status=? WHERE parent_path=? OR parent_path LIKE ?',

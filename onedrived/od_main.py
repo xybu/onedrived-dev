@@ -6,6 +6,7 @@ import logging
 import os
 import signal
 import sys
+import weakref
 
 import click
 import daemonocle.cli
@@ -20,7 +21,7 @@ from .od_watcher import LocalRepositoryWatcher
 
 context = load_context(asyncio.get_event_loop())
 pidfile = context.config_dir + '/onedrived.pid'
-task_workers = []
+task_workers = weakref.WeakSet()
 task_pool = None
 
 
@@ -32,7 +33,9 @@ def shutdown_callback(msg, code):
         task_pool.close(len(task_workers))
     od_threads.TaskWorkerThread.exit()
     for w in task_workers:
-        w.join()
+        if w: w.join()
+    if context:
+        context.watcher.close()
     try:
         os.remove(pidfile)
     except OSError:
@@ -91,6 +94,7 @@ def delete_temp_files(all_accounts):
                    'uid': context.user_uid,
                    'pidfile': pidfile,
                    'shutdown_callback': shutdown_callback,
+                   'workdir': os.getcwd()
                })
 def main():
     # Exit program when receiving SIGTERM or SIGINT.
@@ -112,12 +116,11 @@ def main():
     for i in range(context.config['num_workers']):
         w = od_threads.TaskWorkerThread(name='Worker-%d' % len(task_workers), task_pool=task_pool)
         w.start()
-        task_workers.append(w)
+        task_workers.add(w)
 
-    watcher = LocalRepositoryWatcher(task_pool=task_pool, loop=context.loop)
+    context.watcher = LocalRepositoryWatcher(task_pool=task_pool, loop=context.loop)
     for repo in itertools.chain.from_iterable(all_accounts.values()):
-        watcher.add_repo(repo)
-    context.watcher = watcher
+        context.watcher.add_repo(repo)
 
     try:
         context.loop.call_soon(gen_start_repo_tasks, all_accounts, task_pool)
