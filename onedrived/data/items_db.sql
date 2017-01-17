@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS items (
-  id            TEXT UNIQUE PRIMARY KEY ON CONFLICT REPLACE,
+  id            TEXT UNIQUE ON CONFLICT REPLACE,
   type          INT,
   name          TEXT,
   parent_id     TEXT,
@@ -12,5 +12,6 @@ CREATE TABLE IF NOT EXISTS items (
   modified_time TEXT,
   status        INT,
   sha1_hash     TEXT,
-  record_time   TEXT
+  record_time   TEXT,
+  PRIMARY KEY (parent_path, name) ON CONFLICT REPLACE
 );
