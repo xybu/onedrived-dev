@@ -1,0 +1,40 @@
+{
+  "@content.downloadUrl": "http://public-sn3302.files.1drv.com/y2pcT7OaUEExF7EHOlpTjCE55mIUoiX7H3sx1ff6I-nP35XUTBqZlnkh9FJhWb_pf9sZ7LEpEchvDznIbQig0hWBeidpwFkOqSKCwQylisarN6T0ecAeMvantizBUzM2PA1",
+  "createdDateTime": "2014-10-31T03:37:04.72Z",
+  "lastModifiedDateTime": "2014-05-06T07:08:09.33Z",
+  "cTag": "aYzpENDY0OEYwNkM5MUQ5RDNEITU0OTI3LjI1Ng",
+  "eTag": "aRDQ2NDhGMDZDOTFEOUQzRCE1NDkyNy4w",
+  "id": "D4648F06C91D9D3D!54927",
+  "createdBy": {
+    "user": {
+      "displayName": "xybu",
+      "id": "abc123"
+    }
+  },
+  "lastModifiedBy": {
+    "user": {
+      "displayName": "daron spektor",
+      "id": "d4648f06c91d9d3d"
+    }
+  },
+  "name": "BritishShorthair.jpg",
+  "description": "foobar!",
+  "size": 45,
+  "image": {
+    "height": 398,
+    "width": 273
+  },
+  "parentReference": {
+    "id": "53BEAAF056826882!103",
+    "driveId": "53beaaf056826882",
+    "path": "/drive/root:"
+  },
+  "file": {
+    "hashes": {
+      "crc32Hash": "omY5NA==",
+      "sha1Hash": "wmgPQ6jrSeMX7JP1XmstQEGM2fc="
+    },
+    "mimeType": "image/jpeg"
+  },
+  "webUrl": "http://foo/bar/baz"
+}

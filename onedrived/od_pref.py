@@ -334,8 +334,8 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
                 click.echo(click.style('Warning: ignore file path does not point to a file. Use default.', fg='yellow'))
                 ignore_file = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
             if (drive_exists and
-                        local_root == curr_drive_config.localroot_path and
-                        ignore_file == curr_drive_config.ignorefile_path):
+                local_root == curr_drive_config.localroot_path and
+                    ignore_file == curr_drive_config.ignorefile_path):
                 click.echo(click.style('No parameter was changed. Skipped operation.', fg='yellow'))
                 return
         except ValueError as e:

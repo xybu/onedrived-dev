@@ -143,7 +143,8 @@ class UserContext:
         """
         Return profile of a saved account.
         :param str account_id: ID of the account to query.
-        :return od_models.account_profile.OneDriveAccountProfile: An OneDriveAccountProfile object of the account profile.
+        :return od_models.account_profile.OneDriveAccountProfile:
+            An OneDriveAccountProfile object of the account profile.
         """
         return _account_profile.OneDriveAccountProfile(self.config['accounts'][account_id])
 

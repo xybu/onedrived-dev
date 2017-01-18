@@ -86,6 +86,7 @@ class OneDriveLocalRepository:
             self.context.loop.call_later(t, self.refresh_session)
 
     def close(self):
+        logging.debug('Closing database "%s".', self._item_store_path)
         self._conn.close()
 
     def get_item_by_path(self, item_name, parent_relpath):
@@ -113,7 +114,7 @@ class OneDriveLocalRepository:
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
                 cursor.execute('DELETE FROM items WHERE parent_path=? OR parent_path LIKE ?',
-                                     (item_relpath, item_relpath + '/%'))
+                               (item_relpath, item_relpath + '/%'))
             cursor.execute('DELETE FROM items WHERE parent_path=? AND name=?', (parent_relpath, item_name))
 
     def move_item(self, item_name, parent_relpath, new_name, new_parent_relpath, is_folder=False):
@@ -128,16 +129,11 @@ class OneDriveLocalRepository:
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
                 cursor.execute('UPDATE items SET parent_path=? || substr(parent_path, ?) '
-                                     'WHERE parent_path=? OR parent_path LIKE ?',
-                                     (new_parent_relpath + '/' + new_name, len(item_relpath) + 1,
-                                      item_relpath, item_relpath + '/%'))
+                               'WHERE parent_path=? OR parent_path LIKE ?',
+                               (new_parent_relpath + '/' + new_name, len(item_relpath) + 1,
+                                item_relpath, item_relpath + '/%'))
             cursor.execute('UPDATE items SET parent_path=?, name=? WHERE parent_path=? AND name=?',
-                                 (new_parent_relpath, new_name, parent_relpath, item_name))
-
-    def update_status(self, item_name, parent_relpath, status=ItemRecordStatus.OK):
-        with self._lock, self._conn:
-            self._conn.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
-                                 (status, parent_relpath, item_name))
+                           (new_parent_relpath, new_name, parent_relpath, item_name))
 
     def unmark_items(self, item_name, parent_relpath, is_folder=False):
         """
@@ -149,9 +145,9 @@ class OneDriveLocalRepository:
             if is_folder:
                 item_relpath = parent_relpath + '/' + item_name
                 cursor.execute('UPDATE items SET status=? WHERE parent_path=? OR parent_path LIKE ?',
-                                     (ItemRecordStatus.OK, item_relpath, item_relpath + '/%'))
+                               (ItemRecordStatus.OK, item_relpath, item_relpath + '/%'))
             cursor.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
-                                 (ItemRecordStatus.OK, parent_relpath, item_name))
+                           (ItemRecordStatus.OK, parent_relpath, item_name))
 
     def mark_all_items(self, mark=ItemRecordStatus.MARKED):
         with self._lock, self._conn:

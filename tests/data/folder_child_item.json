@@ -1,0 +1,47 @@
+{
+  "createdBy": {
+    "user": {
+      "id": "xybu_id",
+      "displayName": "Xiangyu Bu"
+    },
+    "application": {
+      "id": "4010c916",
+      "displayName": "onedrive-d"
+    }
+  },
+  "id": "xybu_id!339",
+  "fileSystemInfo": {
+    "createdDateTime": "2015-02-23T19:02:31.433Z",
+    "lastModifiedDateTime": "2015-02-23T19:02:31.433Z"
+  },
+  "eTag": "aNTNCRUFBRjA1NjgyNjg4MiEzMzkuMA",
+  "cTag": "aYzo1M0JFQUFGMDU2ODI2ODgyITMzOS4yNTY",
+  "createdDateTime": "2015-02-23T19:02:31.433Z",
+  "lastModifiedBy": {
+    "user": {
+      "id": "xybu_id",
+      "displayName": "Xiangyu Bu"
+    },
+    "application": {
+      "id": "4010c916",
+      "displayName": "onedrive-d"
+    }
+  },
+  "parentReference": {
+    "driveId": "xybu_id",
+    "id": "xybu_id!105",
+    "path": "/drive/root:/Public"
+  },
+  "webUrl": "https://onedrive.live.com/redir?resid=xybu_id!339",
+  "@content.downloadUrl": "https://what/no",
+  "size": 7632,
+  "file": {
+    "hashes": {
+      "sha1Hash": "84DCA3C4C2A464F21963F4EBAEFBD0042094D286",
+      "crc32Hash": "8A7A50C4"
+    },
+    "mimeType": "text/plain"
+  },
+  "name": "LICENSE",
+  "lastModifiedDateTime": "2015-02-23T19:02:31.433Z"
+}

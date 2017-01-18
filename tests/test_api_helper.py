@@ -1,12 +1,14 @@
 import unittest
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 import arrow
 import requests
 from onedrivesdk import Item, FileSystemInfo, error
 
 from onedrived import od_api_helper
-
-from tests import mock
 
 
 class TestApiHelper(unittest.TestCase):
@@ -59,6 +61,7 @@ class TestApiHelper(unittest.TestCase):
         name, args, kwargs = mock_repo.method_calls[0]
         self.assertEqual('authenticator.refresh_session', name)
         self.assertEqual((account_id,), args)
+
 
 if __name__ == '__main__':
     unittest.main()

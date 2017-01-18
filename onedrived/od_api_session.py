@@ -26,10 +26,14 @@ class OneDriveAPISession(onedrivesdk.session.Session):
         if self.SESSION_ARG_KEYNAME not in save_session_kwargs:
             raise ValueError('"%s" must be specified in save_session() argument.' % self.SESSION_ARG_KEYNAME)
         data = binascii.b2a_base64(zlib.compress(pickle.dumps(self, self.PICKLE_PROTOCOL)))
-        keyring.set_password(self.KEYRING_SERVICE_NAME, save_session_kwargs['key'], data)
+        keyring.set_password(self.KEYRING_SERVICE_NAME, save_session_kwargs[self.SESSION_ARG_KEYNAME], data)
 
     @staticmethod
     def load_session(**load_session_kwargs):
+        """
+        :param dict[str, str] load_session_kwargs:
+        :return onedrived.od_api_session.OneDriveAPISession:
+        """
         keyarg = OneDriveAPISession.SESSION_ARG_KEYNAME
         if keyarg not in load_session_kwargs:
             raise ValueError('"%s" must be specified in load_session() argument.' % keyarg)

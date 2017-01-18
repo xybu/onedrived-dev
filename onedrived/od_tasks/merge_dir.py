@@ -6,6 +6,12 @@ import onedrivesdk.error
 from send2trash import send2trash
 
 from . import base
+from . import delete_item, download_file, upload_file
+from .. import mkdir, fix_owner_and_timestamp
+from ..od_api_helper import get_item_modified_datetime, item_request_call
+from ..od_dateutils import datetime_to_timestamp, diff_timestamps
+from ..od_hashutils import hash_match, sha1_value
+from ..od_repo import ItemRecordType, ItemRecordStatus
 
 
 class MergeDirectoryTask(base.TaskBase):
@@ -156,8 +162,8 @@ class MergeDirectoryTask(base.TaskBase):
             return local_sha1_hash
 
         if (remote_item.id == item_record.item_id and remote_item.c_tag == item_record.c_tag or
-                        remote_item.size == item_record.size and
-                        diff_timestamps(remote_mtime_ts, record_mtime_ts) == 0):
+            remote_item.size == item_record.size and
+                diff_timestamps(remote_mtime_ts, record_mtime_ts) == 0):
             # The remote item metadata matches the database record. So this item has been synced before.
             if item_stat is None:
                 # The local file was synced but now is gone. Delete remote one as well.
@@ -166,8 +172,8 @@ class MergeDirectoryTask(base.TaskBase):
                 self.task_pool.add_task(delete_item.DeleteRemoteItemTask(
                     self.repo, self.task_pool, self.rel_path, remote_item.name, remote_item.id, False))
             elif (item_stat.st_size == item_record.size_local and
-                      (diff_timestamps(local_mtime_ts, record_mtime_ts) == 0 or
-                               remote_sha1_hash and remote_sha1_hash == get_local_sha1_hash())):
+                  (diff_timestamps(local_mtime_ts, record_mtime_ts) == 0 or
+                   remote_sha1_hash and remote_sha1_hash == get_local_sha1_hash())):
                 # If the local file matches the database record (i.e., same mtime timestamp or same content),
                 # simply return. This is the best case.
                 if diff_timestamps(local_mtime_ts, remote_mtime_ts) != 0:
@@ -199,7 +205,7 @@ class MergeDirectoryTask(base.TaskBase):
                     download_file.DownloadFileTask(self.repo, self.task_pool, remote_item, self.rel_path))
             elif item_stat.st_size == item_record.size_local and \
                     (diff_timestamps(local_mtime_ts, record_mtime_ts) == 0 or
-                             item_record.sha1_hash and item_record.sha1_hash == get_local_sha1_hash()):
+                     item_record.sha1_hash and item_record.sha1_hash == get_local_sha1_hash()):
                 # Local file agrees with database record. This means that the remote file is strictly newer.
                 # The local file can be safely overwritten.
                 logging.debug('Local file "%s" agrees with db record but remote item is different. Overwrite local.',
@@ -414,7 +420,7 @@ class MergeDirectoryTask(base.TaskBase):
             record_mtime_ts = datetime_to_timestamp(item_record.modified_time)
             if item_stat.st_size == item_record.size_local and \
                     (diff_timestamps(item_stat.st_mtime, record_mtime_ts) == 0 or
-                             item_record.sha1_hash and item_record.sha1_hash == sha1_value(item_local_abspath)):
+                     item_record.sha1_hash and item_record.sha1_hash == sha1_value(item_local_abspath)):
                 logging.debug('Local file "%s" used to exist remotely but not found. Delete it.', item_local_abspath)
                 send2trash(item_local_abspath)
                 self.repo.delete_item(item_record.item_name, item_record.parent_path, False)
@@ -444,9 +450,4 @@ class MergeDirectoryTask(base.TaskBase):
             logging.error('Error occurred when accessing path "%s": %s.', item_local_abspath, e)
 
 
-from . import create_folder, delete_item, download_file, upload_file
-from .. import mkdir, fix_owner_and_timestamp
-from ..od_api_helper import get_item_modified_datetime, item_request_call
-from ..od_dateutils import datetime_to_timestamp, diff_timestamps
-from ..od_hashutils import hash_match, sha1_value
-from ..od_repo import ItemRecordType, ItemRecordStatus
+from . import create_folder

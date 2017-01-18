@@ -1,0 +1,43 @@
+{
+  "createdDateTime": "2015-08-17T14:29:20.86Z",
+  "lastModifiedBy": {
+    "application": {
+      "id": "4010c916",
+      "displayName": "onedrive-d"
+    },
+    "user": {
+      "id": "xybu_id",
+      "displayName": "Xiangyu Bu"
+    }
+  },
+  "parentReference": {
+    "driveId": "xybu_id",
+    "id": "xybu_id!103",
+    "path": "/drive/root:"
+  },
+  "createdBy": {
+    "application": {
+      "id": "4010c916",
+      "displayName": "onedrive-d"
+    },
+    "user": {
+      "id": "xybu_id",
+      "displayName": "Xiangyu Bu"
+    }
+  },
+  "fileSystemInfo": {
+    "createdDateTime": "2015-08-17T14:29:20.86Z",
+    "lastModifiedDateTime": "2015-08-17T14:29:20.86Z"
+  },
+  "id": "xybu_id!376",
+  "@odata.context": "https://api.onedrive.com/v1.0/$metadata#drives('me')/items('root')/children/$entity",
+  "cTag": "adDo1M0JFQUFGMDU2ODI2ODgyITM3Ni42MzU3NTQxODU2MDg2MDAwMDA",
+  "folder": {
+    "childCount": 0
+  },
+  "size": 0,
+  "eTag": "aNTNCRUFBRjA1NjgyNjg4MiEzNzYuMA",
+  "name": "foo 2",
+  "lastModifiedDateTime": "2015-08-17T14:29:20.86Z",
+  "webUrl": "https://onedrive.live.com/redir?resid=xybu_id!376"
+}

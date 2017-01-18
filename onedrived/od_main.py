@@ -25,16 +25,21 @@ task_workers = weakref.WeakSet()
 task_pool = None
 
 
+def join_workers():
+    od_threads.TaskWorkerThread.exit()
+    for w in task_workers:
+        if w:
+            w.join()
+
+
 # noinspection PyUnusedLocal
 def shutdown_callback(msg, code):
     logging.info('Shutting down.')
     context.loop.stop()
     if task_pool:
         task_pool.close(len(task_workers))
-    od_threads.TaskWorkerThread.exit()
-    for w in task_workers:
-        if w: w.join()
-    if context:
+    join_workers()
+    if context and context.watcher:
         context.watcher.close()
     try:
         os.remove(pidfile)
@@ -127,6 +132,7 @@ def main():
         context.loop.run_forever()
     finally:
         context.loop.close()
+
 
 if __name__ == '__main__':
     main()

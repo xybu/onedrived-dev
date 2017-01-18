@@ -110,11 +110,11 @@ class LocalRepositoryWatcher:
             logging.info('Remote item "%s" in Drive %s is not a directory. Try renaming it to "%s".',
                          rel_path, repo.drive.id, new_name)
             if not move_item.MoveItemTask(repo=repo, task_pool=self.task_pool,
-                                                   parent_relpath=parent_relpath, item_name=item_name,
-                                                   new_name=new_name, is_folder=False).handle():
+                                          parent_relpath=parent_relpath, item_name=item_name,
+                                          new_name=new_name, is_folder=False).handle():
                 if not delete_item.DeleteRemoteItemTask(repo=repo, task_pool=self.task_pool,
-                                                                 parent_relpath=parent_relpath,
-                                                                 item_name=item_name, is_folder=False).handle():
+                                                        parent_relpath=parent_relpath,
+                                                        item_name=item_name, is_folder=False).handle():
                     logging.warning('Failed to rename or delete remote item "%s" in Drive %s.',
                                     rel_path, repo.drive.id)
                     return False
@@ -123,8 +123,8 @@ class LocalRepositoryWatcher:
                 return False
 
         if not create_folder.CreateFolderTask(repo=repo, task_pool=self.task_pool,
-                                                       item_name=item_name, parent_relpath=parent_relpath,
-                                                       upload_if_success=False, abort_if_local_gone=True).handle():
+                                              item_name=item_name, parent_relpath=parent_relpath,
+                                              upload_if_success=False, abort_if_local_gone=True).handle():
             logging.critical('Failed to create remote directory "%s" on Drive %s.', rel_path, repo.drive.id)
             return False
         return True

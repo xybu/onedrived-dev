@@ -1,0 +1,37 @@
+{
+  "specialFolder": {
+    "name": "public"
+  },
+  "lastModifiedBy": {
+    "user": {
+      "displayName": "Xiangyu Bu",
+      "id": "xybu_id"
+    }
+  },
+  "folder": {
+    "childCount": 2
+  },
+  "id": "xybu_id!105",
+  "parentReference": {
+    "id": "xybu_id!103",
+    "driveId": "xybu_id",
+    "path": "/drive/root:"
+  },
+  "size": 7632,
+  "cTag": "adDo1M0JFQUFGMDU2ODI2ODgyITEwNS42MzU2MTIwODg0MjMwMDAwMDA",
+  "createdBy": {
+    "user": {
+      "displayName": "Xiangyu Bu",
+      "id": "xybu_id"
+    }
+  },
+  "name": "Public",
+  "lastModifiedDateTime": "2015-03-06T03:20:42.3Z",
+  "createdDateTime": "2013-11-25T03:54:33.86Z",
+  "eTag": "aNTNCRUFBRjA1NjgyNjg4MiExMDUuMQ",
+  "webUrl": "https://onedrive.live.com/redir?resid=xybu_id!105",
+  "fileSystemInfo": {
+    "lastModifiedDateTime": "2013-11-25T03:54:33.86Z",
+    "createdDateTime": "2013-11-25T03:54:33.86Z"
+  }
+}
