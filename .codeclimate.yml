@@ -9,10 +9,15 @@ engines:
     enabled: true
   radon:
     enabled: true
+  markdownlint:
+    enabled: true
+  pep8:
+    enabled: true
 ratings:
   paths:
   - "**.inc"
   - "**.module"
   - "**.py"
+  - "**.md"
 exclude_paths:
 - tests/
