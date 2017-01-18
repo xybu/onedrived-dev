@@ -25,7 +25,7 @@ addons:
 install:
   - pip install -U pip
   - pip3 install -U setuptools
-  - pip3 install coverage coveralls pytest
+  - pip3 install coverage coveralls pytest codeclimate-test-reporter
   - python3 setup.py install
 
 before_script:
@@ -38,6 +38,7 @@ script:
 after_success:
   - coverage3 report -m
   - coveralls
+  - CODECLIMATE_REPO_TOKEN=299d832e7f28d822ec417baf31e79973d7d0a0e9225c8fecabf359867e70e67e codeclimate-test-reporter
 
 notifications:
   email: false
