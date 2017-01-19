@@ -27,7 +27,6 @@ addons:
       - libdbus-1-dev
       - libdbus-glib-1-dev
       - python3-dbus
-      - python3-gi
 
 install:
   - pip install -U pip
@@ -39,8 +38,8 @@ before_script:
   - python3 --version
 
 script:
-  - python3 -m pytest
-  - coverage3 run --branch --source=onedrived setup.py test
+  - MOCK_KEYRING=1 python3 -m pytest
+  - MOCK_KEYRING=1 coverage3 run --branch --source=onedrived setup.py test
 
 after_success:
   - coverage3 report -m
