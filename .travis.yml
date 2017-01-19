@@ -45,6 +45,7 @@ after_success:
   - coverage3 report -m
   - coveralls
   - CODECLIMATE_REPO_TOKEN=299d832e7f28d822ec417baf31e79973d7d0a0e9225c8fecabf359867e70e67e codeclimate-test-reporter
+  - bash <(curl -s https://codecov.io/bash)
 
 notifications:
   email: false
