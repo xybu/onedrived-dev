@@ -29,7 +29,7 @@ def load_context(loop=None):
     try:
         ctx.load_config(ctx.DEFAULT_CONFIG_FILENAME)
     except OSError as e:
-        logging.error('Failed to load config file: %s. Use default.', e)
+        logging.warning('Failed to load config file: %s. Use default.', e)
     return ctx
 
 

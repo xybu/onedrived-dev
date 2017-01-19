@@ -6,7 +6,7 @@ import onedrivesdk.error
 from bidict import loosebidict
 from inotify_simple import flags as _inotify_flags, masks as _inotify_masks, INotify as _INotify
 
-from .od_tasks import create_folder, delete_item, move_item, merge_dir, update_mtime, upload_file
+from .od_tasks import delete_item, move_item, merge_dir, update_mtime, upload_file
 from .od_models.path_filter import PathFilter
 from .od_api_helper import item_request_call
 from .od_hashutils import hash_match
@@ -122,9 +122,9 @@ class LocalRepositoryWatcher:
             if e.code != onedrivesdk.error.ErrorCode.ItemNotFound:
                 return False
 
-        if not create_folder.CreateFolderTask(repo=repo, task_pool=self.task_pool,
-                                              item_name=item_name, parent_relpath=parent_relpath,
-                                              upload_if_success=False, abort_if_local_gone=True).handle():
+        if not merge_dir.CreateFolderTask(repo=repo, task_pool=self.task_pool,
+                                          item_name=item_name, parent_relpath=parent_relpath,
+                                          upload_if_success=False, abort_if_local_gone=True).handle():
             logging.critical('Failed to create remote directory "%s" on Drive %s.', rel_path, repo.drive.id)
             return False
         return True
@@ -342,7 +342,7 @@ class LocalRepositoryWatcher:
                 return
 
         if _inotify_flags.ISDIR in to_flags:
-            self.task_queue.append(create_folder.CreateFolderTask(
+            self.task_queue.append(merge_dir.CreateFolderTask(
                 repo=to_repo, task_pool=self.task_pool, item_name=to_ev.name, parent_relpath=to_parent_relpath,
                 upload_if_success=True, abort_if_local_gone=True))
             # After the directory is created, it will be merged and thus the watcher updated.
