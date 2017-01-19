@@ -8,11 +8,7 @@ A Microsoft OneDrive client for Linux.
 """
 
 import sys
-
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 from onedrived import __author__, __email__, __homepage__, __project__, __version__
 
@@ -41,7 +37,7 @@ setup(
     description='A Microsoft OneDrive client for Linux written in Python 3.',
     license='MIT',
     long_description=readme,
-    packages=['onedrived'],
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     package_data={
             'onedrived': ['data/*']
