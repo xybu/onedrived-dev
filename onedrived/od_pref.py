@@ -105,10 +105,9 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
     try:
         authenticator.authenticate(code)
         click.echo(click.style('Successfully authorized onedrived.', fg='green'))
+        save_account(authenticator)
     except Exception as e:
         error('Failed to authorize onedrived: %s.' % e)
-
-    save_account(authenticator)
 
 
 @click.command(name='list', short_help='List all linked accounts.')
