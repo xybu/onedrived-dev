@@ -1,4 +1,6 @@
 import json
+import os
+import sys
 import unittest
 
 import onedrivesdk
@@ -14,6 +16,8 @@ def get_sample_drive():
 
 def get_sample_drive_config():
     drive_dict = json.loads(get_resource('data/drive_config_item.json', 'tests'))
+    drive_dict['ignorefile_path'] = os.path.join(
+        os.path.dirname(sys.modules['onedrived'].__file__), 'data/ignore_v2.txt')
     return drive_dict, od_models.drive_config.LocalDriveConfig(**drive_dict)
 
 
