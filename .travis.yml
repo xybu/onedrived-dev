@@ -24,11 +24,12 @@ addons:
       - python3-dev
       - libssl-dev
       - python3-dbus
+      - libdbus-glib-1-dev
 
 install:
   - pip install -U pip
   - pip3 install -U setuptools
-  - pip3 install coverage coveralls pytest codeclimate-test-reporter
+  - pip3 install coverage coveralls pytest codeclimate-test-reporter keyrings.alt
   - python3 setup.py install
 
 before_script:
