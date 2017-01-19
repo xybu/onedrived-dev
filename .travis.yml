@@ -32,7 +32,7 @@ addons:
 install:
   - pip install -U pip
   - pip3 install -U setuptools
-  - pip3 install coverage coveralls pytest codeclimate-test-reporter keyrings.alt
+  - pip3 install coverage coveralls pytest codeclimate-test-reporter
   - python3 setup.py install
 
 before_script:
