@@ -23,8 +23,9 @@ addons:
       - inotify-tools
       - python3-dev
       - libssl-dev
-      - python3-dbus
-      - libdbus-glib-1-dev
+
+before_install:
+  - sudo apt-get install -y libdbus-glib-1-dev python3-dbus
 
 install:
   - pip install -U pip

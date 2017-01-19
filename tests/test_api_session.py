@@ -1,5 +1,7 @@
 import unittest
 
+import keyring
+
 from onedrived import od_api_session, od_auth
 
 
@@ -15,7 +17,7 @@ class OneDriveAPISession(unittest.TestCase):
         self.assertLess(self.session.expires_in_sec, 100)
 
     def test_save_and_load(self):
-        keydict = {self.session.SESSION_ARG_KEYNAME: 'key'}
+        keydict = {self.session.SESSION_ARG_KEYNAME: 'mock_key'}
         self.session.save_session(**keydict)
         session = od_api_session.OneDriveAPISession.load_session(**keydict)
         self.assertEqual(self.session.token_type, session.token_type)
@@ -24,3 +26,4 @@ class OneDriveAPISession(unittest.TestCase):
         self.assertEqual(self.session.client_id, session.client_id)
         self.assertEqual(self.session.client_secret, session.client_secret)
         self.assertEqual(self.session.refresh_token, session.refresh_token)
+        keyring.delete_password(od_api_session.OneDriveAPISession.KEYRING_SERVICE_NAME, 'mock_key')
