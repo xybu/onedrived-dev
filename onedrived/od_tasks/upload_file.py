@@ -1,6 +1,7 @@
 import logging
 import os
 
+import onedrivesdk
 import onedrivesdk.error
 
 from . import update_mtime
@@ -28,7 +29,10 @@ class UploadFileTask(update_mtime.UpdateTimestampTask):
         return type(self).__name__ + '(%s)' % self.local_abspath
 
     def update_progress(self, curr_part, total_part):
-        logging.debug('Uploading file "%s": Part %d / %d.', self.local_abspath, curr_part, total_part)
+        if curr_part == total_part:
+            logging.debug('All %d parts of file "%s" have been uploaded.', total_part, self.local_abspath)
+        else:
+            logging.debug('Uploading file "%s": Part %d / %d.', self.local_abspath, curr_part + 1, total_part)
 
     def handle(self):
         logging.info('Uploading file "%s" to OneDrive.', self.local_abspath)
@@ -47,6 +51,8 @@ class UploadFileTask(update_mtime.UpdateTimestampTask):
                 item_request = self.repo.authenticator.client.item(drive=self.repo.drive.id, path=self.rel_path)
                 returned_item = item_request_call(self.repo, item_request.upload_async,
                                                   local_path=self.local_abspath, upload_status=self.update_progress)
+                if not isinstance(returned_item, onedrivesdk.Item):
+                    returned_item = onedrivesdk.Item(returned_item._prop_dict)
             self.update_timestamp_and_record(returned_item, item_stat)
             self.task_pool.release_path(self.local_abspath)
             logging.info('Finished uploading file "%s".', self.local_abspath)
