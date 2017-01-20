@@ -67,6 +67,12 @@ class TaskPool:
             return False
 
     def occupy_path(self, local_abspath, task):
+        """
+        Record a task in progress on a local path so that duplicate tasks can be avoided.
+        :param str local_abspath:
+        :param onedrived.od_tasks.base.TaskBase | None task: The task working on the path. None to blacklist the path.
+        :return onedrived.od_tasks.base.TaskBase | None:
+        """
         with self._lock:
             if local_abspath not in self.tasks_by_path:
                 self.tasks_by_path[local_abspath] = task

@@ -148,12 +148,12 @@ class LocalRepositoryWatcher:
                     logging.info('Removed %s because its parent "%s" will be covered by another task.', t, rel_path)
                     self.task_queue.remove(t)
 
-    def _add_merge_dir_task(self, repo, rel_path):
+    def _add_merge_dir_task(self, repo, rel_path, deep_merge=True):
         try:
             self._squash_tasks(repo, rel_path)
             self.task_queue.append(merge_dir.MergeDirectoryTask(
                 repo=repo, task_pool=self.task_pool, rel_path=rel_path,
-                item_request=self._get_item_request_by_relpath(repo, rel_path)))
+                item_request=self._get_item_request_by_relpath(repo, rel_path), deep_merge=deep_merge))
         except ParentTaskExistsException as e:
             logging.info('Task on path "%s" will be covered by %s. Skip adding.', rel_path, e.task)
 
@@ -356,7 +356,7 @@ class LocalRepositoryWatcher:
         logging.info('Local path "%s" was updated on %s. Merge the parent directory.', local_abspath, str(ev))
         if self.task_pool.has_pending_task(local_abspath) is None:
             self.task_pool.release_path(local_abspath)
-        self._add_merge_dir_task(repo, self._local_abspath_to_relpath(repo, parent_dir))
+        self._add_merge_dir_task(repo, self._local_abspath_to_relpath(repo, parent_dir), deep_merge=False)
 
     def handle_event(self, ev, flags, move_pairs):
         """

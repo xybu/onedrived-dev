@@ -16,7 +16,8 @@ from ..od_repo import ItemRecordType, ItemRecordStatus
 
 
 class MergeDirectoryTask(base.TaskBase):
-    def __init__(self, repo, task_pool, rel_path, item_request):
+
+    def __init__(self, repo, task_pool, rel_path, item_request, deep_merge=True):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:
         :param onedrived.od_task.TaskPool task_pool:
@@ -27,6 +28,7 @@ class MergeDirectoryTask(base.TaskBase):
         self.rel_path = rel_path
         self.item_request = item_request
         self.local_abspath = repo.local_root + rel_path
+        self.deep_merge = deep_merge
 
     def __repr__(self):
         return type(self).__name__ + '(%s)' % self.local_abspath
@@ -336,7 +338,7 @@ class MergeDirectoryTask(base.TaskBase):
             logging.error('Error occurred when accessing path "%s": %s.', item_local_abspath, e)
             return
 
-        if remote_item.folder is not None:
+        if remote_item.folder is not None and self.deep_merge:
             return self._handle_remote_folder(remote_item, item_local_abspath, record, all_local_items)
 
         if remote_item.file is None:
@@ -441,7 +443,7 @@ class MergeDirectoryTask(base.TaskBase):
                 # stat can be None because the function can be called long after dir is listed.
                 stat = self.get_os_stat(item_local_abspath)
                 self._handle_local_file(item_name, record, stat, item_local_abspath)
-            elif os.path.isdir(item_local_abspath):
+            elif self.deep_merge and os.path.isdir(item_local_abspath):
                 self._handle_local_folder(item_name, record, item_local_abspath)
             else:
                 logging.warning('Unsupported type of local item "%s". Skip it and remove record.', item_local_abspath)
