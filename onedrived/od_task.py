@@ -60,9 +60,29 @@ class TaskPool:
         with self._lock:
             return len(self.queued_tasks)
 
-    def has_pending_task(self, local_path):
+    def has_pending_task(self, local_abspath):
         with self._lock:
-            return local_path in self.tasks_by_path
+            if local_abspath in self.tasks_by_path:
+                return self.tasks_by_path[local_abspath]
+            return False
+
+    def occupy_path(self, local_abspath, task):
+        """
+        Record a task in progress on a local path so that duplicate tasks can be avoided.
+        :param str local_abspath:
+        :param onedrived.od_tasks.base.TaskBase | None task: The task working on the path. None to blacklist the path.
+        :return onedrived.od_tasks.base.TaskBase | None:
+        """
+        with self._lock:
+            if local_abspath not in self.tasks_by_path:
+                self.tasks_by_path[local_abspath] = task
+                return task
+            else:
+                return self.tasks_by_path[local_abspath]
+
+    def release_path(self, local_abspath):
+        with self._lock:
+            del self.tasks_by_path[local_abspath]
 
     def remove_children_tasks(self, local_parent_path):
         p = local_parent_path + '/'

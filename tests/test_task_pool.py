@@ -27,10 +27,24 @@ class TestTaskPool(unittest.TestCase):
         self.assertEqual(0, self.task_pool.outstanding_task_count)
 
     def test_has_pending_task(self):
-        self.task_pool.add_task(self._get_dummy_task(local_abspath='/foo/bar'))
-        self.assertTrue(self.task_pool.has_pending_task('/foo/bar'))
+        task = self._get_dummy_task(local_abspath='/foo/bar')
+        self.assertIs(self.task_pool.has_pending_task('/foo/bar'), False)
+        self.task_pool.add_task(task)
+        self.assertIs(self.task_pool.has_pending_task('/foo/bar'), task)
         for s in ('/foo/ba', '/foo/barz', '/foo/bar/baz', '/foo'):
-            self.assertFalse(self.task_pool.has_pending_task(s))
+            self.assertIs(self.task_pool.has_pending_task(s), False)
+
+    def test_occupy_release_path(self):
+        task = self._get_dummy_task(local_abspath='/foo/bar')
+        self.assertIs(self.task_pool.has_pending_task('/foo/bar'), False)
+        self.assertIs(self.task_pool.occupy_path(task.local_abspath, task), task)
+        self.task_pool.release_path(task.local_abspath)
+        self.assertIs(self.task_pool.has_pending_task('/foo/bar'), False)
+
+    def test_occupy_failure(self):
+        self.assertIsNone(self.task_pool.occupy_path('/foo/bar', None))
+        task = self._get_dummy_task(local_abspath='/foo/bar')
+        self.assertIs(self.task_pool.occupy_path(task.local_abspath, task), None)
 
     def test_remove_children_tasks(self):
         for s in ('/foo', '/foo2', '/foo/bar', '/foo2/bar', '/foo/bar/baz'):

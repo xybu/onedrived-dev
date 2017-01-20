@@ -16,7 +16,8 @@ from ..od_repo import ItemRecordType, ItemRecordStatus
 
 
 class MergeDirectoryTask(base.TaskBase):
-    def __init__(self, repo, task_pool, rel_path, item_request):
+
+    def __init__(self, repo, task_pool, rel_path, item_request, deep_merge=True):
         """
         :param onedrived.od_repo.OneDriveLocalRepository repo:
         :param onedrived.od_task.TaskPool task_pool:
@@ -27,6 +28,7 @@ class MergeDirectoryTask(base.TaskBase):
         self.rel_path = rel_path
         self.item_request = item_request
         self.local_abspath = repo.local_root + rel_path
+        self.deep_merge = deep_merge
 
     def __repr__(self):
         return type(self).__name__ + '(%s)' % self.local_abspath
@@ -280,6 +282,8 @@ class MergeDirectoryTask(base.TaskBase):
                record.e_tag == remote_item.e_tag and record.size == remote_item.size
 
     def _handle_remote_folder(self, remote_item, item_local_abspath, record, all_local_items):
+        if not self.deep_merge:
+            return
         try:
             if os.path.isfile(item_local_abspath):
                 # Remote item is a directory but local item is a file.
@@ -366,6 +370,8 @@ class MergeDirectoryTask(base.TaskBase):
         :param onedrived.od_repo.ItemRecord | None item_record:
         :param str item_local_abspath:
         """
+        if not self.deep_merge:
+            return
         if item_record is not None and item_record.type == ItemRecordType.FOLDER:
             send2trash(item_local_abspath)
             self.repo.delete_item(item_name, self.rel_path, True)
