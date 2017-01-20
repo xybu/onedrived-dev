@@ -352,6 +352,12 @@ class LocalRepositoryWatcher:
                 repo=to_repo, task_pool=self.task_pool,
                 parent_dir_request=to_dir_request, parent_relpath=to_parent_relpath, item_name=to_ev.name))
 
+    def _handle_file_creation(self, ev, repo, local_abspath, parent_dir):
+        logging.info('Local path "%s" was updated on %s. Merge the parent directory.', local_abspath, str(ev))
+        if self.task_pool.has_pending_task(local_abspath) is None:
+            self.task_pool.release_path(local_abspath)
+        self._add_merge_dir_task(repo, self._local_abspath_to_relpath(repo, parent_dir))
+
     def handle_event(self, ev, flags, move_pairs):
         """
         :param inotify_simple.Event ev:
@@ -395,22 +401,26 @@ class LocalRepositoryWatcher:
             logging.info('Found an unpaired move-to: %s.', ev)
             return self._handle_unpaired_move_to(ev, flags, repo, to_parent_dir=parent_dir)
 
-        if event_isdir and _inotify_flags.CREATE in flags:
-            # A new directory was created.
-            if not self.ensure_remote_path_is_dir(repo=repo, rel_path=self._local_abspath_to_relpath(repo, item_path)):
-                logging.critical('Failed to create remote directory for "%s". Fallback to dir merge.', item_path)
-                self._add_merge_dir_task(repo=repo, rel_path=self._local_abspath_to_relpath(repo, parent_dir))
-            else:
-                self.add_watch(item_path)
+        if _inotify_flags.CREATE in flags:
+            try:
+                if event_isdir or os.path.isdir(item_path):
+                    # A new directory (or symlink to a directory) was created.
+                    if self.ensure_remote_path_is_dir(
+                            repo=repo, rel_path=self._local_abspath_to_relpath(repo, item_path)):
+                        # A newly created dir is empty. No need to merge.
+                        self.add_watch(item_path)
+                    else:
+                        logging.critical('Failed to create remote directory for "%s". Fallback to merge.', item_path)
+                        self._add_merge_dir_task(repo=repo, rel_path=self._local_abspath_to_relpath(repo, parent_dir))
+                elif os.path.islink(item_path):
+                    self._handle_file_creation(ev, repo, item_path, parent_dir)
+            except OSError as e:
+                logging.error('OSError handling %s on path "%s": %s.', str(ev), item_path, e)
             return
 
         if _inotify_flags.CLOSE_WRITE in flags:
             # TODO: The logic here can be made smarter.
-            logging.info('Local path "%s" was updated on %s. Merge the parent directory.', item_path, str(ev))
-            if self.task_pool.has_pending_task(item_path) is None:
-                self.task_pool.release_path(item_path)
-            self._add_merge_dir_task(repo, self._local_abspath_to_relpath(repo, parent_dir))
-            return
+            return self._handle_file_creation(ev, repo, item_path, parent_dir)
 
         if _inotify_flags.DELETE in flags:
             logging.info('Local path "%s" was deleted on %s.', item_path, str(ev))
