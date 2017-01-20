@@ -407,6 +407,8 @@ class LocalRepositoryWatcher:
         if _inotify_flags.CLOSE_WRITE in flags:
             # TODO: The logic here can be made smarter.
             logging.info('Local path "%s" was updated on %s. Merge the parent directory.', item_path, str(ev))
+            if self.task_pool.has_pending_task(item_path) is None:
+                self.task_pool.release_path(item_path)
             self._add_merge_dir_task(repo, self._local_abspath_to_relpath(repo, parent_dir))
             return
 
