@@ -282,6 +282,8 @@ class MergeDirectoryTask(base.TaskBase):
                record.e_tag == remote_item.e_tag and record.size == remote_item.size
 
     def _handle_remote_folder(self, remote_item, item_local_abspath, record, all_local_items):
+        if not self.deep_merge:
+            return
         try:
             if os.path.isfile(item_local_abspath):
                 # Remote item is a directory but local item is a file.
@@ -338,7 +340,7 @@ class MergeDirectoryTask(base.TaskBase):
             logging.error('Error occurred when accessing path "%s": %s.', item_local_abspath, e)
             return
 
-        if remote_item.folder is not None and self.deep_merge:
+        if remote_item.folder is not None:
             return self._handle_remote_folder(remote_item, item_local_abspath, record, all_local_items)
 
         if remote_item.file is None:
@@ -368,6 +370,8 @@ class MergeDirectoryTask(base.TaskBase):
         :param onedrived.od_repo.ItemRecord | None item_record:
         :param str item_local_abspath:
         """
+        if not self.deep_merge:
+            return
         if item_record is not None and item_record.type == ItemRecordType.FOLDER:
             send2trash(item_local_abspath)
             self.repo.delete_item(item_name, self.rel_path, True)
@@ -443,7 +447,7 @@ class MergeDirectoryTask(base.TaskBase):
                 # stat can be None because the function can be called long after dir is listed.
                 stat = self.get_os_stat(item_local_abspath)
                 self._handle_local_file(item_name, record, stat, item_local_abspath)
-            elif self.deep_merge and os.path.isdir(item_local_abspath):
+            elif os.path.isdir(item_local_abspath):
                 self._handle_local_folder(item_name, record, item_local_abspath)
             else:
                 logging.warning('Unsupported type of local item "%s". Skip it and remove record.', item_local_abspath)
