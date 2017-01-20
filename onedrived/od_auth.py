@@ -16,6 +16,7 @@ from .od_models import account_profile
 
 
 def get_authenticator_and_drives(context, account_id):
+    # TODO: Ideally we should recursively get all drives because the API pages them.
     authenticator = OneDriveAuthenticator(proxies=context.config['proxies'])
     try:
         authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
@@ -27,8 +28,14 @@ def get_authenticator_and_drives(context, account_id):
     return authenticator, drives
 
 
+class AccountTypes:
+    PERSONAL = 0
+    BUSINESS = 1
+
+
 class OneDriveAuthenticator:
 
+    ACCOUNT_TYPE = AccountTypes.PERSONAL
     APP_CLIENT_ID = '000000004010C916'
     APP_CLIENT_SECRET = 'PimIrUibJfsKsMcd0SqwPBwMTV7NDgYi'
     APP_BASE_URL = 'https://api.onedrive.com/v1.0/'
@@ -69,6 +76,7 @@ class OneDriveAuthenticator:
         if response.status_code != requests.codes.ok:
             raise ValueError('Failed to read user profile.')
         data = response.json()
+        data['account_type'] = self.ACCOUNT_TYPE
         return account_profile.OneDriveAccountProfile(data)
 
     @property
