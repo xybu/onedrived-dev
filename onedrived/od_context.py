@@ -49,11 +49,11 @@ class UserContext:
         'proxies': {},  # Proxy is of format {'http': url1, 'https': url2}.
         'accounts': {},
         'drives': {},
-        'scan_interval_sec': 21600, # Poll every 6 hours.
+        'scan_interval_sec': 21600,  # Poll every 6 hours.
         'webhook_type': od_webhooks.DEFAULT_WEBHOOK_TYPE,
         'webhook_host': '',
         'webhook_port': 0,
-        'webhook_renew_interval_sec': 7200, # Renew webhook every 2 hours.
+        'webhook_renew_interval_sec': 7200,  # Renew webhook every 2 hours.
         'num_workers': 2,
         'start_delay_sec': 0,
         KEY_LOGFILE_PATH: '',

@@ -40,13 +40,17 @@ def parse_notification_body(body):
     return None
 
 
+def default_callback(repo):
+    logging.info('Received notification that Drive %s was updated remotely.', repo.drive.id)
+
+
 class WebhookWorkerThread(threading.Thread):
 
     MAX_PER_ITEM_DELAY_SEC = 5
 
     def __init__(self, webhook_url):
         super().__init__(name='WebhookWorker', daemon=True)
-        self._callback_func = self.default_callback
+        self._callback_func = default_callback
         self.webhook_url = webhook_url
         self._raw_input_queue = queue.Queue()
         self._registered_subscriptions = dict()
@@ -55,16 +59,13 @@ class WebhookWorkerThread(threading.Thread):
         self._callback_func = func
         logging.debug('Set callback function for webhook to %s.', str(func))
 
-    def default_callback(self, repo):
-        logging.info('Received notification that Drive %s was updated remotely.', repo.drive.id)
-
     def queue_input(self, raw_bytes):
         self._raw_input_queue.put(raw_bytes, block=False)
 
     def add_subscription(self, subscription, repo):
         """
         :param onedrivesdk.Subscription subscription:
-        :param onedrived.od_repo.OneDriveLocalRepository
+        :param onedrived.od_repo.OneDriveLocalRepository repo:
         """
         self._registered_subscriptions[subscription.id] = repo
         logging.debug('Subscribed to root updates of drive %s. Subscription ID: %s.',
@@ -119,6 +120,7 @@ class OneDriveWebhookHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(s)
 
+    # noinspection PyPep8Naming
     def do_POST(self):
         url = urllib.parse.urlparse(self.path)
 

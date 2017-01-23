@@ -20,6 +20,12 @@ class WebhookConfig(http_server.WebhookConfig):
             self.ngrok_config_path = ngrok_config_path
 
 
+def _append_cmd_arg(config, property, arg, cmd):
+    if hasattr(config, property):
+        cmd.append(arg)
+        cmd.append(getattr(config, property))
+
+
 class WebhookListener(http_server.WebhookListener):
 
     POLL_TUNNELS_MAX_TRIES = 3
@@ -29,7 +35,7 @@ class WebhookListener(http_server.WebhookListener):
         if shutil.which(config.ngrok_path) is None:
             raise RuntimeError('Did not find ngrok executable "%s".' % config.ngrok_path)
         cmd = [config.ngrok_path, 'http', str(self.server.server_port)]
-        self._append_cmd_arg(config, 'ngrok_config_path', '--config', cmd)
+        _append_cmd_arg(config, 'ngrok_config_path', '--config', cmd)
         self._start_ngrok_process(cmd)
         self._read_ngrok_tunnels()
 
@@ -52,11 +58,6 @@ class WebhookListener(http_server.WebhookListener):
     def run(self):
         logging.info('Local webhook server listening on port %d.', self.server.server_port)
         super().run()
-
-    def _append_cmd_arg(self, config, property, arg, cmd):
-        if hasattr(config, property):
-            cmd.append(arg)
-            cmd.append(getattr(config, property))
 
     def _start_ngrok_process(self, cmd):
         try:

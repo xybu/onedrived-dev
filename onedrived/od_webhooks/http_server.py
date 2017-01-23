@@ -4,7 +4,6 @@ http_server.py
 A webhook listener that directly accepts notifications from OneDrive server.
 """
 
-import asyncio
 import logging
 import os
 import random
