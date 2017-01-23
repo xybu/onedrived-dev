@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-import urllib
+import urllib.parse
 
 import click
 import keyring
@@ -341,7 +341,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
             error(str(e))
             return
 
-    d = context.add_drive(drive_config.LocalDriveConfig(drive_id, account_id, ignore_file, local_root))
+    d = context.add_drive(drive_config.LocalDriveConfig(drive_id, account_id, ignore_file, local_root, None))
     save_context(context)
     click.echo(click.style('\nSuccessfully configured Drive %s of account %s (%s):' % (
         d.drive_id, account_profile.account_email, d.account_id), fg='green'))

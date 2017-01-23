@@ -6,7 +6,7 @@ from pwd import getpwnam
 
 import xdg
 
-from . import mkdir, get_resource
+from . import mkdir, get_resource, od_webhooks
 from .od_models import account_profile as _account_profile
 from .od_models import drive_config as _drive_config
 
@@ -49,21 +49,38 @@ class UserContext:
         'proxies': {},  # Proxy is of format {'http': url1, 'https': url2}.
         'accounts': {},
         'drives': {},
-        'scan_interval_sec': 1800,
+        'scan_interval_sec': 21600, # Poll every 6 hours.
+        'webhook_type': od_webhooks.DEFAULT_WEBHOOK_TYPE,
+        'webhook_host': '',
+        'webhook_port': 0,
+        'webhook_renew_interval_sec': 7200, # Renew webhook every 2 hours.
         'num_workers': 2,
+        'start_delay_sec': 0,
         KEY_LOGFILE_PATH: '',
     }
 
     DEFAULT_CONFIG_FILENAME = 'onedrived_config_v2.json'
     DEFAULT_IGNORE_FILENAME = 'ignore_v2.txt'
+    DEFAULT_NGROK_CONF_FILENAME = 'ngrok_conf.yaml'
 
     CONFIGURABLE_INT_KEYS = {
-        'scan_interval_sec': 'Interval, in sec, between two actions of scanning the entire repository.',
-        'num_workers': 'Total number of worker threads.'
+        'scan_interval_sec': 'Interval, in seconds, between two actions of scanning the entire repository.',
+        'num_workers': 'Total number of worker threads.',
+        'webhook_renew_interval_sec': 'Renew webhook after this amount of time, in seconds. Ideal value should be '
+                                      'slightly larger than the lifespan of onedrived process.',
+        'webhook_port': 'Port number for webhook. Default: 0 (let OS allocate a free port).',
+        'start_delay_sec': 'Amount of time, in seconds, to sleep before main starts working.'
     }
 
     CONFIGURABLE_STR_KEYS = {
-        KEY_LOGFILE_PATH: 'Path to log file. Empty string means writing to stdout.'
+        KEY_LOGFILE_PATH: 'Path to log file. Empty string means writing to stdout.',
+        'webhook_host': 'Host to receive webhook notifications. Requests to https://host:port much reach localhost.'
+                        'Use empty string "" to mean localhost.',
+        'webhook_type': 'Type of webhook. Use "direct" only if your machine can be reached from public network.'
+    }
+
+    ACCEPTED_VALUES = {
+        'webhook_type': od_webhooks.SUPPORTED_WEBHOOK_TYPES
     }
 
     SUPPORTED_PROXY_PROTOCOLS = ('http', 'https')
@@ -96,6 +113,8 @@ class UserContext:
             mkdir(self.config_dir, self.user_uid, mode=0o700, exist_ok=True)
             with open(self.config_dir + '/' + self.DEFAULT_IGNORE_FILENAME, 'w') as f:
                 f.write(get_resource('data/ignore_v2.txt'))
+            with open(self.config_dir + '/' + self.DEFAULT_NGROK_CONF_FILENAME, 'w') as f:
+                f.write(get_resource('data/ngrok_default_conf.yaml'))
 
     @property
     def loop(self):
