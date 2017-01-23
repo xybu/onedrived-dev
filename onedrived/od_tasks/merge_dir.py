@@ -287,8 +287,8 @@ class MergeDirectoryTask(base.TaskBase):
 
     @staticmethod
     def _remote_dir_matches_record(remote_item, record):
-        return record and record.type == ItemRecordType.FOLDER and record.c_tag == remote_item.c_tag and \
-               record.e_tag == remote_item.e_tag and record.size == remote_item.size
+        return record and record.type == ItemRecordType.FOLDER and record.size == remote_item.size and \
+               record.c_tag == remote_item.c_tag and record.e_tag == remote_item.e_tag
 
     def _handle_remote_folder(self, remote_item, item_local_abspath, record, all_local_items):
         if not self.deep_merge:
