@@ -161,6 +161,7 @@ def main():
     # When debugging, print to stdout.
     if '--debug' in sys.argv:
         context.set_logger(min_level=logging.DEBUG, path=None)
+        context.loop.set_debug(True)
     else:
         context.set_logger(min_level=logging.INFO, path=context.config[context.KEY_LOGFILE_PATH])
 
@@ -188,7 +189,6 @@ def main():
     for repo in itertools.chain.from_iterable(all_accounts.values()):
         context.watcher.add_repo(repo)
 
-    context.loop.set_debug(True)
     try:
         context.loop.call_soon(gen_start_repo_tasks, all_accounts, task_pool)
         context.loop.run_forever()
