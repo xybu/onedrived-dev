@@ -5,8 +5,7 @@ import unittest
 
 import onedrivesdk
 
-from onedrived import od_models
-from onedrived import get_resource
+from onedrived import get_resource, od_models, od_dateutils
 
 
 def get_sample_drive():
@@ -141,6 +140,33 @@ class TestDriveConfig(unittest.TestCase):
         self.assertEqual(self.drive_dict['drive_id'], self.drive_config.drive_id)
         self.assertEqual(self.drive_dict['ignorefile_path'], self.drive_config.ignorefile_path)
         self.assertEqual(self.drive_dict['localroot_path'], self.drive_config.localroot_path)
+
+
+class TestWebhookNotification(unittest.TestCase):
+
+    def setUp(self):
+        self.data = json.loads(get_resource('data/webhook_notification.json', 'tests'))
+
+    def test_properties(self):
+        notification = od_models.webhook_notification.WebhookNotification(self.data)
+        self.assertEqual(self.data['context'], notification.context)
+        self.assertEqual(self.data['resource'], notification.resource)
+        self.assertEqual(self.data['subscriptionId'], notification.subscription_id)
+        self.assertEqual(self.data['tenantId'], notification.tenant_id)
+        self.assertEqual(self.data['userId'], notification.user_id)
+        self.assertEqual(
+            od_dateutils.str_to_datetime(self.data['expirationDateTime']), notification.expiration_datetime)
+
+    def _assert_missing_property_none(self, data_key, property_key):
+        del self.data[data_key]
+        notification = od_models.webhook_notification.WebhookNotification(self.data)
+        self.assertIsNone(getattr(notification, property_key))
+
+    def test_properties_missing_tenant_id(self):
+        self._assert_missing_property_none('tenantId', 'tenant_id')
+
+    def test_properties_missing_context(self):
+        self._assert_missing_property_none('context', 'context')
 
 
 if __name__ == '__main__':

@@ -1,12 +1,51 @@
+import json
 import logging
 import time
 
+import onedrivesdk
 import onedrivesdk.error
 import requests
 
 from . import od_dateutils
 
 THROTTLE_PAUSE_SEC = 60
+
+
+def get_drive_request_builder(repo):
+    return onedrivesdk.DriveRequestBuilder(
+        request_url=repo.authenticator.client.base_url + 'drives/' + repo.drive.id,
+        client=repo.authenticator.client)
+
+
+def create_subscription(folder_item_request, repo, webhook_url, expiration_time):
+    """
+    :param onedrivesdk.ItemRequestBuilder folder_item_request:
+    :param onedrived.od_repo.OneDriveLocalRepository repo:
+    :param str webhook_url:
+    :param datetime.datetime.datetime expiration_time:
+    :return onedrivesdk.Subscription:
+    """
+    subscriptions_collection_req = folder_item_request.subscriptions
+    subscription_req_builder = onedrivesdk.SubscriptionRequestBuilder(subscriptions_collection_req._request_url,
+                                                                      subscriptions_collection_req._client)
+    subscription_req = item_request_call(repo, subscription_req_builder.request)
+    subscription_req.content_type = "application/json"
+    subscription_req.method = "POST"
+    subscription = onedrivesdk.Subscription()
+    subscription.notification_url = webhook_url
+    subscription.expiration_date_time = expiration_time
+    return onedrivesdk.Subscription(json.loads(subscription_req.send(subscription).content))
+
+
+def update_subscription(self, subscription):
+    """ A temp patch for bug https://github.com/OneDrive/onedrive-sdk-python/issues/95. """
+    self.content_type = "application/json"
+    self.method = "PATCH"
+    entity = onedrivesdk.Subscription(json.loads(self.send(subscription).content))
+    return entity
+
+
+onedrivesdk.SubscriptionRequest.update = update_subscription
 
 
 def get_item_modified_datetime(item):

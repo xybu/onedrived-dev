@@ -1,0 +1,8 @@
+{
+  "context": "string optional",
+  "expirationDateTime": "2015-02-23T19:02:31.433Z",
+  "resource": "r",
+  "subscriptionId": "s",
+  "tenantId": "t",
+  "userId": "u"
+}

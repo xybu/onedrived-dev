@@ -61,7 +61,7 @@ class UploadFileTask(update_mtime.UpdateTimestampTask):
             logging.error('Error uploading file "%s": %s.', self.local_abspath, e)
             # TODO: what if quota is exceeded?
             if (isinstance(e, onedrivesdk.error.OneDriveError) and
-                e.code == onedrivesdk.error.ErrorCode.MalwareDetected):
+                    e.code == onedrivesdk.error.ErrorCode.MalwareDetected):
                     logging.warning('File "%s" was detected as malware by OneDrive. '
                                     'Do not upload during program session.', self.local_abspath)
                     self.task_pool.occupy_path(self.local_abspath, None)
