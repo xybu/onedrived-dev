@@ -20,7 +20,11 @@ class TestStartRepositoryTask(unittest.TestCase):
 
     def setUp(self):
         self.task_pool = od_task.TaskPool()
-        self.tempdir, self.drive_config, self.repo = get_sample_repo()
+        self.temp_config_dir, self.temp_repo_dir, self.drive_config, self.repo = get_sample_repo()
+
+    def tearDown(self):
+        self.temp_config_dir.cleanup()
+        self.temp_repo_dir.cleanup()
 
     def test_handle(self):
         task = StartRepositoryTask(self.repo, self.task_pool)
