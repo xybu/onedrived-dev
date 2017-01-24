@@ -6,29 +6,40 @@ try:
 except ImportError:
     import mock
 
-from onedrivesdk import Item
+import onedrivesdk
 
 from onedrived import od_context, od_auth, od_repo, od_api_helper, get_resource
 from tests.test_models import get_sample_drive, get_sample_drive_config
 
 
+def get_sample_repo():
+    temp_config_dir = tempfile.TemporaryDirectory()
+    temp_repo_dir = tempfile.TemporaryDirectory()
+    ctx = mock.MagicMock(spec=od_context.UserContext, config_dir=temp_config_dir.name, loop=None)
+    auth = mock.MagicMock(spec=od_auth.OneDriveAuthenticator,
+                          client=mock.MagicMock(onedrivesdk.OneDriveClient),
+                          **{'refresh_session.return_value': None})
+    drive = get_sample_drive()
+    drive_dict, drive_config = get_sample_drive_config()
+    drive_dict['localroot_path'] = temp_repo_dir.name
+    drive_config = drive_config._replace(localroot_path=temp_repo_dir.name)
+    repo = od_repo.OneDriveLocalRepository(ctx, auth, drive, drive_config)
+    return temp_config_dir, temp_repo_dir, drive_config, repo
+
+
 class TestOneDriveLocalRepository(unittest.TestCase):
 
     def setUp(self):
-        self.tempdir = tempfile.TemporaryDirectory()
-        ctx = mock.MagicMock(spec=od_context.UserContext, config_dir=self.tempdir.name, loop=None)
-        auth = mock.MagicMock(spec=od_auth.OneDriveAuthenticator, **{'refresh_session.return_value': None})
-        drive = get_sample_drive()
-        drive_dict, self.drive_config = get_sample_drive_config()
-        self.repo = od_repo.OneDriveLocalRepository(ctx, auth, drive, self.drive_config)
-        self.root_folder_item = Item(json.loads(get_resource('data/folder_item.json', pkg_name='tests')))
-        self.root_subfolder_item = Item(json.loads(get_resource('data/subfolder_item.json', pkg_name='tests')))
-        self.root_child_item = Item(json.loads(get_resource('data/folder_child_item.json', pkg_name='tests')))
-        self.image_item = Item(json.loads(get_resource('data/image_item.json', pkg_name='tests')))
+        self.temp_config_dir, self.temp_repo_dir, self.drive_config, self.repo = get_sample_repo()
+        self.root_folder_item = onedrivesdk.Item(json.loads(get_resource('data/folder_item.json', pkg_name='tests')))
+        self.root_subfolder_item = onedrivesdk.Item(json.loads(get_resource('data/subfolder_item.json', pkg_name='tests')))
+        self.root_child_item = onedrivesdk.Item(json.loads(get_resource('data/folder_child_item.json', pkg_name='tests')))
+        self.image_item = onedrivesdk.Item(json.loads(get_resource('data/image_item.json', pkg_name='tests')))
         self._add_all_items()
 
     def tearDown(self):
-        self.tempdir.cleanup()
+        self.temp_config_dir.cleanup()
+        self.temp_repo_dir.cleanup()
 
     def _add_all_items(self):
         self.repo.update_item(self.root_folder_item, '', 0)

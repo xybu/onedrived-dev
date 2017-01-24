@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-import urllib
+import urllib.parse
 
 import click
 import keyring

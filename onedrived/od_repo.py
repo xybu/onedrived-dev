@@ -37,21 +37,27 @@ class ItemRecordStatus:
     MARKED = 255
 
 
+class RepositoryType:
+    PERSONAL = 0
+    BUSINESS = 1
+
+
 class OneDriveLocalRepository:
     SESSION_EXPIRE_THRESHOLD_SEC = 120
 
     def __init__(self, context, authenticator, drive, drive_config):
         """
-        :param od_context.UserContext context:
-        :param od_auth.OneDriveAuthenticator authenticator:
+        :param onedrived.od_context.UserContext context:
+        :param onedrived.od_auth.OneDriveAuthenticator authenticator:
         :param onedrivesdk.model.drive.Drive drive:
-        :param models.drive_config.LocalDriveConfig drive_config:
+        :param onedrived.od_models.drive_config.LocalDriveConfig drive_config:
         """
         self.context = context
         self.authenticator = authenticator
         self.drive = drive
         self.account_id = drive_config.account_id
         self.local_root = drive_config.localroot_path
+        self.type = RepositoryType.BUSINESS if drive.drive_type == 'business' else RepositoryType.PERSONAL
         self._lock = threading.Lock()
         self._init_path_filter(ignore_file=drive_config.ignorefile_path)
         self._init_item_store()
