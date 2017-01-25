@@ -111,10 +111,12 @@ class UserContext:
         if not os.path.exists(self.config_dir):
             logging.info('Config dir "' + self.config_dir + '" does not exist. Create it.')
             mkdir(self.config_dir, self.user_uid, mode=0o700, exist_ok=True)
-            with open(self.config_dir + '/' + self.DEFAULT_IGNORE_FILENAME, 'w') as f:
-                f.write(get_resource('data/ignore_v2.txt'))
-            with open(self.config_dir + '/' + self.DEFAULT_NGROK_CONF_FILENAME, 'w') as f:
-                f.write(get_resource('data/ngrok_default_conf.yaml'))
+            self._copy_default_config_file('ignore_v2.txt', self.DEFAULT_IGNORE_FILENAME)
+            self._copy_default_config_file('ngrok_default_conf.yaml', self.DEFAULT_NGROK_CONF_FILENAME)
+
+    def _copy_default_config_file(self, resource_filename, target_filename):
+        with open(self.config_dir + '/' + target_filename, 'w') as f:
+            f.write(get_resource('data/' + resource_filename))
 
     @property
     def loop(self):

@@ -18,7 +18,7 @@ def get_webhook_server(context):
         raise ValueError('Unsupported webhook type: "%s".' % context.config['webhook_type'])
     if context.config['webhook_type'] == 'direct':
         from .od_webhooks.http_server import WebhookConfig, WebhookListener
-        wh_config = WebhookConfig(port=context.config['webhook_port'])
+        wh_config = WebhookConfig(host=context.config['webhook_host'], port=context.config['webhook_port'])
     else:
         from .od_webhooks.ngrok_server import WebhookConfig, WebhookListener
         ngrok_config_file = context.config_dir + '/' + context.DEFAULT_NGROK_CONF_FILENAME
@@ -31,7 +31,10 @@ def get_webhook_server(context):
 def parse_notification_body(body):
     try:
         data = json.loads(body.decode('utf-8'))
-        subscription_ids = set([WebhookNotification(v).subscription_id for v in data['value']])
+        if 'value' in data:
+            subscription_ids = set([WebhookNotification(v).subscription_id for v in data['value']])
+        else:
+            subscription_ids = (WebhookNotification(data).subscription_id,)
         return subscription_ids
     except (UnicodeError, json.JSONDecodeError, KeyError) as e:
         logging.error(e)
@@ -40,17 +43,13 @@ def parse_notification_body(body):
     return None
 
 
-def default_callback(repo):
-    logging.info('Received notification that Drive %s was updated remotely.', repo.drive.id)
-
-
 class WebhookWorkerThread(threading.Thread):
 
-    MAX_PER_ITEM_DELAY_SEC = 5
+    MAX_PER_ITEM_DELAY_SEC = 10
 
     def __init__(self, webhook_url):
         super().__init__(name='WebhookWorker', daemon=True)
-        self._callback_func = default_callback
+        self._callback_func = None
         self.webhook_url = webhook_url
         self._raw_input_queue = queue.Queue()
         self._registered_subscriptions = dict()
@@ -87,16 +86,20 @@ class WebhookWorkerThread(threading.Thread):
 
     def run(self):
         subscription_ids_buf = set()
+        if self._callback_func is None:
+            raise RuntimeError('Callback function for webhook notification is not set.')
         logging.debug('Started.')
         while True:
             raw_bytes = self._raw_input_queue.get()
             self._raw_input_queue.task_done()
             self.parse_and_update_set(raw_bytes, subscription_ids_buf)
+            del raw_bytes
             try:
                 while True:
                     more_bytes = self._raw_input_queue.get(block=True, timeout=self.MAX_PER_ITEM_DELAY_SEC)
                     self._raw_input_queue.task_done()
                     self.parse_and_update_set(more_bytes, subscription_ids_buf)
+                    del more_bytes
             except queue.Empty:
                 pass
             self.schedule_callback(subscription_ids_buf)

@@ -12,7 +12,4 @@ daemonocle>=1.0.1
 inotify_simple
 bidict
 arrow
-asyncio ; python_version < '3.4'
-enum34 ; python_version < '3.4'
-dbus-python ; python_version < '3.5'
 psutil

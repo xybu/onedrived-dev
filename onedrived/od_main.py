@@ -29,11 +29,19 @@ webhook_server = None
 webhook_worker = None
 
 
-def join_workers():
+def shutdown_workers():
+    if task_pool:
+        task_pool.close(len(task_workers))
     od_threads.TaskWorkerThread.exit()
     for w in task_workers:
         if w:
             w.join()
+
+
+def shutdown_webhook():
+    if webhook_server:
+        webhook_server.stop()
+        webhook_server.join()
 
 
 # noinspection PyUnusedLocal
@@ -41,12 +49,8 @@ def shutdown_callback(msg, code):
     logging.info('Shutting down.')
     asyncio.gather(*asyncio.Task.all_tasks()).cancel()
     context.loop.stop()
-    if webhook_server:
-        webhook_server.stop()
-        webhook_server.join()
-    if task_pool:
-        task_pool.close(len(task_workers))
-    join_workers()
+    shutdown_webhook()
+    shutdown_workers()
     if context and context.watcher:
         context.watcher.close()
     try:

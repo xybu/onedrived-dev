@@ -59,13 +59,13 @@ class WebhookListener(threading.Thread):
         super().__init__(name='Webhook', daemon=False)
         self.config = config
         if self.config.use_https:
-            self.server = WebhookHTTPServer((self.config.host, self.config.port), handler_class)
+            self.server = WebhookHTTPServer(('', self.config.port), handler_class)
             self.server.socket = ssl.wrap_socket(self.server.socket.socket,
                                                  keyfile=config.https_keyfile,
                                                  certfile=config.https_certfile,
                                                  server_side=True)
         else:
-            self.server = WebhookHTTPServer((self.config.host, self.config.port), handler_class)
+            self.server = WebhookHTTPServer(('', self.config.port), handler_class)
         self.server.init_props()
 
     @property

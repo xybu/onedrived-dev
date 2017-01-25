@@ -8,17 +8,17 @@ except ImportError:
 
 import onedrivesdk
 
-from onedrived import od_context, od_auth, od_repo, od_api_helper, get_resource
+from onedrived import od_context, od_repo, od_api_helper, get_resource
+from tests.test_auth import get_sample_authenticator
 from tests.test_models import get_sample_drive, get_sample_drive_config
 
 
 def get_sample_repo():
     temp_config_dir = tempfile.TemporaryDirectory()
     temp_repo_dir = tempfile.TemporaryDirectory()
-    ctx = mock.MagicMock(spec=od_context.UserContext, config_dir=temp_config_dir.name, loop=None)
-    auth = mock.MagicMock(spec=od_auth.OneDriveAuthenticator,
-                          client=mock.MagicMock(onedrivesdk.OneDriveClient),
-                          **{'refresh_session.return_value': None})
+    ctx = mock.MagicMock(spec=od_context.UserContext, config=od_context.UserContext.DEFAULT_CONFIG,
+                         config_dir=temp_config_dir.name, loop=None)
+    auth = get_sample_authenticator()
     drive = get_sample_drive()
     drive_dict, drive_config = get_sample_drive_config()
     drive_dict['localroot_path'] = temp_repo_dir.name
@@ -32,8 +32,10 @@ class TestOneDriveLocalRepository(unittest.TestCase):
     def setUp(self):
         self.temp_config_dir, self.temp_repo_dir, self.drive_config, self.repo = get_sample_repo()
         self.root_folder_item = onedrivesdk.Item(json.loads(get_resource('data/folder_item.json', pkg_name='tests')))
-        self.root_subfolder_item = onedrivesdk.Item(json.loads(get_resource('data/subfolder_item.json', pkg_name='tests')))
-        self.root_child_item = onedrivesdk.Item(json.loads(get_resource('data/folder_child_item.json', pkg_name='tests')))
+        self.root_subfolder_item = onedrivesdk.Item(json.loads(
+            get_resource('data/subfolder_item.json', pkg_name='tests')))
+        self.root_child_item = onedrivesdk.Item(json.loads(
+            get_resource('data/folder_child_item.json', pkg_name='tests')))
         self.image_item = onedrivesdk.Item(json.loads(get_resource('data/image_item.json', pkg_name='tests')))
         self._add_all_items()
 

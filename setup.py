@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 """
 onedrive-d
@@ -27,6 +27,13 @@ python_version = sys.version_info
 
 if python_version < (3, 3):
     raise Exception('%s %s only supports Python 3.3 and newer.' % (__project__, __version__))
+
+if python_version < (3, 4):
+    install_requires.append('asyncio')
+    install_requires.append('enum34')
+
+if python_version < (3, 5):
+    install_requires.append('dbus-python')
 
 setup(
     name=__project__,

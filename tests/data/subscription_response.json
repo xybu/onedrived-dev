@@ -1,0 +1,8 @@
+{
+  "clientState": "optional string",
+  "createdBy": { "@odata.type": "oneDrive.identitySet" },
+  "expirationDateTime": "2015-02-23T19:02:31.433Z",
+  "id": "string",
+  "notificationUrl": "url",
+  "resource": "relativePath"
+}
