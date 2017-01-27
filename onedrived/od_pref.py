@@ -50,9 +50,22 @@ def extract_qs_param(url, key):
 context = load_context()
 
 
+def main():
+    command_map = {
+        main_cmd: (change_account, change_config, change_drive),
+        change_account: (authenticate_account, list_accounts, delete_account),
+        change_config: (set_proxy, del_proxy, set_int_config, set_str_config, print_config),
+        change_drive: (list_drives, set_drive, delete_drive)
+    }
+    for cmd, subcmds in command_map.items():
+        for c in subcmds:
+            cmd.add_command(c)
+    main_cmd()
+
+
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
 @click.version_option(__version__)
-def main():
+def main_cmd():
     pass
 
 
@@ -463,13 +476,4 @@ def del_proxy(protocol):
 
 
 if __name__ == '__main__':
-    command_map = {
-        main: (change_account, change_config, change_drive),
-        change_account: (authenticate_account, list_accounts, delete_account),
-        change_config: (set_proxy, del_proxy, set_int_config, set_str_config, print_config),
-        change_drive: (list_drives, set_drive, delete_drive)
-    }
-    for cmd, subcmds in command_map.items():
-        for c in subcmds:
-            cmd.add_command(c)
     main()
