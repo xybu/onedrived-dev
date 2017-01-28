@@ -4,7 +4,7 @@ import logging.handlers
 import os
 from pwd import getpwnam
 
-import xdg
+import click
 
 from . import mkdir, get_resource, od_webhooks
 from .od_models import account_profile as _account_profile
@@ -43,10 +43,7 @@ def save_context(ctx):
 class UserContext:
     """Stores config params for a single local user."""
 
-    KEY_LOGFILE_PATH = 'logfile_path'
-
     DEFAULT_CONFIG = {
-        'proxies': {},  # Proxy is of format {'http': url1, 'https': url2}.
         'accounts': {},
         'drives': {},
         'scan_interval_sec': 21600,  # Poll every 6 hours.
@@ -56,34 +53,14 @@ class UserContext:
         'webhook_renew_interval_sec': 7200,  # Renew webhook every 2 hours.
         'num_workers': 2,
         'start_delay_sec': 0,
-        KEY_LOGFILE_PATH: '',
+        'logfile_path': '',
+        'proxy_http': None,
+        'proxy_https': None
     }
 
     DEFAULT_CONFIG_FILENAME = 'onedrived_config_v2.json'
     DEFAULT_IGNORE_FILENAME = 'ignore_v2.txt'
     DEFAULT_NGROK_CONF_FILENAME = 'ngrok_conf.yaml'
-
-    CONFIGURABLE_INT_KEYS = {
-        'scan_interval_sec': 'Interval, in seconds, between two actions of scanning the entire repository.',
-        'num_workers': 'Total number of worker threads.',
-        'webhook_renew_interval_sec': 'Renew webhook after this amount of time, in seconds. Ideal value should be '
-                                      'slightly larger than the lifespan of onedrived process.',
-        'webhook_port': 'Port number for webhook. Default: 0 (let OS allocate a free port).',
-        'start_delay_sec': 'Amount of time, in seconds, to sleep before main starts working.'
-    }
-
-    CONFIGURABLE_STR_KEYS = {
-        KEY_LOGFILE_PATH: 'Path to log file. Empty string means writing to stdout.',
-        'webhook_host': 'Host to receive webhook notifications. Requests to https://host:port much reach localhost.'
-                        'Use empty string "" to mean localhost.',
-        'webhook_type': 'Type of webhook. Use "direct" only if your machine can be reached from public network.'
-    }
-
-    ACCEPTED_VALUES = {
-        'webhook_type': od_webhooks.SUPPORTED_WEBHOOK_TYPES
-    }
-
-    SUPPORTED_PROXY_PROTOCOLS = ('http', 'https')
 
     def __init__(self, loop):
         """
@@ -94,11 +71,7 @@ class UserContext:
         self.user_name = get_login_username()
         self.user_uid = getpwnam(self.user_name).pw_uid
         self.user_home = os.path.expanduser('~' + self.user_name)
-        # Configuration of onedrived program.
-        if os.path.isdir(xdg.XDG_CONFIG_HOME):
-            self.config_dir = xdg.XDG_CONFIG_HOME + '/onedrived'
-        else:
-            self.config_dir = self.user_home + '/.onedrived'
+        self.config_dir = click.get_app_dir('onedrived')
         self._create_config_dir_if_missing()
         self.config = self.DEFAULT_CONFIG
         self.loop = loop

@@ -6,6 +6,7 @@
         <entryData>
           <resourceRoots>
             <path value="file://$PROJECT_DIR$/onedrived/data" />
+            <path value="file://$PROJECT_DIR$/onedrived/lang" />
           </resourceRoots>
         </entryData>
       </entry>

@@ -14,17 +14,17 @@ def get_webhook_server(context):
     """
     :param onedrived.od_context.UserContext context:
     """
-    if context.config['webhook_type'] not in od_webhooks.SUPPORTED_WEBHOOK_TYPES:
-        raise ValueError('Unsupported webhook type: "%s".' % context.config['webhook_type'])
     if context.config['webhook_type'] == 'direct':
         from .od_webhooks.http_server import WebhookConfig, WebhookListener
         wh_config = WebhookConfig(host=context.config['webhook_host'], port=context.config['webhook_port'])
-    else:
+    elif context.config['webhook_type'] == 'ngrok':
         from .od_webhooks.ngrok_server import WebhookConfig, WebhookListener
         ngrok_config_file = context.config_dir + '/' + context.DEFAULT_NGROK_CONF_FILENAME
         if not os.path.isfile(ngrok_config_file):
             ngrok_config_file = None
         wh_config = WebhookConfig(port=context.config['webhook_port'], ngrok_config_path=ngrok_config_file)
+    else:
+        raise ValueError('Unsupported webhook type: "%s".' % context.config['webhook_type'])
     return WebhookListener(wh_config, OneDriveWebhookHandler)
 
 

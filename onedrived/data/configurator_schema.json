@@ -1,0 +1,44 @@
+{
+  "scan_interval_sec": {
+    "type": "integer",
+    "minimum": 60,
+    "description": "@lang['config.scan_interval_sec.desc']"
+  },
+  "num_workers": {
+    "type": "integer",
+    "minimum": 1,
+    "description": "@lang['config.num_workers.desc']"
+  },
+  "webhook_renew_interval_sec": {
+    "type": "integer",
+    "minimum": 30,
+    "description": "@lang['config.webhook_renew_interval_sec.desc']"
+  },
+  "webhook_port": {
+    "type": "integer",
+    "minimum": 1,
+    "maximum": 65536,
+    "description": "@lang['config.webhook_port.desc']"
+  },
+  "start_delay_sec": {
+    "type": "integer",
+    "minimum": 0,
+    "description": "@lang['config.start_delay_sec.desc']"
+  },
+  "logfile_path": {
+    "type": "string",
+    "subtype": "file",
+    "to_abspath": true,
+    "create_if_missing": true,
+    "description": "@lang['config.logfile_path.desc']"
+  },
+  "webhook_type": {
+    "type": "string",
+    "choices": ["direct", "ngrok"],
+    "description": "@lang['config.webhook_type.desc']"
+  },
+  "webhook_host": {
+    "type": "string",
+    "description": "@lang['config.webhook_host.desc']"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "config.scan_interval_sec.desc": "Interval, in seconds, between two actions of scanning the entire repository.",
+  "config.num_workers.desc": "Total number of worker threads.",
+  "config.webhook_renew_interval_sec.desc": "Renew webhook after this amount of time, in seconds. Ideal value should be slightly larger than the lifespan of onedrived process.",
+  "config.start_delay_sec.desc": "Amount of time, in seconds, to sleep before main starts working.",
+  "config.logfile_path.desc": "Path to log file. Empty string means writing to stdout.",
+  "config.webhook_type.desc": "Type of webhook. Use \"direct\" only if your machine can be reached from public network.",
+  "config.webhook_host.desc": "Hostname in webhook URL. Used in \"direct\" webhook and must resolve to local host. Leave blank to use public IP of the machine.",
+  "config.webhook_port.desc": "Port number for webhook. Default: 0 (let OS allocate a free port).",
+  "configurator.error_invalid_key": "Config key \"{key}\" does not exist or is read-only.",
+  "configurator.error_int_value_required": "Invalid value \"{value}\" for \"{key}\": must be an integer.",
+  "configurator.error_int_below_minimum": "Invalid value for \"{key}\": no less than {minimum}; got {value}.",
+  "configurator.error_int_above_maximum": "Invalid value for \"{key}\": no more than {maximum}; got {value}.",
+  "configurator.error_str_invalid_choice": "Invalid value \"{value}\" for \"{key}\": must be a choice from {choices}.",
+  "configurator.error_str_not_startswith": "Invalid value \"{value}\" for \"{key}\": must start with {starts_with}.",
+  "configurator.error_path_not_exist": "Invalid value for \"{key}\": path \"{path}\" does not exist.",
+  "configurator.error_path_not_file": "Invalid value for \"{key}\": path \"{path}\" is not a file.",
+  "configurator.error_generic": "Invalid value for \"{key}\": {error_message}."
+}

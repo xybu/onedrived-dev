@@ -5,7 +5,6 @@ onedrivesdk
 keyring>=10.1
 send2trash
 zgitignore
-xdg>=1.0.3
 requests>2.9.1
 tabulate>=0.7.7
 daemonocle>=1.0.1

@@ -7,6 +7,7 @@ Core component for user authentication and authorization.
 
 import logging
 import requests
+from requests.utils import getproxies
 import onedrivesdk
 import onedrivesdk.error
 import onedrivesdk.helpers.http_provider_with_proxy
@@ -17,7 +18,7 @@ from .od_models import account_profile
 
 def get_authenticator_and_drives(context, account_id):
     # TODO: Ideally we should recursively get all drives because the API pages them.
-    authenticator = OneDriveAuthenticator(proxies=context.config['proxies'])
+    authenticator = OneDriveAuthenticator()
     try:
         authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
         drives = authenticator.client.drives.get()
@@ -42,11 +43,12 @@ class OneDriveAuthenticator:
     APP_REDIRECT_URL = 'https://login.live.com/oauth20_desktop.srf'
     APP_SCOPES = ['wl.signin', 'wl.emails', 'wl.offline_access', 'onedrive.readwrite']
 
-    def __init__(self, proxies=None):
+    def __init__(self):
         """
         :param dict[str, str] proxies: A dict of proxies in format like "{'https': proxy1, 'http': proxy2}".
         """
-        if proxies is None or not isinstance(proxies, dict) or len(proxies) == 0:
+        proxies = getproxies()
+        if len(proxies) == 0:
             http_provider = onedrivesdk.HttpProvider()
         else:
             http_provider = onedrivesdk.helpers.http_provider_with_proxy.HttpProviderWithProxy(proxies, verify_ssl=True)

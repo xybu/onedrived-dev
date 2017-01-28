@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import json
+import locale
 import os
 import urllib.parse
 
@@ -8,23 +10,30 @@ import keyring
 import tabulate
 
 from . import __version__
-from . import mkdir, od_auth
+from . import mkdir, get_resource, od_auth, od_i18n
 from .od_models import pretty_api, drive_config
 from .od_api_session import OneDriveAPISession, get_keyring_key
+from .od_models.configurator import GuardedConfigurator, exceptions as configurator_exceptions
 from .od_context import load_context, save_context
 
 
+context = load_context()
+translator = od_i18n.Translator(('od_pref', ), locale_str=str(locale.getlocale()[0]))
+config_schema = json.loads(get_resource('data/configurator_schema.json', pkg_name='onedrived'))
+config_guard = GuardedConfigurator(config_dict=context.config, config_schema_dict=config_schema)
+
+
 def error(s):
-    click.echo(click.style(s, fg='red'))
+    click.secho(s, fg='red')
 
 
 def print_all_accounts(ctx):
-    all_accounts = [('#', 'Account ID', 'Owner Name', 'Email Address')]
+    all_accounts = []
     all_account_ids = ctx.all_accounts()
     for i, account_id in enumerate(all_account_ids):
         account = ctx.get_account(account_id)
         all_accounts.append((str(i), account_id, account.account_name, account.account_email))
-    click.echo(tabulate.tabulate(all_accounts, headers='firstrow'))
+    click.echo(tabulate.tabulate(all_accounts, headers=('#', 'Account ID', 'Owner Name', 'Email Address')))
     return all_account_ids
 
 
@@ -47,14 +56,11 @@ def extract_qs_param(url, key):
     return None
 
 
-context = load_context()
-
-
 def main():
     command_map = {
         main_cmd: (change_account, change_config, change_drive),
         change_account: (authenticate_account, list_accounts, delete_account),
-        change_config: (set_proxy, del_proxy, set_int_config, set_str_config, print_config),
+        change_config: (set_config, print_config),
         change_drive: (list_drives, set_drive, delete_drive)
     }
     for cmd, subcmds in command_map.items():
@@ -99,7 +105,7 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
     if for_business:
         error('OneDrive for Business is not yet supported.')
         return
-    authenticator = od_auth.OneDriveAuthenticator(proxies=context.config['proxies'])
+    authenticator = od_auth.OneDriveAuthenticator()
     click.echo('NOTE: To better manage your OneDrive accounts, onedrived needs permission to access your account info '
                '(e.g., email address to distinguish different accounts) and read/write your OneDrive files.\n')
     if code is None:
@@ -399,80 +405,47 @@ def change_config():
     pass
 
 
-@click.command(name='print', short_help='Print all config parameters and their values.')
+@click.command(name='print', short_help='Print all config fields and their values.')
 def print_config():
-    for (section, keys) in (('[int]', context.CONFIGURABLE_INT_KEYS), ('[string]', context.CONFIGURABLE_STR_KEYS)):
-        click.echo(click.style(section, bold=True))
-        for k in sorted(keys.keys()):
-            click.echo('\n# %s' % keys[k])
-            click.echo('%s = %s' % (k, str(context.config[k])))
-        click.echo('\n')
-
-    click.echo(click.style('[proxies]', bold=True))
-    for k in sorted(context.config['proxies'].keys()):
-        click.echo('\n%s = %s' % (k, context.config['proxies'][k]))
-    click.echo()
+    for key in sorted(config_schema.keys()):
+        description = config_schema[key]['description']
+        if description.startswith('@lang[\'') and description.endswith('\']'):
+            description = translator[description[7:-2]]
+        click.echo('# %s' % description)
+        click.echo('%s = %s\n' % (key, str(context.config[key])))
 
 
+@click.command(name='set', short_help='Update a config parameter.')
+@click.argument('key', type=click.Choice(sorted(config_schema.keys())))
+@click.argument('value')
 def set_config(key, value):
-    if key not in context.DEFAULT_CONFIG:
-        raise ValueError('"%s" is not a valid config key.' % key)
-    context.config[key] = value
-    save_context(context)
-    click.echo('config.%s = %s' % (key, str(value)))
-
-
-@click.command(name='set-int', short_help='Update integer value for specific config key.')
-@click.argument('key', type=click.Choice(sorted(context.CONFIGURABLE_INT_KEYS.keys())))
-@click.argument('value', type=int)
-def set_int_config(key, value):
-    set_config(key, value)
-
-
-@click.command(name='set-str', short_help='Update string value for specific config key.')
-@click.argument('key', type=click.Choice(sorted(context.CONFIGURABLE_STR_KEYS.keys())))
-@click.argument('value', type=str)
-def set_str_config(key, value):
-    if key == context.KEY_LOGFILE_PATH:
-        try:
-            open(value, 'a').close()
-        except OSError as e:
-            error('Error: Failed to access log file "%s": %s.' % (value, e))
-            value = ''
-    set_config(key, value)
-
-
-@click.command(name='set-proxy',
-               short_help='Use proxy to connect to OneDrive server. ' +
-                          'If a proxy of the same protocol has been set, the old proxy will be replaced.' +
-                          'Specify proxy by URLs such as "https://localhost:8888".')
-@click.argument('url', type=str)
-def set_proxy(url):
-    if '://' not in url:
-        error('Invalid proxy URL. Use format like "https://localhost:8888".')
-    else:
-        protocol, host = url.split('://', maxsplit=1)
-        protocol = protocol.lower()
-        if protocol not in context.SUPPORTED_PROXY_PROTOCOLS:
-            error('Unsupported proxy protocol: "%s". ' % protocol)
-            error('Supported protocols are: %s.' % context.SUPPORTED_PROXY_PROTOCOLS)
+    try:
+        config_guard.set(key, value)
+        click.echo('config.%s = %s' % (key, str(context.config[key])))
+    except configurator_exceptions.ConfiguratorKeyError as e:
+        error(translator['configurator.error_invalid_key'].format(key=e.key))
+    except configurator_exceptions.IntValueRequired as e:
+        error(translator['configurator.error_int_value_required'].format(key=e.key, value=e.value))
+    except configurator_exceptions.IntValueBelowMinimum as e:
+        error(translator['configurator.error_int_below_minimum'].format(key=e.key, value=e.value, minimum=e.minimum))
+    except configurator_exceptions.IntValueAboveMaximum as e:
+        error(translator['configurator.error_int_below_minimum'].format(key=e.key, value=e.value, maximum=e.maximum))
+    except configurator_exceptions.StringInvalidChoice as e:
+        error(translator['configurator.error_str_invalid_choice'].format(
+            key=e.key, value=e.value, choices=', '.join(e.choices_allowed)))
+    except configurator_exceptions.StringNotStartsWith as e:
+        error(translator['configurator.error_str_not_startswith'].format(
+            key=e.key, value=e.value, starts_with=e.expected_starts_with))
+    except (configurator_exceptions.PathDoesNotExist, configurator_exceptions.PathIsNotFile) as e:
+        if isinstance(e, configurator_exceptions.PathIsNotFile):
+            str_key = 'configurator.error_path_not_file'
         else:
-            context.config['proxies'][protocol] = url
-            click.echo(click.style('Successfully saved proxy "%s".' % url, fg='green'))
-            save_context(context)
-
-
-@click.command(name='del-proxy',
-               short_help='Delete a previously added proxy from config. For example, to delete ' +
-                          'proxy "https://localhost:8888", use "https" in argument "protocol".')
-@click.argument('protocol', type=click.Choice(context.SUPPORTED_PROXY_PROTOCOLS))
-def del_proxy(protocol):
-    if protocol.lower() in context.config['proxies']:
-        del context.config['proxies'][protocol.lower()]
-        click.echo(click.style('Successfully deleted proxy for protocol "%s"' % protocol, fg='green'))
-        save_context(context)
-    else:
-        error('Proxy for protocol "%s" is not set.' % protocol)
+            str_key = 'configurator.error_path_not_exist'
+        error(translator[str_key].format(key=e.key, path=e.value))
+    except OSError as e:
+        error(translator['configurator.error_generic'].format(key=key, error_message=str(e)))
+    except:
+        raise
 
 
 if __name__ == '__main__':
