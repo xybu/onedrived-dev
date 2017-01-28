@@ -20,10 +20,10 @@ class WebhookConfig(http_server.WebhookConfig):
             self.ngrok_config_path = ngrok_config_path
 
 
-def _append_cmd_arg(config, property, arg, cmd):
-    if hasattr(config, property):
+def _append_cmd_arg(config, prop, arg, cmd):
+    if hasattr(config, prop):
         cmd.append(arg)
-        cmd.append(getattr(config, property))
+        cmd.append(getattr(config, prop))
 
 
 class WebhookListener(http_server.WebhookListener):

@@ -98,10 +98,9 @@ def update_subscription_for_repo(repo, subscription_id=None):
     return None
 
 
-def gen_start_repo_tasks(all_accounts, task_pool):
+def gen_start_repo_tasks(all_accounts):
     """
     :param dict[str, [onedrived.od_repo.OneDriveLocalRepository]] all_accounts:
-    :param onedrived.od_task.TaskPool task_pool:
     """
     if task_pool.outstanding_task_count == 0:
         for repo in itertools.chain.from_iterable(all_accounts.values()):
@@ -111,7 +110,7 @@ def gen_start_repo_tasks(all_accounts, task_pool):
                 logging.warning('Failed to create webhook. Will deep sync again in %d sec.',
                                 context.config['scan_interval_sec'])
                 context.loop.call_later(context.config['scan_interval_sec'],
-                                        gen_start_repo_tasks, all_accounts, task_pool)
+                                        gen_start_repo_tasks, all_accounts)
             else:
                 logging.info('Will use webhook to trigger sync events.')
 
@@ -194,7 +193,7 @@ def main():
         context.watcher.add_repo(repo)
 
     try:
-        context.loop.call_soon(gen_start_repo_tasks, all_accounts, task_pool)
+        context.loop.call_soon(gen_start_repo_tasks, all_accounts)
         context.loop.run_forever()
     finally:
         context.loop.close()

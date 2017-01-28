@@ -44,9 +44,6 @@ class OneDriveAuthenticator:
     APP_SCOPES = ['wl.signin', 'wl.emails', 'wl.offline_access', 'onedrive.readwrite']
 
     def __init__(self):
-        """
-        :param dict[str, str] proxies: A dict of proxies in format like "{'https': proxy1, 'http': proxy2}".
-        """
         proxies = getproxies()
         if len(proxies) == 0:
             http_provider = onedrivesdk.HttpProvider()

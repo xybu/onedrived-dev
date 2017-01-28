@@ -12,6 +12,10 @@ class ConfigStrTypes:
     FILE = 'file'
 
 
+def _test_bool_option(schema, optkey):
+    return optkey in schema and schema[optkey] is True
+
+
 class GuardedConfigurator:
 
     def __init__(self, config_dict, config_schema_dict):
@@ -29,15 +33,12 @@ class GuardedConfigurator:
             raise exceptions.IntValueAboveMaximum(key, value, schema['maximum'])
         self.config_dict[key] = value
 
-    def _test_bool_option(self, schema, optkey):
-        return optkey in schema and schema[optkey] is True
-
     def set_str_subtype(self, key, value, schema):
         if schema['subtype'] == ConfigStrTypes.FILE:
-            if self._test_bool_option(schema, 'to_abspath'):
+            if _test_bool_option(schema, 'to_abspath'):
                 value = os.path.abspath(value)
             if not os.path.exists(value):
-                if self._test_bool_option(schema, 'create_if_missing'):
+                if _test_bool_option(schema, 'create_if_missing'):
                     with open(value, 'w') as f:
                         f.write('')
                 else:
