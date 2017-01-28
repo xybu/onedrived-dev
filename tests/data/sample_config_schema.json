@@ -1,0 +1,36 @@
+{
+  "webhook_port": {
+    "type": "integer",
+    "minimum": 1,
+    "maximum": 65536,
+    "@default_value": 8080,
+    "description": "@lang['config.webhook_port.desc']"
+  },
+  "logfile_path": {
+    "type": "string",
+    "subtype": "file",
+    "to_abspath": true,
+    "create_if_missing": true,
+    "allow_empty": true,
+    "permissions": "w",
+    "@default_value": "/var/log/onedrived.log",
+    "description": "@lang['config.logfile_path.desc']"
+  },
+  "webhook_type": {
+    "type": "string",
+    "choices": ["direct", "ngrok"],
+    "@default_value": "direct",
+    "description": "@lang['config.webhook_type.desc']"
+  },
+  "webhook_host": {
+    "type": "string",
+    "@default_value": "haha",
+    "description": "@lang['config.webhook_host.desc']"
+  },
+  "https_url": {
+    "type": "string",
+    "allow_empty": true,
+    "@default_value": "https://foo/bar",
+    "starts_with": "https://"
+  }
+}

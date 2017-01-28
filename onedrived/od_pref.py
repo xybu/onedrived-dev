@@ -13,14 +13,14 @@ from . import __version__
 from . import mkdir, get_resource, od_auth, od_i18n
 from .od_models import pretty_api, drive_config
 from .od_api_session import OneDriveAPISession, get_keyring_key
-from .od_models.configurator import GuardedConfigurator, exceptions as configurator_exceptions
+from .od_models.dict_guard import GuardedDict, exceptions as guard_errors
 from .od_context import load_context, save_context
 
 
 context = load_context()
 translator = od_i18n.Translator(('od_pref', ), locale_str=str(locale.getlocale()[0]))
-config_schema = json.loads(get_resource('data/configurator_schema.json', pkg_name='onedrived'))
-config_guard = GuardedConfigurator(config_dict=context.config, config_schema_dict=config_schema)
+config_schema = json.loads(get_resource('data/config_schema.json', pkg_name='onedrived'))
+config_guard = GuardedDict(config_dict=context.config, config_schema_dict=config_schema)
 
 
 def error(s):
@@ -244,6 +244,41 @@ def list_drives():
         return
 
 
+def read_drive_config_interactively(drive_exists, curr_drive_config):
+    local_root = None
+    ignore_file = None
+    if drive_exists:
+        local_root_default = curr_drive_config.localroot_path
+        ignore_file_default = curr_drive_config.ignorefile_path
+    else:
+        local_root_default = context.user_home + '/OneDrive'
+        ignore_file_default = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
+    while local_root is None:
+        local_root = click.prompt('Enter the directory path to sync with this Drive',
+                                  type=str, default=local_root_default)
+        local_root = os.path.abspath(local_root)
+        if not os.path.exists(local_root):
+            if click.confirm('Directory "%s" does not exist. Create it?' % local_root):
+                try:
+                    mkdir(local_root, context.user_uid)
+                except OSError as e:
+                    error('OSError: %s' % e)
+                    local_root = None
+        elif not os.path.isdir(local_root):
+            error('Path "%s" should be a directory.' % local_root)
+            local_root = None
+        elif not click.confirm('Syncing with directory "%s"?' % local_root):
+            local_root = None
+    while ignore_file is None:
+        ignore_file = click.prompt('Enter the path to ignore file for this Drive',
+                                   type=str, default=ignore_file_default)
+        ignore_file = os.path.abspath(ignore_file)
+        if not os.path.isfile(ignore_file):
+            error('Path "%s" is not a file.' % ignore_file)
+            ignore_file = None
+    return local_root, ignore_file
+
+
 @click.command(name='set', short_help='Add a remote Drive to sync with local directory or modify an existing one. '
                                       'If either --drive-id or --email is missing, use interactive mode.')
 @click.option('--drive-id', '-d', type=str, required=False, default=None,
@@ -302,37 +337,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
         'Going to add/edit Drive "%s" of account "%s"...' % (drive_id, account_profile.account_email), fg='cyan'))
 
     if interactive:
-        local_root = None
-        ignore_file = None
-        if drive_exists:
-            local_root_default = curr_drive_config.localroot_path
-            ignore_file_default = curr_drive_config.ignorefile_path
-        else:
-            local_root_default = context.user_home + '/OneDrive'
-            ignore_file_default = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
-        while local_root is None:
-            local_root = click.prompt('Enter the directory path to sync with this Drive',
-                                      type=str, default=local_root_default)
-            local_root = os.path.abspath(local_root)
-            if not os.path.exists(local_root):
-                if click.confirm('Directory "%s" does not exist. Create it?' % local_root):
-                    try:
-                        mkdir(local_root, context.user_uid)
-                    except OSError as e:
-                        error('OSError: %s' % e)
-                        local_root = None
-            elif not os.path.isdir(local_root):
-                error('Path "%s" should be a directory.' % local_root)
-                local_root = None
-            elif not click.confirm('Syncing with directory "%s"?' % local_root):
-                local_root = None
-        while ignore_file is None:
-            ignore_file = click.prompt('Enter the path to ignore file for this Drive',
-                                       type=str, default=ignore_file_default)
-            ignore_file = os.path.abspath(ignore_file)
-            if not os.path.isfile(ignore_file):
-                error('Path "%s" is not a file.' % ignore_file)
-                ignore_file = None
+        local_root, ignore_file = read_drive_config_interactively(drive_exists, curr_drive_config)
     else:
         # Non-interactive mode. The drive may or may not exist in config, and the cmdline args may or may not be
         # specified. If drive exists in config, use existing values for missing args. If drive does not exist,
@@ -349,12 +354,12 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
             if ignore_file is None and drive_exists:
                 ignore_file = curr_drive_config.ignorefile_path
             if ignore_file is None or not os.path.isfile(ignore_file):
-                click.echo(click.style('Warning: ignore file path does not point to a file. Use default.', fg='yellow'))
+                click.secho('Warning: ignore file path does not point to a file. Use default.', fg='yellow')
                 ignore_file = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
             if (drive_exists and
                 local_root == curr_drive_config.localroot_path and
                     ignore_file == curr_drive_config.ignorefile_path):
-                click.echo(click.style('No parameter was changed. Skipped operation.', fg='yellow'))
+                click.secho('No parameter was changed. Skipped operation.', fg='yellow')
                 return
         except ValueError as e:
             error(str(e))
@@ -420,24 +425,24 @@ def print_config():
 @click.argument('value')
 def set_config(key, value):
     try:
-        config_guard.set(key, value)
+        config_guard[key] = value
         click.echo('config.%s = %s' % (key, str(context.config[key])))
-    except configurator_exceptions.ConfiguratorKeyError as e:
+    except guard_errors.DictGuardKeyError as e:
         error(translator['configurator.error_invalid_key'].format(key=e.key))
-    except configurator_exceptions.IntValueRequired as e:
+    except guard_errors.IntValueRequired as e:
         error(translator['configurator.error_int_value_required'].format(key=e.key, value=e.value))
-    except configurator_exceptions.IntValueBelowMinimum as e:
+    except guard_errors.IntValueBelowMinimum as e:
         error(translator['configurator.error_int_below_minimum'].format(key=e.key, value=e.value, minimum=e.minimum))
-    except configurator_exceptions.IntValueAboveMaximum as e:
+    except guard_errors.IntValueAboveMaximum as e:
         error(translator['configurator.error_int_below_minimum'].format(key=e.key, value=e.value, maximum=e.maximum))
-    except configurator_exceptions.StringInvalidChoice as e:
+    except guard_errors.StringInvalidChoice as e:
         error(translator['configurator.error_str_invalid_choice'].format(
             key=e.key, value=e.value, choices=', '.join(e.choices_allowed)))
-    except configurator_exceptions.StringNotStartsWith as e:
+    except guard_errors.StringNotStartsWith as e:
         error(translator['configurator.error_str_not_startswith'].format(
             key=e.key, value=e.value, starts_with=e.expected_starts_with))
-    except (configurator_exceptions.PathDoesNotExist, configurator_exceptions.PathIsNotFile) as e:
-        if isinstance(e, configurator_exceptions.PathIsNotFile):
+    except (guard_errors.PathDoesNotExist, guard_errors.PathIsNotFile) as e:
+        if isinstance(e, guard_errors.PathIsNotFile):
             str_key = 'configurator.error_path_not_file'
         else:
             str_key = 'configurator.error_path_not_exist'

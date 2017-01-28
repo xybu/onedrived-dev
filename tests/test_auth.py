@@ -1,5 +1,8 @@
 import json
+import os
 import unittest
+
+from onedrivesdk.helpers.http_provider_with_proxy import HttpProviderWithProxy
 
 from onedrived import get_resource, od_auth, od_api_session
 
@@ -20,11 +23,17 @@ def get_sample_authenticator():
 
 class TestOneDriveAuthenticator(unittest.TestCase):
 
-    def setUp(self):
-        self.authenticator = od_auth.OneDriveAuthenticator()
-
     def test_get_auth_url(self):
-        self.assertIsInstance(self.authenticator.get_auth_url(), str)
+        authenticator = od_auth.OneDriveAuthenticator()
+        self.assertIsInstance(authenticator.get_auth_url(), str)
+
+    def test_get_proxies(self):
+        for k in ('http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY'):
+            os.environ[k] = 'http://foo/bar'
+            authenticator = od_auth.OneDriveAuthenticator()
+            self.assertIsInstance(authenticator.client.http_provider, HttpProviderWithProxy)
+            self.assertEqual({k.split('_')[0].lower(): 'http://foo/bar'}, authenticator.client.http_provider.proxies)
+            del os.environ[k]
 
 
 if __name__ == '__main__':

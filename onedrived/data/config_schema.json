@@ -16,8 +16,8 @@
   },
   "webhook_port": {
     "type": "integer",
-    "minimum": 1,
-    "maximum": 65536,
+    "minimum": 0,
+    "maximum": 65535,
     "description": "@lang['config.webhook_port.desc']"
   },
   "start_delay_sec": {
@@ -30,6 +30,8 @@
     "subtype": "file",
     "to_abspath": true,
     "create_if_missing": true,
+    "allow_empty": true,
+    "permission": "a",
     "description": "@lang['config.logfile_path.desc']"
   },
   "webhook_type": {
@@ -39,6 +41,7 @@
   },
   "webhook_host": {
     "type": "string",
+    "allow_empty": true,
     "description": "@lang['config.webhook_host.desc']"
   }
 }
