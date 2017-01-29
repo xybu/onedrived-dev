@@ -27,6 +27,10 @@ def error(s):
     click.secho(s, fg='red')
 
 
+def success(s):
+    click.secho(s, fg='green')
+
+
 def print_all_accounts(ctx):
     all_accounts = []
     all_account_ids = ctx.all_accounts()
@@ -49,7 +53,6 @@ def email_to_account_id(ctx, email, all_account_ids=None):
 
 def extract_qs_param(url, key):
     if url is not None and '?' in url:
-        # noinspection PyUnresolvedReferences
         qs_dict = urllib.parse.parse_qs(url.split('?')[1])
         if key in qs_dict:
             return qs_dict[key]
@@ -75,8 +78,7 @@ def main_cmd():
     pass
 
 
-@click.group(name='account',
-             short_help='Add new OneDrive account to onedrived, list all existing ones, or remove some.')
+@click.group(name='account', short_help=translator['od_pref.account.submain.short_help'])
 def change_account():
     pass
 
@@ -87,46 +89,47 @@ def save_account(authenticator):
         authenticator.save_session(key=get_keyring_key(account_profile.account_id))
         context.add_account(account_profile)
         save_context(context)
-        click.echo(click.style('Successfully added account for %s!' % account_profile, fg='green'))
-        click.echo('\nAll OneDrive accounts associated with user "%s":\n' % context.user_name)
+        success(translator['od_pref.save_account.success'].format(profile=account_profile))
+        click.echo()
+        click.echo(translator['od_pref.save_account.print_header'].format(context=context))
+        click.echo()
         print_all_accounts(context)
     except Exception as e:
-        error('Failed to save account info: %s.' % e)
+        error(translator['od_pref.save_account.error'].format(error_message=e))
 
 
-@click.command(name='add', short_help='Add a new OneDrive account to onedrived.')
+@click.command(name='add', short_help=translator['od_pref.authenticate_account.short_help'])
 @click.option('--get-auth-url', '-u', is_flag=True, default=False, required=False,
-              help='If set, print the authentication URL and exit.')
+              help=translator['od_pref.authenticate_account.get_auth_url.help'])
 @click.option('--code', '-c', type=str, required=False, default=None,
-              help='Skip interactions and try authenticating with the code directly.')
+              help=translator['od_pref.authenticate_account.code.help'])
 @click.option('--for-business', '-b', is_flag=True, default=False, required=False,
-              help='If set, add an OneDrive for Business account.')
+              help=translator['od_pref.authenticate_account.for_business.help'])
 def authenticate_account(get_auth_url=False, code=None, for_business=False):
     if for_business:
-        error('OneDrive for Business is not yet supported.')
+        error(translator['od_pref.authenticate_account.for_business_unsupported'])
         return
     authenticator = od_auth.OneDriveAuthenticator()
-    click.echo('NOTE: To better manage your OneDrive accounts, onedrived needs permission to access your account info '
-               '(e.g., email address to distinguish different accounts) and read/write your OneDrive files.\n')
+    click.echo(translator['od_pref.authenticate_account.permission_note'])
     if code is None:
-        click.echo('Paste this URL into your browser to sign in and authorize onedrived:')
+        click.echo(translator['od_pref.authenticate_account.paste_url_note'])
         click.echo('\n' + click.style(authenticator.get_auth_url(), underline=True) + '\n')
         if get_auth_url:
             return
-        click.echo('The authentication web page will finish with a blank page whose URL starts with ' +
-                   '"' + click.style(authenticator.APP_REDIRECT_URL, bold=True) + '". Paste this URL here.')
-        url = click.prompt('Paste URL here', type=str)
+        click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
+            redirect_url=click.style(authenticator.APP_REDIRECT_URL, bold=True)))
+        url = click.prompt(translator['od_pref.authenticate_account.paste_url_prompt'], type=str)
         code = extract_qs_param(url, 'code')
         if code is None:
-            error('Error: did not find authorization code in URL.')
+            error(translator['od_pref.authenticate_account.error.code_not_found_in_url'])
             return
 
     try:
         authenticator.authenticate(code)
-        click.echo(click.style('Successfully authorized onedrived.', fg='green'))
+        success(translator['od_pref.authenticate_account.success.authorized'])
         save_account(authenticator)
     except Exception as e:
-        error('Failed to authorize onedrived: %s.' % e)
+        error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=e))
 
 
 @click.command(name='list', short_help='List all linked accounts.')
@@ -177,14 +180,12 @@ def delete_account(yes=False, index=None, email=None, account_id=None):
             context.delete_account(account_id)
             keyring.delete_password(OneDriveAPISession.KEYRING_SERVICE_NAME, get_keyring_key(account_id))
             save_context(context)
-            click.echo(click.style('Successfully deleted account from onedrived.', fg='green'))
+            success('Successfully deleted account from onedrived.')
         else:
             click.echo('Operation canceled.')
 
 
-@click.group(name='drive',
-             short_help='List all remote OneDrive repositories (Drives) of linked accounts, add new Drives to sync, '
-                        'edit configurations of existing Drives, or remove a Drive from local list.')
+@click.group(name='drive', short_help=translator['od_pref.drive.submain.short_help'])
 def change_drive():
     pass
 
@@ -367,8 +368,8 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
 
     d = context.add_drive(drive_config.LocalDriveConfig(drive_id, account_id, ignore_file, local_root))
     save_context(context)
-    click.echo(click.style('\nSuccessfully configured Drive %s of account %s (%s):' % (
-        d.drive_id, account_profile.account_email, d.account_id), fg='green'))
+    success('\nSuccessfully configured Drive %s of account %s (%s):' % (
+        d.drive_id, account_profile.account_email, d.account_id))
     click.echo('  Local directory: ' + d.localroot_path)
     click.echo('  Ignore file path: ' + d.ignorefile_path)
 
@@ -400,17 +401,17 @@ def delete_drive(drive_id=None, yes=False):
                             abort=True):
         context.delete_drive(drive_id)
         save_context(context)
-        click.echo(click.style('Successfully deleted Drive "%s" from onedrived.' % drive_id, fg='green'))
+        success('Successfully deleted Drive "%s" from onedrived.' % drive_id)
     else:
         click.echo('Operation canceled.')
 
 
-@click.group(name='config', short_help='Modify config (e.g., proxies, intervals) for current user.')
+@click.group(name='config', short_help=translator['od_pref.config.submain.short_help'])
 def change_config():
     pass
 
 
-@click.command(name='print', short_help='Print all config fields and their values.')
+@click.command(name='print', short_help=translator['od_pref.print_config.short_help'])
 def print_config():
     for key in sorted(config_schema.keys()):
         description = config_schema[key]['description']
@@ -420,12 +421,13 @@ def print_config():
         click.echo('%s = %s\n' % (key, str(context.config[key])))
 
 
-@click.command(name='set', short_help='Update a config parameter.')
+@click.command(name='set', short_help=translator['od_pref.set_config.short_help'])
 @click.argument('key', type=click.Choice(sorted(config_schema.keys())))
 @click.argument('value')
 def set_config(key, value):
     try:
         config_guard[key] = value
+        save_context(context)
         click.echo('config.%s = %s' % (key, str(context.config[key])))
     except guard_errors.DictGuardKeyError as e:
         error(translator['configurator.error_invalid_key'].format(key=e.key))
@@ -434,7 +436,7 @@ def set_config(key, value):
     except guard_errors.IntValueBelowMinimum as e:
         error(translator['configurator.error_int_below_minimum'].format(key=e.key, value=e.value, minimum=e.minimum))
     except guard_errors.IntValueAboveMaximum as e:
-        error(translator['configurator.error_int_below_minimum'].format(key=e.key, value=e.value, maximum=e.maximum))
+        error(translator['configurator.error_int_above_maximum'].format(key=e.key, value=e.value, maximum=e.maximum))
     except guard_errors.StringInvalidChoice as e:
         error(translator['configurator.error_str_invalid_choice'].format(
             key=e.key, value=e.value, choices=', '.join(e.choices_allowed)))

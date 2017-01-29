@@ -24,6 +24,3 @@ class OneDriveAccountProfile:
     @property
     def account_email(self):
         return self.data['emails']['account']
-
-    def __repr__(self):
-        return '%s (%s, %s)' % (self.account_name, self.account_email, self.account_id)

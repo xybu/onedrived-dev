@@ -7,6 +7,7 @@
   "config.webhook_type.desc": "Type of webhook. Use \"direct\" only if your machine can be reached from public network.",
   "config.webhook_host.desc": "Hostname in webhook URL. Used in \"direct\" webhook and must resolve to local host. Leave blank to use public IP of the machine.",
   "config.webhook_port.desc": "Port number for webhook. Default: 0 (let OS allocate a free port).",
+
   "configurator.error_invalid_key": "Config key \"{key}\" does not exist or is read-only.",
   "configurator.error_int_value_required": "Invalid value \"{value}\" for \"{key}\": must be an integer.",
   "configurator.error_int_below_minimum": "Invalid value for \"{key}\": no less than {minimum}; got {value}.",
@@ -15,5 +16,28 @@
   "configurator.error_str_not_startswith": "Invalid value \"{value}\" for \"{key}\": must start with {starts_with}.",
   "configurator.error_path_not_exist": "Invalid value for \"{key}\": path \"{path}\" does not exist.",
   "configurator.error_path_not_file": "Invalid value for \"{key}\": path \"{path}\" is not a file.",
-  "configurator.error_generic": "Invalid value for \"{key}\": {error_message}."
+  "configurator.error_generic": "Invalid value for \"{key}\": {error_message}.",
+
+  "od_pref.drive.submain.short_help": "List all remote OneDrive repositories (Drives) of linked accounts, add new Drives to sync, edit configurations of existing Drives, or remove a Drive from local list.",
+
+  "od_pref.config.submain.short_help": "Modify config (e.g., intervals, number of workers, etc.) for current user.",
+  "od_pref.set_config.short_help": "Update a config parameter.",
+  "od_pref.print_config.short_help": "Print all config parameters along with their descriptions and values.",
+
+  "od_pref.account.submain.short_help": "Add new OneDrive account to onedrived, list or remove existing ones.",
+  "od_pref.authenticate_account.short_help": "Add a new OneDrive account to onedrived.",
+  "od_pref.authenticate_account.get_auth_url.help": "If set, print the authentication URL and exit.",
+  "od_pref.authenticate_account.code.help": "Skip interactions and try authenticating with the code directly.",
+  "od_pref.authenticate_account.for_business.help": "If set, add an OneDrive for Business account.",
+  "od_pref.save_account.success": "Successfully added account for {profile.account_name} ({profile.account_email})!",
+  "od_pref.save_account.print_header": "All OneDrive accounts associated with user \"{context.user_name}\":",
+  "od_pref.save_account.error": "Failed to save account: {error_message}.",
+  "od_pref.authenticate_account.for_business_unsupported": "OneDrive for Business is not yet supported.",
+  "od_pref.authenticate_account.permission_note": "NOTE: To better manage your OneDrive accounts, onedrived needs permission to access your account info (e.g., email address to distinguish different accounts) and read/write your OneDrive files.\n",
+  "od_pref.authenticate_account.paste_url_note": "Paste this URL into your browser to sign in and authorize onedrived:",
+  "od_pref.authenticate_account.paste_url_instruction": "The authentication web page will finish with a blank page whose URL starts with \"{redirect_url}\". Paste this URL after the prompt.",
+  "od_pref.authenticate_account.paste_url_prompt": "Paste URL here",
+  "od_pref.authenticate_account.error.code_not_found_in_url": "Error: did not find authorization code in URL.",
+  "od_pref.authenticate_account.success.authorized": "Successfully authorized onedrived.",
+  "od_pref.authenticate_account.error.authorization": "Failed to authorize onedrived: {error_message}."
 }
