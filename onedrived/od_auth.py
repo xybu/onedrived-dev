@@ -61,16 +61,18 @@ class OneDriveAuthenticator:
     def authenticate(self, code):
         self.client.auth_provider.authenticate(code, self.APP_REDIRECT_URL, self.APP_CLIENT_SECRET)
 
-    def get_profile(self, user_id='me', proxies=None):
+    def get_profile(self, user_id='me'):
         """
         Fetch basic profile of the specified user (Live ID).
         :param str user_id: (Optional) ID of the target user.
-        :param dict[str, str] proxies: (Optional) Proxies to issue the HTTP request.
         :return od_models.account_profile.OneDriveUserProfile:
             An OneDriveUserProfile object that od_models the user info.
         """
         url = 'https://apis.live.net/v5.0/' + user_id
         headers = {'Authorization': 'Bearer ' + self.client.auth_provider.access_token}
+        proxies = getproxies()
+        if len(proxies) == 0:
+            proxies = None
         response = requests.get(url, headers=headers, proxies=proxies, verify=True)
         if response.status_code != requests.codes.ok:
             raise ValueError('Failed to read user profile.')

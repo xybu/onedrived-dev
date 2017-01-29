@@ -85,7 +85,7 @@ def change_account():
 
 def save_account(authenticator):
     try:
-        account_profile = authenticator.get_profile(proxies=context.config['proxies'])
+        account_profile = authenticator.get_profile()
         authenticator.save_session(key=get_keyring_key(account_profile.account_id))
         context.add_account(account_profile)
         save_context(context)
@@ -95,7 +95,7 @@ def save_account(authenticator):
         click.echo()
         print_all_accounts(context)
     except Exception as e:
-        error(translator['od_pref.save_account.error'].format(error_message=e))
+        error(translator['od_pref.save_account.error'].format(error_message=str(e)))
 
 
 @click.command(name='add', short_help=translator['od_pref.authenticate_account.short_help'])
@@ -129,7 +129,7 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
         success(translator['od_pref.authenticate_account.success.authorized'])
         save_account(authenticator)
     except Exception as e:
-        error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=e))
+        error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=str(e)))
 
 
 @click.command(name='list', short_help='List all linked accounts.')
