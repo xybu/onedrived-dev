@@ -297,11 +297,34 @@ Use command `onedrived-pref account add --code <some_code_here>`, where
 
 #### Adding Drives to `onedrived`
 
+TBA.
+
 ### Run `onedrived` in debug mode
+
+Use argument `--debug` so that `onedrived` runs in debug mode, using
+debug-level log verbosity and printing log to `stderr`.
+
+```bash
+onedrived start --debug
+```
 
 ### Run `onedrived` as daemon
 
 ### More Usages
+
+#### Run `onedrived` with proxies
+
+`onedrived` follows behavior of standard Python library function
+[`getproxies()`](https://docs.python.org/3/library/urllib.request.html#urllib.request.getproxies)
+to read proxies information from the OS. That is, run the command with
+environment variable `HTTP_PROXY` (or `http_proxy`) to set up a HTTP proxy, and variable
+`HTTPS_PROXY` (or `https_proxy`) to set up a HTTPS proxy. For example,
+
+```bash
+$ HTTPS_PROXY=https://user:pass@host:port/some_path onedrived start --debug
+```
+
+A HTTPS proxy must have a verifiable SSL certificate.
 
 #### List all authorized OneDrive accounts
 
