@@ -7,6 +7,7 @@
 [![codecov](https://codecov.io/gh/xybu/onedrived-dev/branch/master/graph/badge.svg)](https://codecov.io/gh/xybu/onedrived-dev)
 [![Coverage Status](https://coveralls.io/repos/github/xybu/onedrived-dev/badge.svg)](https://coveralls.io/github/xybu/onedrived-dev)
 [![Code Climate](https://codeclimate.com/github/xybu/onedrived-dev/badges/gpa.svg)](https://codeclimate.com/github/xybu/onedrived-dev)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/93853554008645059a6b17325be4fd6d)](https://www.codacy.com/app/xybu/onedrived-dev?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=xybu/onedrived-dev&amp;utm_campaign=Badge_Grade)
 
 ## Introduction
 
