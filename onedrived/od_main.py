@@ -189,8 +189,6 @@ def main():
     webhook_server.start()
 
     context.watcher = LocalRepositoryWatcher(task_pool=task_pool, loop=context.loop)
-    for repo in itertools.chain.from_iterable(all_accounts.values()):
-        context.watcher.add_repo(repo)
 
     try:
         context.loop.call_soon(gen_start_repo_tasks, all_accounts)

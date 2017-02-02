@@ -100,7 +100,7 @@ class MergeDirectoryTask(base.TaskBase):
             logging.error('Error syncing "%s": %s.', self.local_abspath, e)
             return
 
-        self.repo.context.watcher.rm_watch(self.local_abspath)
+        self.repo.context.watcher.rm_watch(self.repo, self.local_abspath)
 
         if not self.assume_remote_unchanged or not self.parent_remote_unchanged:
             try:
@@ -126,7 +126,7 @@ class MergeDirectoryTask(base.TaskBase):
         for n in all_local_items:
             self._handle_local_item(n)
 
-        self.repo.context.watcher.add_watch(self.local_abspath)
+        self.repo.context.watcher.add_watch(self.repo, self.local_abspath)
 
     def _rename_local_and_download_remote(self, remote_item, all_local_items):
         all_local_items.add(self._rename_with_local_suffix(remote_item.name))

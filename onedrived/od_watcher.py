@@ -33,10 +33,8 @@ class LocalRepositoryWatcher:
         :param onedrived.od_task.TaskPool task_pool:
         :param asyncio.SelectorEventLoop | None loop:
         """
-        # super().__init__(name='Watcher', daemon=True)
         self._lock = threading.RLock()
         self.watch_descriptors = loosebidict()
-        self.local_repos = dict()
         self.task_queue = []
         self.task_pool = task_pool
         self.notifier = _INotify()
@@ -48,39 +46,21 @@ class LocalRepositoryWatcher:
         self.loop.add_reader(self.notifier.fd, self.process_events)
 
     def close(self):
-        self.local_repos.clear()
         self.notifier.close()
 
-    def add_repo(self, repo):
-        """
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
-        """
-        self.local_repos[repo.local_root] = repo
-
-    def add_watch(self, local_abspath):
+    def add_watch(self, repo, local_abspath):
         logging.debug('Adding watcher for "%s"', local_abspath)
         with self._lock:
-            if local_abspath not in self.watch_descriptors:
+            if (repo, local_abspath) not in self.watch_descriptors:
                 wd = self.notifier.add_watch(local_abspath, self.FLAGS)
-                self.watch_descriptors[wd] = local_abspath
+                self.watch_descriptors[wd] = (repo, local_abspath)
 
-    def rm_watch(self, local_abspath):
+    def rm_watch(self, repo, local_abspath):
         logging.debug('Removing watcher for "%s"', local_abspath)
         with self._lock:
-            if local_abspath in self.watch_descriptors:
-                wd = self.watch_descriptors.inv.pop(local_abspath)
+            if (repo, local_abspath) in self.watch_descriptors:
+                wd = self.watch_descriptors.inv.pop((repo, local_abspath))
                 self.notifier.rm_watch(wd)
-
-    def _path_to_repo(self, local_abspath):
-        """
-        :param str local_abspath:
-        :return onedrived.od_repo.OneDriveLocalRepository | None:
-        """
-        # TODO: Either prohibit nested repo or use a more complex algorithm.
-        for k, v in self.local_repos.items():
-            if local_abspath.startswith(k):
-                return v
-        return None
 
     def ensure_remote_path_is_dir(self, repo, rel_path):
         """
@@ -161,11 +141,9 @@ class LocalRepositoryWatcher:
     def _local_abspath_to_relpath(repo, local_abspath):
         return local_abspath[len(repo.local_root):]
 
-    def _handle_move_pair(self, move_pair, to_repo, from_repo=None):
+    def _handle_move_pair(self, move_pair):
         """
         :param [[inotify_simple.Event, inotify_simple.flags], [inotify_simple.Event, inotify_simple.flags]] move_pair:
-        :param onedrived.od_repo.OneDriveLocalRepository to_repo:
-        :param onedrived.od_repo.OneDriveLocalRepository | None from_repo:
         """
         from_tup, to_tup = move_pair
         from_ev, from_flags = from_tup
@@ -175,12 +153,9 @@ class LocalRepositoryWatcher:
             logging.debug('Move pair %s is result of renaming temp file. No need to handle.', str(move_pair))
             return
 
-        from_parent_dir = self.watch_descriptors[from_ev.wd]
-        to_parent_dir = self.watch_descriptors[to_ev.wd]
+        from_repo, from_parent_dir = self.watch_descriptors[from_ev.wd]
+        to_repo, to_parent_dir = self.watch_descriptors[to_ev.wd]
         to_parent_relpath = self._local_abspath_to_relpath(to_repo, to_parent_dir)
-
-        if from_repo is None:
-            from_repo = self._path_to_repo(from_parent_dir)
 
         if not self.ensure_remote_path_is_dir(repo=to_repo, rel_path=to_parent_relpath):
             logging.critical('Failed to ensure remote item for "%s" a dir. Fallback to dir merge.', to_parent_dir)
@@ -211,7 +186,7 @@ class LocalRepositoryWatcher:
                     new_parent_relpath=to_parent_relpath, new_name=to_ev.name, item_id=from_item_record.item_id,
                     is_folder=_inotify_flags.ISDIR in from_flags).handle():
                 if _inotify_flags.ISDIR in to_flags:
-                    self.add_watch(to_parent_dir + '/' + to_ev.name)
+                    self.add_watch(to_repo, to_parent_dir + '/' + to_ev.name)
             else:
                 logging.error('Failed to use Move API to move item "%s/%s". Fallback to dir merge.',
                               from_parent_dir, from_ev.name)
@@ -242,11 +217,8 @@ class LocalRepositoryWatcher:
         :param onedrived.od_repo.ItemRecord | None from_item_record:
         """
 
-        if from_parent_dir is None:
-            from_parent_dir = self.watch_descriptors[from_ev.wd]
-
-        if from_repo is None:
-            from_repo = self._path_to_repo(from_parent_dir)
+        if from_parent_dir is None or from_repo is None:
+            from_repo, from_parent_dir = self.watch_descriptors[from_ev.wd]
 
         if from_parent_relpath is None:
             from_parent_relpath = self._local_abspath_to_relpath(from_repo, from_parent_dir)
@@ -364,9 +336,8 @@ class LocalRepositoryWatcher:
         :param [inotify_simple.flags] flags:
         :param dict[int, [inotify_simple.Event, inotify_simple.flags]] move_pairs:
         """
-        parent_dir = self.watch_descriptors[ev.wd]
+        repo, parent_dir = self.watch_descriptors[ev.wd]
 
-        repo = self._path_to_repo(parent_dir)
         if repo is None:
             logging.warning('Repo not found for %s on path "%s". Flags={%s}.',
                             str(ev), parent_dir + '/' + ev.name, ','.join([str(f) for f in flags]))
@@ -384,12 +355,12 @@ class LocalRepositoryWatcher:
             return
 
         if event_isdir and (_inotify_flags.MOVED_FROM in flags or _inotify_flags.DELETE in flags):
-            self.rm_watch(parent_dir + '/' + ev.name)
+            self.rm_watch(repo, parent_dir + '/' + ev.name)
 
         if ev.cookie in move_pairs:
             # Event is part of a move-from + move-to sequence. Handle the two events at move-to time.
             if _inotify_flags.MOVED_TO in flags:
-                self._handle_move_pair(move_pairs[ev.cookie], to_repo=repo)
+                self._handle_move_pair(move_pairs[ev.cookie])
             return
         elif _inotify_flags.MOVED_FROM in flags:
             # A move-from event without move-to counterpart.
@@ -408,7 +379,7 @@ class LocalRepositoryWatcher:
                     if self.ensure_remote_path_is_dir(
                             repo=repo, rel_path=self._local_abspath_to_relpath(repo, item_path)):
                         # A newly created dir is empty. No need to merge.
-                        self.add_watch(item_path)
+                        self.add_watch(repo, item_path)
                     else:
                         logging.critical('Failed to create remote directory for "%s". Fallback to merge.', item_path)
                         self._add_merge_dir_task(repo=repo, rel_path=self._local_abspath_to_relpath(repo, parent_dir))
