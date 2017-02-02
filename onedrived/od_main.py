@@ -130,7 +130,7 @@ def delete_temp_files(all_accounts):
 def init_task_pool_and_workers():
     global task_pool
     task_pool = od_task.TaskPool()
-    for i in range(context.config['num_workers']):
+    for _ in range(context.config['num_workers']):
         w = od_threads.TaskWorkerThread(name='Worker-%d' % len(task_workers), task_pool=task_pool)
         w.start()
         task_workers.add(w)

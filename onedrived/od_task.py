@@ -25,7 +25,7 @@ class TaskPool:
         self._lock = threading.Lock()
 
     def close(self, n=1):
-        for i in range(n):
+        for _ in range(n):
             self.semaphore.release()
 
     def add_task(self, task):

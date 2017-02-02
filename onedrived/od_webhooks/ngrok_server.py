@@ -82,7 +82,7 @@ class WebhookListener(http_server.WebhookListener):
         webhook_urls = dict()
         self._api_url = 'http://%s:%d/api' % self._find_ngrok_inspection_port()
         logging.info('Local ngrok API url: %s', self._api_url)
-        for i in range(0, self.POLL_TUNNELS_MAX_TRIES):
+        for _ in range(0, self.POLL_TUNNELS_MAX_TRIES):
             try:
                 data = requests.get(self._api_url + '/tunnels').json()
                 if 'tunnels' not in data or len(data['tunnels']) == 0:
