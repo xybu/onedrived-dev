@@ -93,4 +93,4 @@ class SchemaValidator:
             if 'type' not in spec:
                 raise KeyError('Required field "type" is missing in key "%s".' % key)
             elif spec['type'] not in (DictEntryTypes.INT, DictEntryTypes.STR):
-                raise ValueError('Value of field "type" in key "%s" is not supported.' % key)
+                raise ValueError('Unsupported type of key "%s": "%s".' % (key, spec['type']))

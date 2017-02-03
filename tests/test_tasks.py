@@ -43,7 +43,7 @@ class TestUpdateSubscriptionTask(TasksTestCaseBase):
 
     def setUp(self):
         super().setUp()
-        self.webhook_worker = od_webhook.WebhookWorkerThread('https://localhost')
+        self.webhook_worker = od_webhook.WebhookWorkerThread('https://localhost', callback_func=None)
         self.data = json.loads(get_resource('data/subscription_response.json', pkg_name='tests'))
 
     def assert_subscription(self, subscription):

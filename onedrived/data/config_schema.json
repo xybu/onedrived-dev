@@ -43,5 +43,10 @@
     "type": "string",
     "allow_empty": true,
     "description": "@lang['config.webhook_host.desc']"
+  },
+  "webhook_action_delay_sec": {
+    "type": "integer",
+    "minimum": 10,
+    "description":  "@lang['config.webhook_action_delay_sec.desc']"
   }
 }

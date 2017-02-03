@@ -12,9 +12,10 @@ from tests.test_repo import get_sample_repo
 class TestWebhookWorker(unittest.TestCase):
 
     def setUp(self):
-        od_webhook.WebhookWorkerThread.MAX_PER_ITEM_DELAY_SEC = 0
         self.temp_config_dir, self.temp_repo_dir, self.drive_config, self.repo = get_sample_repo()
-        self.worker = od_webhook.WebhookWorkerThread('https://localhost:12345')
+        self.worker = od_webhook.WebhookWorkerThread('https://localhost:12345',
+                                                     callback_func=self._dummy_webhook_callback,
+                                                     action_delay_sec=0)
         self.callback_called_sem = threading.Semaphore(value=0)
         self.callback_repos = []
         self.callback_count = 0
@@ -29,7 +30,6 @@ class TestWebhookWorker(unittest.TestCase):
         self.callback_called_sem.release()
 
     def test_execution(self):
-        self.worker.set_callback_func(self._dummy_webhook_callback)
         self.worker.start()
         notification_data = json.loads(get_resource('data/webhook_notification.json', pkg_name='tests'))
         subscription = onedrivesdk.Subscription()

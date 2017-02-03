@@ -182,8 +182,9 @@ def main():
 
     # Start webhook.
     webhook_server = od_webhook.get_webhook_server(context)
-    webhook_worker = od_webhook.WebhookWorkerThread(webhook_url=webhook_server.webhook_url)
-    webhook_worker.set_callback_func(repo_updated_callback)
+    webhook_worker = od_webhook.WebhookWorkerThread(webhook_url=webhook_server.webhook_url,
+                                                    callback_func=repo_updated_callback,
+                                                    action_delay_sec=context.config['webhook_action_delay_sec'])
     webhook_server.set_worker(webhook_worker)
     webhook_worker.start()
     webhook_server.start()

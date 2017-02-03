@@ -7,6 +7,7 @@
   "config.webhook_type.desc": "Type of webhook. Use \"direct\" only if your machine can be reached from public network.",
   "config.webhook_host.desc": "Hostname in webhook URL. Used in \"direct\" webhook and must resolve to local host. Leave blank to use public IP of the machine.",
   "config.webhook_port.desc": "Port number for webhook. Default: 0 (let OS allocate a free port).",
+  "config.webhook_action_delay_sec.desc": "Wait for this period of time before acting (usually a merge action) after a webhook notification is received. During this period duplicate notifications can be merged.",
 
   "configurator.error_invalid_key": "Config key \"{key}\" does not exist or is read-only.",
   "configurator.error_int_value_required": "Invalid value \"{value}\" for \"{key}\": must be an integer.",

@@ -51,11 +51,10 @@ class UserContext:
         'webhook_host': '',
         'webhook_port': 0,
         'webhook_renew_interval_sec': 7200,  # Renew webhook every 2 hours.
+        'webhook_action_delay_sec': 120,
         'num_workers': 2,
         'start_delay_sec': 0,
-        'logfile_path': '',
-        'proxy_http': None,
-        'proxy_https': None
+        'logfile_path': ''
     }
 
     DEFAULT_CONFIG_FILENAME = 'onedrived_config_v2.json'

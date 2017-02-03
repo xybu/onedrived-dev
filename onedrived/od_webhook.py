@@ -30,9 +30,9 @@ def get_webhook_server(context):
 def parse_notification_body(body):
     try:
         data = json.loads(body.decode('utf-8'))
-        if 'value' in data:
+        try:
             subscription_ids = set([WebhookNotification(v).subscription_id for v in data['value']])
-        else:
+        except KeyError:
             subscription_ids = (WebhookNotification(data).subscription_id,)
         return subscription_ids
     except (UnicodeError, json.JSONDecodeError, KeyError) as e:
@@ -44,18 +44,13 @@ def parse_notification_body(body):
 
 class WebhookWorkerThread(threading.Thread):
 
-    MAX_PER_ITEM_DELAY_SEC = 10
-
-    def __init__(self, webhook_url):
+    def __init__(self, webhook_url, callback_func, action_delay_sec=60):
         super().__init__(name='WebhookWorker', daemon=True)
-        self._callback_func = None
         self.webhook_url = webhook_url
+        self.callback_func = callback_func
+        self.action_delay_sec = action_delay_sec
         self._raw_input_queue = queue.Queue()
         self._registered_subscriptions = dict()
-
-    def set_callback_func(self, func):
-        self._callback_func = func
-        logging.debug('Set callback function for webhook to %s.', str(func))
 
     def queue_input(self, raw_bytes):
         self._raw_input_queue.put(raw_bytes, block=False)
@@ -73,7 +68,7 @@ class WebhookWorkerThread(threading.Thread):
         for subscription_id in subscription_ids:
             if subscription_id in self._registered_subscriptions:
                 repo = self._registered_subscriptions[subscription_id]
-                self._callback_func(repo)
+                self.callback_func(repo)
             else:
                 logging.error('Unknown subscription ID "%s".', subscription_id)
 
@@ -85,8 +80,6 @@ class WebhookWorkerThread(threading.Thread):
 
     def run(self):
         subscription_ids_buf = set()
-        if self._callback_func is None:
-            raise RuntimeError('Callback function for webhook notification is not set.')
         logging.debug('Started.')
         while True:
             raw_bytes = self._raw_input_queue.get()
@@ -95,7 +88,7 @@ class WebhookWorkerThread(threading.Thread):
             del raw_bytes
             try:
                 while True:
-                    more_bytes = self._raw_input_queue.get(block=True, timeout=self.MAX_PER_ITEM_DELAY_SEC)
+                    more_bytes = self._raw_input_queue.get(block=True, timeout=self.action_delay_sec)
                     self._raw_input_queue.task_done()
                     self.parse_and_update_set(more_bytes, subscription_ids_buf)
                     del more_bytes
