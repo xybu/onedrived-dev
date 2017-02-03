@@ -34,7 +34,7 @@ class WebhookListener(http_server.WebhookListener):
         super().__init__(config, handler_class)
         if shutil.which(config.ngrok_path) is None:
             raise RuntimeError('Did not find ngrok executable "%s".' % config.ngrok_path)
-        cmd = [config.ngrok_path, 'http', str(self.server.server_port)]
+        cmd = [config.ngrok_path, 'http', str(self.server.server_port), '-bind-tls=true']
         _append_cmd_arg(config, 'ngrok_config_path', '--config', cmd)
         self._start_ngrok_process(cmd)
         self._read_ngrok_tunnels()
