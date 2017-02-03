@@ -65,7 +65,7 @@ class OneDriveLocalRepository:
 
     @property
     def _item_store_path(self):
-        return self.context.config_dir + '/items_' + self.drive.id + '.sqlite3'
+        return ''.join((self.context.config_dir, '/items_', self.drive.id, '.sqlite3'))
 
     def _init_path_filter(self, ignore_file):
         try:

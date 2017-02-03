@@ -24,9 +24,10 @@ class WebhookNotification:
         :return str | None:
             An optional string value that is passed back in the notification message for this subscription.
         """
-        if 'context' in self._prop_dict:
+        try:
             return self._prop_dict['context']
-        return None
+        except KeyError:
+            return None
 
     @property
     def expiration_datetime(self):
@@ -56,9 +57,10 @@ class WebhookNotification:
             Unique identifier for the tenant which generated this notification.
             This is only returned for OneDrive for Business and SharePoint.
         """
-        if 'tenantId' in self._prop_dict:
+        try:
             return self._prop_dict['tenantId']
-        return None
+        except KeyError:
+            return None
 
     @property
     def user_id(self):

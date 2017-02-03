@@ -46,6 +46,10 @@ class UploadFileTask(update_mtime.UpdateTimestampTask):
             if item_stat.st_size < self.PUT_FILE_SIZE_THRESHOLD_BYTES:
                 item_request = self.parent_dir_request.children[self.item_name]
                 returned_item = item_request_call(self.repo, item_request.upload, self.local_abspath)
+                if returned_item is None:
+                    logging.warning('Upload API did not return metadata of remote item for "%s". '
+                                    'Make an explicit request.', self.local_abspath)
+                    returned_item = item_request_call(self.repo, item_request.get)
             else:
                 logging.info('Uploading large file "%s" in chunks of 10MB.', self.local_abspath)
                 item_request = self.repo.authenticator.client.item(drive=self.repo.drive.id, path=self.rel_path)

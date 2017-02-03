@@ -10,7 +10,7 @@ import requests
 from requests.utils import getproxies
 import onedrivesdk
 import onedrivesdk.error
-import onedrivesdk.helpers.http_provider_with_proxy
+
 
 from . import od_api_session
 from .od_models import account_profile
@@ -48,7 +48,8 @@ class OneDriveAuthenticator:
         if len(proxies) == 0:
             http_provider = onedrivesdk.HttpProvider()
         else:
-            http_provider = onedrivesdk.helpers.http_provider_with_proxy.HttpProviderWithProxy(proxies, verify_ssl=True)
+            from onedrivesdk.helpers.http_provider_with_proxy import HttpProviderWithProxy
+            http_provider = HttpProviderWithProxy(proxies, verify_ssl=True)
         auth_provider = onedrivesdk.AuthProvider(http_provider=http_provider,
                                                  client_id=self.APP_CLIENT_ID,
                                                  session_type=od_api_session.OneDriveAPISession,
