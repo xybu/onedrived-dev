@@ -125,10 +125,6 @@ class TestPrettyApi(unittest.TestCase):
         self.assertEqual('1.0 MB', od_models.pretty_api.pretty_print_bytes(size=1048576, precision=1))
         self.assertEqual('1.50 GB', od_models.pretty_api.pretty_print_bytes(size=1610612736, precision=2))
 
-    def test_pretty_quota(self):
-        quota = onedrivesdk.Quota(json.loads(get_resource('data/quota_response.json', 'tests')))
-        self.assertIsInstance(od_models.pretty_api.pretty_quota(quota), str)
-
 
 class TestDriveConfig(unittest.TestCase):
 

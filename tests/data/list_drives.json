@@ -1,0 +1,67 @@
+{
+  "value":[
+    {
+      "quota":{
+        "remaining":29772095467,
+        "used":5661384725,
+        "total":35433480192,
+        "state":"normal",
+        "deleted":716108357,
+        "storagePlans":{
+          "upgradeAvailable":true
+        }
+      },
+      "status":{
+        "state":"active"
+      },
+      "owner":{
+        "user":{
+          "displayName":"Xiangyu Bu",
+          "id":"d781730a6d2c6611"
+        }
+      },
+      "id":"xb_drive_id",
+      "driveType":"personal"
+    },
+    {
+      "id":"xybu_id",
+      "driveType":"personal",
+      "owner":{
+        "user":{
+          "id":"713d61",
+          "displayName":"Ryan Gregg"
+        }
+      },
+      "status":{
+        "state":"active"
+      },
+      "quota":{
+        "total":1024000,
+        "used":514000,
+        "remaining":1010112,
+        "deleted":0,
+        "state":"normal"
+      }
+    },
+    {
+      "id":"0123456789abc",
+      "owner":{
+        "user":{
+          "id":"713d61",
+          "displayName":"Ryan Gregg"
+        }
+      },
+      "quota":{
+        "total":10240000,
+        "used":514133,
+        "remaining":1010112,
+        "deleted":0,
+        "state":"normal"
+      },
+      "status":{
+        "state":"active"
+      },
+      "driveType":"personal"
+    }
+  ]
+}

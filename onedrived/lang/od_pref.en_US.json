@@ -20,6 +20,8 @@
   "configurator.error_generic": "Invalid value for \"{key}\": {error_message}.",
 
   "od_pref.drive.submain.short_help": "List all remote OneDrive repositories (Drives) of linked accounts, add new Drives to sync, edit configurations of existing Drives, or remove a Drive from local list.",
+  "od_pref.list_drive.short_help": "List all available Drives.",
+  "od_pref.del_drive.short_help": "Stop syncing a Drive with local directory.",
 
   "od_pref.config.submain.short_help": "Modify config (e.g., intervals, number of workers, etc.) for current user.",
   "od_pref.set_config.short_help": "Update a config parameter.",
@@ -40,5 +42,16 @@
   "od_pref.authenticate_account.paste_url_prompt": "Paste URL here",
   "od_pref.authenticate_account.error.code_not_found_in_url": "Error: did not find authorization code in URL.",
   "od_pref.authenticate_account.success.authorized": "Successfully authorized onedrived.",
-  "od_pref.authenticate_account.error.authorization": "Failed to authorize onedrived: {error_message}."
+  "od_pref.authenticate_account.error.authorization": "Failed to authorize onedrived: {error_message}.",
+
+  "od_pref.print_all_drives.fetching_drives.note": "Reading drives information from OneDrive server...",
+  "od_pref.print_all_drives.all_drives_table.note": "All available Drives of authorized accounts:",
+  "od_pref.print_all_drives.all_drives_table.header.index": "#",
+  "od_pref.print_all_drives.all_drives_table.header.account_email": "Account Email",
+  "od_pref.print_all_drives.all_drives_table.header.drive_id": "Drive ID",
+  "od_pref.print_all_drives.all_drives_table.header.type": "Type",
+  "od_pref.print_all_drives.all_drives_table.header.quota": "Quota",
+  "od_pref.print_all_drives.all_drives_table.header.status": "Status",
+
+  "api.drive.quota.short_format": "{used} Used / {total} Total"
 }

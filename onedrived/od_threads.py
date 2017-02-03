@@ -4,26 +4,24 @@ import threading
 
 class TaskWorkerThread(threading.Thread):
 
-    exit_signal = False
-
     def __init__(self, name, task_pool):
         """
         :param onedrived.od_task.TaskPool task_pool:
         """
         super().__init__(name=name, daemon=False)
         self.task_pool = task_pool
+        self._running = True
 
-    @classmethod
-    def exit(cls):
-        cls.exit_signal = True
+    def stop(self):
+        self._running = False
 
     def run(self):
         logging.debug('Started.')
-        while not self.exit_signal:
+        while self._running:
             # logging.debug('Getting semaphore.')
             self.task_pool.semaphore.acquire()
             # logging.debug('Got semaphore.')
-            if self.exit_signal:
+            if not self._running:
                 break
             task = self.task_pool.pop_task()
             if task is not None:

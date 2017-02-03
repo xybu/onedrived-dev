@@ -31,6 +31,17 @@ def success(s):
     click.secho(s, fg='green')
 
 
+def quota_short_str(q):
+    """
+    Return a string for Quota object.
+    :param onedrivesdk.model.Quota q:
+    :return:
+    """
+    return translator['api.drive.quota.short_format'].format(
+        used=pretty_api.pretty_print_bytes(q.used, precision=1),
+        total=pretty_api.pretty_print_bytes(q.total, precision=1))
+
+
 def print_all_accounts(ctx):
     all_accounts = []
     all_account_ids = ctx.all_accounts()
@@ -191,9 +202,10 @@ def change_drive():
 
 
 def print_all_drives():
-    click.echo('Reading drives information from OneDrive server...\n')
+    click.echo(translator['od_pref.print_all_drives.fetching_drives.note'])
+    click.echo()
     all_drives = {}
-    drive_table = [('#', 'Account Email', 'Drive ID', 'Type', 'Quota', 'Status')]
+    drive_table = []
     for i in context.all_accounts():
         drive_objs = []
         profile = context.get_account(i)
@@ -201,10 +213,17 @@ def print_all_drives():
         for d in drives:
             drive_objs.append(d)
             drive_table.append((str(len(drive_table) - 1), profile.account_email,
-                                d.id, d.drive_type, pretty_api.pretty_quota(d.quota), d.status.state))
+                                d.id, d.drive_type, quota_short_str(d.quota), d.status.state))
         all_drives[i] = (profile, authenticator, drive_objs)
-    click.echo(click.style('All available Drives of authorized accounts:\n', bold=True))
-    click.echo(tabulate.tabulate(drive_table, headers='firstrow'))
+    click.secho(translator['od_pref.print_all_drives.all_drives_table.note'], bold=True)
+    click.echo()
+    click.echo(tabulate.tabulate(drive_table, headers=(
+        translator['od_pref.print_all_drives.all_drives_table.header.index'],
+        translator['od_pref.print_all_drives.all_drives_table.header.account_email'],
+        translator['od_pref.print_all_drives.all_drives_table.header.drive_id'],
+        translator['od_pref.print_all_drives.all_drives_table.header.type'],
+        translator['od_pref.print_all_drives.all_drives_table.header.quota'],
+        translator['od_pref.print_all_drives.all_drives_table.header.status'])))
     return all_drives, drive_table
 
 
@@ -234,15 +253,14 @@ def index_to_drive_table_row(index, drive_table):
     raise ValueError('Index is not a valid row number.')
 
 
-@click.command(name='list', short_help='List all available Drives.')
+@click.command(name='list', short_help=translator['od_pref.list_drive.short_help'])
 def list_drives():
     try:
         print_all_drives()
         click.echo()
         print_saved_drives()
     except Exception as e:
-        click.echo(click.style('Error: %s.' % e, fg='red'))
-        return
+        error('Error: %s.' % e)
 
 
 def read_drive_config_interactively(drive_exists, curr_drive_config):
@@ -374,7 +392,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
     click.echo('  Ignore file path: ' + d.ignorefile_path)
 
 
-@click.command(name='del', short_help='Stop syncing a Drive with local directory.')
+@click.command(name='del', short_help=translator['od_pref.del_drive.short_help'])
 @click.option('--drive-id', '-d', type=str, required=False, default=None,
               help='ID of the Drive.')
 @click.option('--yes', '-y', is_flag=True, default=False, required=False,
@@ -384,7 +402,7 @@ def delete_drive(drive_id=None, yes=False):
 
     if drive_id is None:
         if yes:
-            click.echo(click.style('Please specify the Drive ID to delete.', fg='red'))
+            error('Please specify the Drive ID to delete.')
             return
         index = click.prompt('Please enter the # number of the Drive to delete (CTRL+C to abort)', type=int)
         if isinstance(index, int) and 0 <= index < len(all_drive_ids):

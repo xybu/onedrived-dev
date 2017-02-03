@@ -4,6 +4,7 @@ import tempfile
 import unittest
 
 import click
+import onedrivesdk
 import requests_mock
 
 from onedrived import get_resource, od_pref
@@ -49,7 +50,7 @@ class TestPrefCLI(unittest.TestCase):
 
     def test_config_print(self):
         try:
-            od_pref.print_config(args=[])
+            od_pref.print_config(args=())
         except SystemExit:
             pass
 
@@ -66,8 +67,9 @@ class TestPrefCLI(unittest.TestCase):
         mock.get('https://apis.live.net/v5.0/me', json=callback_profile)
         try:
             od_pref.authenticate_account(args=args)
-        except SystemExit:
-            pass
+        except SystemExit as e:
+            if e.code == 0:
+                pass
         context = od_pref.load_context()
         self.assertIsNotNone(context.get_account(profile['id']))
 
@@ -80,6 +82,31 @@ class TestPrefCLI(unittest.TestCase):
         click.prompt = lambda x, type=str: url
         with requests_mock.Mocker() as mock:
             self._call_authenticate_account(mock=mock, code='foobar_code', args=())
+
+    def test_list_account(self):
+        try:
+            od_pref.list_accounts(args=())
+        except SystemExit as e:
+            if e.code == 0:
+                pass
+
+    def test_quota_short_str(self):
+        quota = onedrivesdk.Quota(json.loads(get_resource('data/quota_response.json', 'tests')))
+        self.assertIsInstance(od_pref.quota_short_str(quota), str)
+
+    @requests_mock.mock()
+    def test_list_drives(self, mock):
+        all_drives = json.loads(get_resource('data/list_drives.json', pkg_name='tests'))
+        mock.register_uri('GET', 'https://api.onedrive.com/v1.0/drives',
+                          [{'status_code': 200, 'json': {'value': all_drives['value'][0:-1]}},
+                           {'status_code': 200, 'json': {'value': all_drives['value'][-1:]}}])
+        mock.post('https://login.live.com/oauth20_token.srf',
+                  json=json.loads(get_resource('data/session_response.json', pkg_name='tests')))
+        try:
+            od_pref.list_drives(args=())
+        except SystemExit as e:
+            if e.code == 0:
+                pass
 
 
 if __name__ == '__main__':

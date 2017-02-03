@@ -29,10 +29,21 @@ webhook_server = None
 webhook_worker = None
 
 
+def init_task_pool_and_workers():
+    global task_pool
+    task_pool = od_task.TaskPool()
+    for _ in range(context.config['num_workers']):
+        w = od_threads.TaskWorkerThread(name='Worker-%d' % len(task_workers), task_pool=task_pool)
+        w.start()
+        task_workers.add(w)
+
+
 def shutdown_workers():
+    for w in task_workers:
+        if w:
+            w.stop()
     if task_pool:
         task_pool.close(len(task_workers))
-    od_threads.TaskWorkerThread.exit()
     for w in task_workers:
         if w:
             w.join()
@@ -125,15 +136,6 @@ def delete_temp_files(all_accounts):
     for repo in itertools.chain.from_iterable(all_accounts.values()):
         if os.path.isdir(repo.local_root):
             os.system('find "%s" -type f -name "%s" -delete' % (repo.local_root, repo.path_filter.get_temp_name('*')))
-
-
-def init_task_pool_and_workers():
-    global task_pool
-    task_pool = od_task.TaskPool()
-    for _ in range(context.config['num_workers']):
-        w = od_threads.TaskWorkerThread(name='Worker-%d' % len(task_workers), task_pool=task_pool)
-        w.start()
-        task_workers.add(w)
 
 
 def repo_updated_callback(repo):
