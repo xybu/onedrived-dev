@@ -25,11 +25,8 @@ class TaskPool:
         self._lock = threading.Lock()
 
     def close(self, n=1):
-        with self._lock:
-            self.queued_tasks.clear()
-            self.tasks_by_path.clear()
-            for _ in range(n):
-                self.semaphore.release()
+        for _ in range(n):
+            self.semaphore.release()
 
     def add_task(self, task):
         """

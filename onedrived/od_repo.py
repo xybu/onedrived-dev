@@ -34,7 +34,6 @@ class ItemRecordType:
 
 class ItemRecordStatus:
     OK = 0
-    MARKED = 255
 
 
 class RepositoryType:
@@ -107,7 +106,18 @@ class OneDriveLocalRepository:
                                    'created_time, modified_time, status, sha1_hash, record_time FROM items '
                                    'WHERE name=? AND parent_path=? LIMIT 1', (item_name, parent_relpath))
             rec = q.fetchone()
-            return ItemRecord(rec) if rec else rec
+            return ItemRecord(rec) if rec else None
+
+    def get_immediate_children_of_dir(self, relpath):
+        """
+        :param str relpath:
+        :return dict(str, ItemRecord):
+        """
+        with self._lock:
+            q = self._conn.execute('SELECT id, type, name, parent_id, parent_path, etag, ctag, size, size_local, '
+                                   'created_time, modified_time, status, sha1_hash, record_time FROM items '
+                                   'WHERE parent_path=?', (relpath,))
+            return {rec[2]: ItemRecord(rec) for rec in q.fetchall() if rec}
 
     def delete_item(self, item_name, parent_relpath, is_folder=False):
         """
@@ -140,29 +150,6 @@ class OneDriveLocalRepository:
                                 item_relpath, item_relpath + '/%'))
             cursor.execute('UPDATE items SET parent_path=?, name=? WHERE parent_path=? AND name=?',
                            (new_parent_relpath, new_name, parent_relpath, item_name))
-
-    def unmark_items(self, item_name, parent_relpath, is_folder=False):
-        """
-        :param str item_name: Name of the item.
-        :param str parent_relpath: Relative path of its parent item.
-        :param True | False is_folder: True to indicate that the item is a folder (delete all children).
-        """
-        with self._lock, self._conn, closing(self._conn.cursor()) as cursor:
-            if is_folder:
-                item_relpath = parent_relpath + '/' + item_name
-                cursor.execute('UPDATE items SET status=? WHERE parent_path=? OR parent_path LIKE ?',
-                               (ItemRecordStatus.OK, item_relpath, item_relpath + '/%'))
-            cursor.execute('UPDATE items SET status=? WHERE parent_path=? AND name=?',
-                           (ItemRecordStatus.OK, parent_relpath, item_name))
-
-    def mark_all_items(self, mark=ItemRecordStatus.MARKED):
-        with self._lock, self._conn:
-            self._conn.execute('UPDATE items SET status=?', (mark, ))
-
-    def sweep_marked_items(self):
-        with self._lock, self._conn:
-            q = self._conn.execute('DELETE FROM items WHERE status=?', (ItemRecordStatus.MARKED, ))
-            logging.info('Deleted %d dead records from database.', q.rowcount)
 
     def update_item(self, item, parent_relpath, size_local=0, status=ItemRecordStatus.OK):
         """

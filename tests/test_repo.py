@@ -16,8 +16,10 @@ from tests.test_models import get_sample_drive, get_sample_drive_config
 def get_sample_repo():
     temp_config_dir = tempfile.TemporaryDirectory()
     temp_repo_dir = tempfile.TemporaryDirectory()
-    ctx = mock.MagicMock(spec=od_context.UserContext, config=od_context.UserContext.DEFAULT_CONFIG,
-                         config_dir=temp_config_dir.name, loop=None)
+    ctx = mock.MagicMock(spec=od_context.UserContext,
+                         config=od_context.UserContext.DEFAULT_CONFIG,
+                         config_dir=temp_config_dir.name,
+                         host_name='hostname', loop=None)
     auth = get_sample_authenticator()
     drive = get_sample_drive()
     drive_dict, drive_config = get_sample_drive_config()
@@ -119,28 +121,20 @@ class TestOneDriveLocalRepository(unittest.TestCase):
         self._check_item_props(
             self.image_item, self.repo.get_item_by_path(self.image_item.name, '/foo 2'), od_repo.ItemRecordType.FILE)
 
-    def test_mark_and_sweep_folder(self):
-        self.repo.mark_all_items()
-        self.repo.unmark_items(item_name=self.image_item.name, parent_relpath='', is_folder=False)
-        self.repo.sweep_marked_items()
-        self.assertIsNone(self.repo.get_item_by_path(self.root_folder_item.name, ''))
-        self.assertIsNone(self.repo.get_item_by_path(self.root_child_item.name, '/Public'))
-        self.assertIsNone(self.repo.get_item_by_path(self.root_subfolder_item.name, '/Public'))
-        self._check_item_props(
-            self.image_item, self.repo.get_item_by_path(self.image_item.name, ''), od_repo.ItemRecordType.FILE)
+    def _check_immediate_children(self, relpath, expected_records):
+        records = self.repo.get_immediate_children_of_dir(relpath)
+        self.assertEqual(len(expected_records), len(records))
+        for r in expected_records:
+            self.assertIn(r.name, records)
+            expected_type = od_repo.ItemRecordType.FOLDER if r.folder else od_repo.ItemRecordType.FILE
+            self._check_item_props(r, records[r.name], expected_type=expected_type)
 
-    def test_mark_and_sweep_file(self):
-        self.repo.mark_all_items()
-        self.repo.unmark_items(item_name=self.root_folder_item.name, parent_relpath='', is_folder=True)
-        self.repo.sweep_marked_items()
-        self.assertIsNone(self.repo.get_item_by_path(self.image_item.name, ''))
-        self._check_item_props(self.root_folder_item, self.repo.get_item_by_path(self.root_folder_item.name, ''),
-                               od_repo.ItemRecordType.FOLDER)
-        self._check_item_props(self.root_child_item, self.repo.get_item_by_path(self.root_child_item.name, '/Public'),
-                               od_repo.ItemRecordType.FILE)
-        self._check_item_props(
-            self.root_subfolder_item, self.repo.get_item_by_path(self.root_subfolder_item.name, '/Public'),
-            od_repo.ItemRecordType.FOLDER)
+    def test_get_immediate_children_of_root(self):
+        self._check_immediate_children('', (self.image_item, self.root_folder_item))
+
+    def test_get_immediate_children(self):
+        self._check_immediate_children('/' + self.root_folder_item.name,
+                                       (self.root_child_item, self.root_subfolder_item))
 
 
 if __name__ == '__main__':

@@ -56,7 +56,10 @@ class UploadFileTask(update_mtime.UpdateTimestampTask):
                 returned_item = item_request_call(self.repo, item_request.upload_async,
                                                   local_path=self.local_abspath, upload_status=self.update_progress)
                 if not isinstance(returned_item, onedrivesdk.Item):
-                    returned_item = onedrivesdk.Item(returned_item._prop_dict)
+                    if hasattr(returned_item, '_prop_dict'):
+                        returned_item = onedrivesdk.Item(returned_item._prop_dict)
+                    else:
+                        returned_item = item_request_call(self.repo, item_request.get)
             self.update_timestamp_and_record(returned_item, item_stat)
             self.task_pool.release_path(self.local_abspath)
             logging.info('Finished uploading file "%s".', self.local_abspath)

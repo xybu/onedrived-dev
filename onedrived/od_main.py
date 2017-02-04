@@ -157,8 +157,7 @@ def delete_temp_files(all_accounts):
 
 
 def repo_updated_callback(repo):
-    global task_pool, webhook_server
-    if task_pool:
+    if task_pool and task_pool.outstanding_task_count == 0:
         item_request = repo.authenticator.client.item(drive=repo.drive.id, path='/')
         task_pool.add_task(merge_dir.MergeDirectoryTask(
             repo=repo, task_pool=task_pool, rel_path='', item_request=item_request,

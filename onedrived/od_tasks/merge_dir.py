@@ -12,7 +12,38 @@ from .. import mkdir, fix_owner_and_timestamp
 from ..od_api_helper import get_item_modified_datetime, item_request_call
 from ..od_dateutils import datetime_to_timestamp, diff_timestamps
 from ..od_hashutils import hash_match, sha1_value
-from ..od_repo import ItemRecordType, ItemRecordStatus
+from ..od_repo import ItemRecordType
+
+
+def rename_with_suffix(parent_abspath, name, host_name):
+    suffix = ' (' + host_name + ')'
+    parent_abspath = parent_abspath + '/'
+
+    # Calculate the file name without suffix.
+    ent_name, ent_ext = os.path.splitext(name)
+    if ent_name.endswith(suffix):
+        ent_name = ent_name[:-len(suffix)]
+
+    new_name = ent_name + suffix + ent_ext
+    if os.path.exists(parent_abspath + new_name):
+        count = 1
+        if ' ' in ent_name:
+            ent_name, count_str = ent_name.rsplit(' ', maxsplit=1)
+            if count_str.isdigit() and count_str[0] != '0':
+                count = int(count_str) + 1
+        new_name = ent_name + ' ' + str(count) + suffix + ent_ext
+        while os.path.exists(parent_abspath + new_name):
+            count += 1
+            new_name = ent_name + ' ' + str(count) + suffix + ent_ext
+    shutil.move(parent_abspath + name, parent_abspath + new_name)
+    return new_name
+
+
+def get_os_stat(path):
+    try:
+        return os.stat(path)
+    except FileNotFoundError:
+        return None
 
 
 class MergeDirectoryTask(base.TaskBase):
@@ -73,63 +104,47 @@ class MergeDirectoryTask(base.TaskBase):
             ent_list.add(ent)
         return ent_list
 
-    def _rename_with_local_suffix(self, name):
-        def _move(new_name):
-            shutil.move(self.local_abspath + '/' + name, self.local_abspath + '/' + new_name)
-            return new_name
-
-        suffix = ' (' + self.repo.context.host_name + ')'
-        new_name = name + suffix
-        if not os.path.exists(self.local_abspath + '/' + new_name):
-            return _move(new_name)
-        count = 1
-        new_name = name + ' ' + str(count) + suffix
-        while os.path.exists(self.local_abspath + '/' + new_name):
-            count += 1
-            new_name = name + ' ' + str(count) + suffix
-        return _move(new_name)
-
     def handle(self):
         if not os.path.isdir(self.local_abspath):
             logging.error('Error: Local path "%s" is not a directory.' % self.local_abspath)
             return
 
+        self.repo.context.watcher.rm_watch(self.repo, self.local_abspath)
+
         try:
             all_local_items = self._list_local_names()
         except (IOError, OSError) as e:
-            logging.error('Error syncing "%s": %s.', self.local_abspath, e)
+            logging.error('Error merging dir "%s": %s.', self.local_abspath, e)
             return
 
-        self.repo.context.watcher.rm_watch(self.repo, self.local_abspath)
+        all_records = self.repo.get_immediate_children_of_dir(self.rel_path)
 
         if not self.assume_remote_unchanged or not self.parent_remote_unchanged:
             try:
                 all_remote_items = item_request_call(self.repo, self.item_request.children.get)
             except onedrivesdk.error.OneDriveError as e:
                 logging.error('Encountered API Error: %s. Skip directory "%s".', e, self.rel_path)
-                # Unmark the records under this dir so that they will not be swept in the next round.
-                if self.rel_path == '':
-                    self.repo.mark_all_items(mark=ItemRecordStatus.OK)
-                else:
-                    parent_relpath, dirname = os.path.split(self.rel_path)
-                    self.repo.unmark_items(item_name=dirname, parent_relpath=parent_relpath, is_folder=True)
                 return
 
             for remote_item in all_remote_items:
                 remote_is_folder = remote_item.folder is not None
                 all_local_items.discard(remote_item.name)  # Remove remote item from untouched list.
                 if not self.repo.path_filter.should_ignore(self.rel_path + '/' + remote_item.name, remote_is_folder):
-                    self._handle_remote_item(remote_item, all_local_items)
+                    self._handle_remote_item(remote_item, all_local_items, all_records)
                 else:
                     logging.debug('Ignored remote path "%s/%s".', self.rel_path, remote_item.name)
 
         for n in all_local_items:
-            self._handle_local_item(n)
+            self._handle_local_item(n, all_records)
+
+        for rec_name, rec in all_records.items():
+            logging.info('Record for item %s (%s/%s) is dead. Delete it it.', rec.item_id, rec.parent_path, rec_name)
+            self.repo.delete_item(rec_name, rec.parent_path, is_folder=rec.type == ItemRecordType.FOLDER)
 
         self.repo.context.watcher.add_watch(self.repo, self.local_abspath)
 
     def _rename_local_and_download_remote(self, remote_item, all_local_items):
-        all_local_items.add(self._rename_with_local_suffix(remote_item.name))
+        all_local_items.add(rename_with_suffix(self.local_abspath, remote_item.name, self.repo.context.host_name))
         self.task_pool.add_task(
             download_file.DownloadFileTask(self.repo, self.task_pool, remote_item, self.rel_path))
 
@@ -186,8 +201,6 @@ class MergeDirectoryTask(base.TaskBase):
                                  item_local_abspath, local_mtime_ts, remote_mtime_ts)
                     fix_owner_and_timestamp(item_local_abspath, self.repo.context.user_uid, remote_mtime_ts)
                     self.repo.update_item(remote_item, self.rel_path, item_stat.st_size)
-                else:
-                    self.repo.unmark_items(item_record.item_name, item_record.parent_path, is_folder=False)
             else:
                 # Content of local file has changed. Because we assume the remote item was synced before, we overwrite
                 # the remote item with local one.
@@ -301,7 +314,8 @@ class MergeDirectoryTask(base.TaskBase):
                         self.repo, self.task_pool, self.item_request, self.rel_path, remote_item.name))
                     return
                 # If the remote metadata doesn't agree with record, keep both by renaming the local file.
-                all_local_items.add(self._rename_with_local_suffix(remote_item.name))
+                all_local_items.add(
+                    rename_with_suffix(self.local_abspath, remote_item.name, self.repo.context.host_name))
 
             if not os.path.exists(item_local_abspath):
                 if remote_dir_matches_record:
@@ -324,24 +338,19 @@ class MergeDirectoryTask(base.TaskBase):
         except OSError as e:
             logging.error('Error occurred when merging directory "%s": %s', item_local_abspath, e)
 
-    @staticmethod
-    def get_os_stat(path):
-        try:
-            return os.stat(path)
-        except FileNotFoundError:
-            return None
-
-    def _handle_remote_item(self, remote_item, all_local_items):
+    def _handle_remote_item(self, remote_item, all_local_items, all_records):
         """
         :param onedrivesdk.model.item.Item remote_item:
         :param [str] all_local_items:
+        :param dict(str, onedrived.od_repo.ItemRecord) all_records:
         """
         # So we have three pieces of information -- the remote item metadata, the record in database, and the inode
         # on local file system. For the case of handling a remote item, the last two may be missing.
         item_local_abspath = self.local_abspath + '/' + remote_item.name
-        record = self.repo.get_item_by_path(item_name=remote_item.name, parent_relpath=self.rel_path)
+        record = all_records.pop(remote_item.name, None)
+
         try:
-            stat = self.get_os_stat(item_local_abspath)
+            stat = get_os_stat(item_local_abspath)
         except OSError as e:
             logging.error('Error occurred when accessing path "%s": %s.', item_local_abspath, e)
             return
@@ -354,7 +363,7 @@ class MergeDirectoryTask(base.TaskBase):
                 logging.info('Remote item "%s/%s" is neither a file nor a directory yet local counterpart exists. '
                              'Rename local item.', self.rel_path, remote_item.name)
                 try:
-                    new_name = self._rename_with_local_suffix(remote_item.name)
+                    new_name = rename_with_suffix(self.local_abspath, remote_item.name, self.repo.context.host_name)
                     all_local_items.add(new_name)
                 except OSError as e:
                     logging.error('Error renaming "%s/%s": %s. Skip this item due to unsolvable type conflict.',
@@ -379,11 +388,10 @@ class MergeDirectoryTask(base.TaskBase):
             return
         if item_record is not None and item_record.type == ItemRecordType.FOLDER:
             if self.assume_remote_unchanged:
-                # The record is a dir but its children haven't been touched. Only unmark the record itself.
-                self.repo.unmark_items(item_name=item_name, parent_relpath=item_record.parent_path, is_folder=False)
+                rel_path = self.rel_path + '/' + item_name
                 self.task_pool.add_task(MergeDirectoryTask(
-                    repo=self.repo, task_pool=self.task_pool, rel_path=self.rel_path + '/' + item_name,
-                    item_request=self.repo.authenticator.client.item(drive=self.repo.drive.id, id=item_record.item_id),
+                    repo=self.repo, task_pool=self.task_pool, rel_path=rel_path,
+                    item_request=self.repo.authenticator.client.item(drive=self.repo.drive.id, path=rel_path),
                     assume_remote_unchanged=True, parent_remote_unchanged=self.assume_remote_unchanged))
             else:
                 send2trash(item_local_abspath)
@@ -415,7 +423,6 @@ class MergeDirectoryTask(base.TaskBase):
             if self.assume_remote_unchanged:
                 logging.info('Remote item for local dir "%s" is a file that has been deleted locally. '
                              'Delete the remote item and upload the file.', item_local_abspath)
-                self.repo.unmark_items(item_name=item_name, parent_relpath=item_record.parent_path, is_folder=False)
                 if not delete_item.DeleteRemoteItemTask(
                         repo=self.repo, task_pool=self.task_pool, parent_relpath=self.rel_path,
                         item_name=item_name, item_id=item_record.item_id, is_folder=False).handle():
@@ -456,7 +463,6 @@ class MergeDirectoryTask(base.TaskBase):
                 if self.assume_remote_unchanged:
                     if not equal_ts:
                         fix_owner_and_timestamp(item_local_abspath, self.repo.context.user_uid, record_ts)
-                    self.repo.unmark_items(item_name=item_name, parent_relpath=item_record.parent_path, is_folder=False)
                 else:
                     logging.debug('Local file "%s" used to exist remotely but not found. Delete it.',
                                   item_local_abspath)
@@ -475,20 +481,24 @@ class MergeDirectoryTask(base.TaskBase):
                     logging.error('Failed to delete outdated remote directory "%s/%s" of Drive %s.',
                                   self.rel_path, item_name, self.repo.drive.id)
                     # Keep the record so that the branch can be revisited next time.
-                    self.repo.unmark_items(item_name=item_name, parent_relpath=item_record.parent_path, is_folder=False)
                     return
             logging.debug('Local file "%s" is new to OneDrive. Upload it.', item_local_abspath)
 
         self.task_pool.add_task(upload_file.UploadFileTask(
             self.repo, self.task_pool, self.item_request, self.rel_path, item_name))
 
-    def _handle_local_item(self, item_name):
+    def _handle_local_item(self, item_name, all_records):
+        """
+        :param str item_name:
+        :param dict(str, onedrived.od_repo.ItemRecord) all_records:
+        :return:
+        """
         item_local_abspath = self.local_abspath + '/' + item_name
-        record = self.repo.get_item_by_path(item_name, self.rel_path)
+        record = all_records.pop(item_name, None)
         try:
             if os.path.isfile(item_local_abspath):
                 # stat can be None because the function can be called long after dir is listed.
-                stat = self.get_os_stat(item_local_abspath)
+                stat = get_os_stat(item_local_abspath)
                 self._handle_local_file(item_name, record, stat, item_local_abspath)
             elif os.path.isdir(item_local_abspath):
                 self._handle_local_folder(item_name, record, item_local_abspath)
