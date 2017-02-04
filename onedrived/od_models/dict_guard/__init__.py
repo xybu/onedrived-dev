@@ -17,8 +17,6 @@ def _test_bool_option(schema, opt_key):
 
 
 def _test_str_subtype_file(key, value, schema):
-    if _test_bool_option(schema, 'to_abspath'):
-        value = os.path.abspath(value)
     if not os.path.exists(value):
         if _test_bool_option(schema, 'create_if_missing'):
             with open(value, 'w'):
@@ -51,6 +49,8 @@ class GuardedDict:
 
     def set_str_subtype(self, key, value, schema):
         if schema['subtype'] == StringSubTypes.FILE:
+            if _test_bool_option(schema, 'to_abspath'):
+                value = os.path.abspath(value)
             _test_str_subtype_file(key, value, schema)
         else:
             raise exceptions.UnsupportedSchemaType(schema['subtype'], schema)

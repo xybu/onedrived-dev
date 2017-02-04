@@ -171,6 +171,7 @@ def repo_updated_callback(repo):
                daemon_params={
                    'uid': context.user_uid,
                    'pidfile': pidfile,
+                   # 'detach': False,
                    'shutdown_callback': shutdown_callback,
                    'workdir': os.getcwd()
                })
@@ -185,7 +186,7 @@ def main():
         context.set_logger(min_level=logging.DEBUG, path=None)
         context.loop.set_debug(True)
     else:
-        context.set_logger(min_level=logging.INFO, path=context.config[context.KEY_LOGFILE_PATH])
+        context.set_logger(min_level=logging.INFO, path=context.config['logfile_path'])
 
     if context.config['start_delay_sec'] > 0:
         logging.info('Wait for %d seconds before starting.', context.config['start_delay_sec'])
