@@ -371,7 +371,30 @@ debug-level log verbosity and printing log to `stderr`.
 onedrived start --debug
 ```
 
+To stop `onedrived` process which is running in debug mode, send `SIGINT` to
+the process or hitting CTRL+C if it runs in a terminal.
+
 ### Run `onedrived` as daemon
+
+It's suggested that you set up a log file before running in daemon mode:
+
+```
+$ onedrived-pref config set logfile_path PATH_TO_SOME_WRITABLE_FILE
+```
+
+To start the program as daemon,
+
+```bash
+onedrived start
+```
+
+To stop the daemon,
+
+```bash
+onedrived stop
+```
+
+or send `SIGTERM` to the process.
 
 ### More Usages
 

@@ -27,4 +27,4 @@ class TaskWorkerThread(threading.Thread):
             if task is not None:
                 logging.debug('Got task %s.', task)
                 task.handle()
-        logging.debug('Stopped.')
+        logging.info('Stopped.')

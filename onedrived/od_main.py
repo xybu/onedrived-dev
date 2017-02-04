@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import asyncio
+import gc
 import itertools
 import logging
 import os
-import signal
 import subprocess
 import sys
 import weakref
@@ -66,25 +66,25 @@ def init_webhook():
 
 
 def shutdown_webhook():
+    global webhook_server
     if webhook_server:
         webhook_server.stop()
         webhook_server.join()
+        webhook_server = None
 
 
 # noinspection PyUnusedLocal
-def shutdown_callback(msg, code):
-    logging.info('Shutting down.')
+def shutdown_callback(code, _):
+    logging.info('Shutting down. Code: %s.', str(code))
     asyncio.gather(*asyncio.Task.all_tasks()).cancel()
     context.loop.stop()
     shutdown_webhook()
     shutdown_workers()
     if context and context.watcher:
         context.watcher.close()
-    try:
-        os.remove(pidfile)
-    except OSError:
-        pass
+        context.watcher = None
     logging.shutdown()
+    logging.info('Shut down complete.')
 
 
 def get_repo_table(ctx):
@@ -121,6 +121,7 @@ def update_subscription_for_repo(repo, subscription_id=None):
         if subscription:
             context.loop.call_later(int(context.config['webhook_renew_interval_sec'] * 0.75),
                                     update_subscription_for_repo, repo, subscription.id)
+            gc.collect()
         return subscription
     return None
 
@@ -173,18 +174,16 @@ def repo_updated_callback(repo):
                    'pidfile': pidfile,
                    # 'detach': False,
                    'shutdown_callback': shutdown_callback,
-                   'workdir': os.getcwd()
+                   'workdir': os.getcwd(),
+                   'stop_timeout': 60,
                })
 def main():
-    global webhook_server, webhook_worker
-
-    # Exit program when receiving SIGTERM or SIGINT.
-    signal.signal(signal.SIGTERM, shutdown_callback)
+    gc.enable()
 
     # When debugging, print to stdout.
     if '--debug' in sys.argv:
-        context.set_logger(min_level=logging.DEBUG, path=None)
         context.loop.set_debug(True)
+        context.set_logger(min_level=logging.DEBUG, path=None)
     else:
         context.set_logger(min_level=logging.INFO, path=context.config['logfile_path'])
 
