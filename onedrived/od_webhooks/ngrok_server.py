@@ -28,7 +28,7 @@ def _append_cmd_arg(config, prop, arg, cmd):
 
 class WebhookListener(http_server.WebhookListener):
 
-    POLL_TUNNELS_MAX_TRIES = 3
+    POLL_TUNNELS_MAX_TRIES = 30
 
     def __init__(self, config, handler_class):
         super().__init__(config, handler_class)
