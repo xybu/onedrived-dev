@@ -157,21 +157,14 @@ class MergeDirectoryTask(base.TaskBase):
                     self.repo.delete_item(remote_item.name, self.rel_path, False)
             return self._handle_remote_file_without_record(remote_item, None, item_local_abspath, all_local_items)
 
-        remote_mtime, remote_mtime_w = get_item_modified_datetime(remote_item)
+        remote_mtime, _ = get_item_modified_datetime(remote_item)
         local_mtime_ts = item_stat.st_mtime if item_stat else None
         remote_mtime_ts = datetime_to_timestamp(remote_mtime)
         record_mtime_ts = datetime_to_timestamp(item_record.modified_time)
-        local_sha1_hash = None
         try:
             remote_sha1_hash = remote_item.file.hashes.sha1_hash
         except AttributeError:
             remote_sha1_hash = None
-
-        def get_local_sha1_hash():
-            nonlocal local_sha1_hash
-            if local_sha1_hash is None:
-                local_sha1_hash = sha1_value(item_local_abspath)
-            return local_sha1_hash
 
         if (remote_item.id == item_record.item_id and remote_item.c_tag == item_record.c_tag or
             remote_item.size == item_record.size and
@@ -185,7 +178,7 @@ class MergeDirectoryTask(base.TaskBase):
                     self.repo, self.task_pool, self.rel_path, remote_item.name, remote_item.id, False))
             elif (item_stat.st_size == item_record.size_local and
                   (diff_timestamps(local_mtime_ts, record_mtime_ts) == 0 or
-                   remote_sha1_hash and remote_sha1_hash == get_local_sha1_hash())):
+                   remote_sha1_hash and remote_sha1_hash == sha1_value(item_local_abspath))):
                 # If the local file matches the database record (i.e., same mtime timestamp or same content),
                 # simply return. This is the best case.
                 if diff_timestamps(local_mtime_ts, remote_mtime_ts) != 0:
@@ -217,7 +210,7 @@ class MergeDirectoryTask(base.TaskBase):
                     download_file.DownloadFileTask(self.repo, self.task_pool, remote_item, self.rel_path))
             elif item_stat.st_size == item_record.size_local and \
                     (diff_timestamps(local_mtime_ts, record_mtime_ts) == 0 or
-                     item_record.sha1_hash and item_record.sha1_hash == get_local_sha1_hash()):
+                     item_record.sha1_hash and item_record.sha1_hash == sha1_value(item_local_abspath)):
                 # Local file agrees with database record. This means that the remote file is strictly newer.
                 # The local file can be safely overwritten.
                 logging.debug('Local file "%s" agrees with db record but remote item is different. Overwrite local.',
@@ -228,7 +221,7 @@ class MergeDirectoryTask(base.TaskBase):
                 # So both the local file and remote file have been changed after the record was created.
                 equal_ts = diff_timestamps(local_mtime_ts, remote_mtime_ts) == 0
                 if (item_stat.st_size == remote_item.size and (
-                        (equal_ts or remote_sha1_hash and remote_sha1_hash == get_local_sha1_hash()))):
+                        (equal_ts or remote_sha1_hash and remote_sha1_hash == sha1_value(item_local_abspath)))):
                     # Fortunately the two files seem to be the same.
                     # Here the logic is written as if there is no size mismatch issue.
                     logging.debug(

@@ -183,7 +183,7 @@ class OneDriveLocalRepository:
         else:
             raise ValueError('Unknown type of item "%s (%s)".' % (item.name, item.id))
         parent_reference = item.parent_reference
-        modified_time, modified_time_w = get_item_modified_datetime(item)
+        modified_time, _ = get_item_modified_datetime(item)
         modified_time_str = datetime_to_str(modified_time)
         created_time_str = datetime_to_str(get_item_created_datetime(item))
         with self._lock, self._conn:

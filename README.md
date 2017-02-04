@@ -298,7 +298,69 @@ Use command `onedrived-pref account add --code <some_code_here>`, where
 
 #### Adding Drives to `onedrived`
 
-TBA.
+After you authorize `onedrived` to access your OneDrive data, you are now able
+to add Drives. Each OneDrive account has one or more Drive associated, and
+`onedrived` allows you to choose which Drive to sync. Similar to the step of
+authorizing `onedrived`, the CLI provides both interactive mode and command
+mode.
+
+#### Interactive mode
+
+```bash
+$ onedrived-pref drive set
+Reading drives information from OneDrive server...
+
+All available Drives of authorized accounts:
+
+  #  Account Email    Drive ID          Type      Quota                        Status
+---  ---------------  ----------------  --------  ---------------------------  --------
+  0  <some_email>     <some_drive_id>   personal  5.3 GB Used / 33.0 GB Total  active
+
+Please enter row number of the Drive to add or modify (CTRL+C to abort): 0
+
+Going to add/edit Drive "<some_drive_id>" of account "<some_email>"...
+Enter the directory path to sync with this Drive [/home/xb/OneDrive]:  
+Syncing with directory "/home/xb/OneDrive"? [y/N]: y
+Enter the path to ignore file for this Drive [/home/xb/.config/onedrived/ignore_v2.txt]: 
+
+Successfully configured Drive <some_drive_id> of account <some_email> (<some_user_id>):
+  Local directory: /home/xb/OneDrive
+  Ignore file path: /home/xb/.config/onedrived/ignore_v2.txt
+```
+
+If you have more than one account authorized, all drives of all authorized
+accounts will appear in the table.
+
+#### Command mode
+
+Please find the available command-line arguments from help message using
+command `onedrived-pref drive set --help`. 
+
+### Set up webhook
+
+#### Webhook explained
+
+For now, refer to issue #19. More details TBA.
+
+#### Using `ngrok`-based webhook
+
+Download and install [ngrok](https://ngrok.com).
+
+By default, `onedrived` will look for `ngrok` binary from `PATH`. To specify
+path to the binary manually, set up environment variable `NGROK` when running
+`onedrived`. For example, `NGROK=~/utils/ngrok onedrived start --debug`.
+
+To use a custom config file for `ngrok`, set environment variable
+`NGROK_CONFIG_FILE` to path of your desired config file. Note that `onedrived`
+will create a HTTPS tunnel automatically and there is no need to specify
+tunnels. The purpose of using a custom `ngrok` config file should be to adjust
+resource usage, or link `ngrok` process with your paid `ngrok` account. The
+default `ngrok` config file shipped with `onedrived` turns off terminal output
+of `ngrok` and disables inspection database.
+
+#### Using direct connection
+
+TBA. Not applicable to most end-user machines.
 
 ### Run `onedrived` in debug mode
 
@@ -318,8 +380,8 @@ onedrived start --debug
 `onedrived` follows behavior of standard Python library function
 [`getproxies()`](https://docs.python.org/3/library/urllib.request.html#urllib.request.getproxies)
 to read proxies information from the OS. That is, run the command with
-environment variable `HTTP_PROXY` (or `http_proxy`) to set up a HTTP proxy, and variable
-`HTTPS_PROXY` (or `https_proxy`) to set up a HTTPS proxy. For example,
+environment variable `HTTP_PROXY` (or `http_proxy`) to set up a HTTP proxy, and
+variable `HTTPS_PROXY` (or `https_proxy`) to set up a HTTPS proxy. For example,
 
 ```bash
 $ HTTPS_PROXY=https://user:pass@host:port/some_path onedrived start --debug
@@ -335,7 +397,36 @@ A HTTPS proxy must have a verifiable SSL certificate.
 
 #### Edit configuration of an existing Drive
 
+#### Edit ignore list (selective sync)
+
 #### Remove a Drive from `onedrived`
+
+##### Interactive mode
+
+```bash
+$ onedrived-pref drive del
+Drives that have been set up:
+
+ #0 - Drive "<some_drive_id_here>":
+   Account:     <some_account_email> (<some_user_id_here>)
+   Local root:  /home/xb/OneDrive
+   Ignore file: /home/xb/.config/onedrived/ignore_v2.txt
+
+Please enter the # number of the Drive to delete (CTRL+C to abort): 0
+Continue to delete Drive "<some_drive_id_here>" (its local directory will NOT be deleted)? [y/N]: y
+Successfully deleted Drive "<some_drive_id_here>" from onedrived.
+```
+
+##### Command mode
+
+The command-mode equivalent is:
+
+```bash
+onedrived-pref drive del --drive-id <some_drive_id_here> [--yes]
+```
+
+If argument `--yes` is used, the specified Drive, if already added, will be
+deleted without confirmation. 
 
 #### Adjusting parameters of `onedrived`
 

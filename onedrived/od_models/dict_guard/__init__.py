@@ -16,6 +16,22 @@ def _test_bool_option(schema, opt_key):
     return opt_key in schema and schema[opt_key] is True
 
 
+def _test_str_subtype_file(key, value, schema):
+    if _test_bool_option(schema, 'to_abspath'):
+        value = os.path.abspath(value)
+    if not os.path.exists(value):
+        if _test_bool_option(schema, 'create_if_missing'):
+            with open(value, 'w'):
+                pass
+        else:
+            raise exceptions.PathDoesNotExist(key, value)
+    elif not os.path.isfile(value):
+        raise exceptions.PathIsNotFile(key, value)
+    elif 'permission' in schema:
+        with open(value, schema['permission']):
+            pass
+
+
 class GuardedDict:
 
     def __init__(self, config_dict, config_schema_dict):
@@ -33,24 +49,9 @@ class GuardedDict:
             raise exceptions.IntValueAboveMaximum(key, value, schema['maximum'])
         self.config_dict[key] = value
 
-    def _test_str_subtype_file(self, key, value, schema):
-        if _test_bool_option(schema, 'to_abspath'):
-            value = os.path.abspath(value)
-        if not os.path.exists(value):
-            if _test_bool_option(schema, 'create_if_missing'):
-                with open(value, 'w'):
-                    pass
-            else:
-                raise exceptions.PathDoesNotExist(key, value)
-        elif not os.path.isfile(value):
-            raise exceptions.PathIsNotFile(key, value)
-        elif 'permission' in schema:
-            with open(value, schema['permission']):
-                pass
-
     def set_str_subtype(self, key, value, schema):
         if schema['subtype'] == StringSubTypes.FILE:
-            self._test_str_subtype_file(key, value, schema)
+            _test_str_subtype_file(key, value, schema)
         else:
             raise exceptions.UnsupportedSchemaType(schema['subtype'], schema)
         self.config_dict[key] = value

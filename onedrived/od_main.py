@@ -5,6 +5,7 @@ import itertools
 import logging
 import os
 import signal
+import subprocess
 import sys
 import weakref
 
@@ -47,6 +48,21 @@ def shutdown_workers():
     for w in task_workers:
         if w:
             w.join()
+
+
+def init_webhook():
+    global webhook_server, webhook_worker
+    try:
+        webhook_server = od_webhook.get_webhook_server(context)
+    except RuntimeError as e:
+        logging.critical('Error initializing webhook: %s', e)
+        raise SystemExit()
+    webhook_worker = od_webhook.WebhookWorkerThread(webhook_url=webhook_server.webhook_url,
+                                                    callback_func=repo_updated_callback,
+                                                    action_delay_sec=context.config['webhook_action_delay_sec'])
+    webhook_server.set_worker(webhook_worker)
+    webhook_worker.start()
+    webhook_server.start()
 
 
 def shutdown_webhook():
@@ -135,7 +151,8 @@ def delete_temp_files(all_accounts):
     logging.info('Sweeping onedrived temporary files from local repositories.')
     for repo in itertools.chain.from_iterable(all_accounts.values()):
         if os.path.isdir(repo.local_root):
-            os.system('find "%s" -type f -name "%s" -delete' % (repo.local_root, repo.path_filter.get_temp_name('*')))
+            subprocess.call(('find', repo.local_root, '-type', 'f',
+                             '-name',repo.path_filter.get_temp_name('*'), '-delete'))
 
 
 def repo_updated_callback(repo):
@@ -158,7 +175,7 @@ def repo_updated_callback(repo):
                    'workdir': os.getcwd()
                })
 def main():
-    global task_pool, webhook_server, webhook_worker
+    global webhook_server, webhook_worker
 
     # Exit program when receiving SIGTERM or SIGINT.
     signal.signal(signal.SIGTERM, shutdown_callback)
@@ -183,13 +200,7 @@ def main():
     init_task_pool_and_workers()
 
     # Start webhook.
-    webhook_server = od_webhook.get_webhook_server(context)
-    webhook_worker = od_webhook.WebhookWorkerThread(webhook_url=webhook_server.webhook_url,
-                                                    callback_func=repo_updated_callback,
-                                                    action_delay_sec=context.config['webhook_action_delay_sec'])
-    webhook_server.set_worker(webhook_worker)
-    webhook_worker.start()
-    webhook_server.start()
+    init_webhook()
 
     context.watcher = LocalRepositoryWatcher(task_pool=task_pool, loop=context.loop)
 

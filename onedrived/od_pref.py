@@ -212,7 +212,7 @@ def print_all_drives():
         authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
         for d in drives:
             drive_objs.append(d)
-            drive_table.append((str(len(drive_table) - 1), profile.account_email,
+            drive_table.append((str(len(drive_table)), profile.account_email,
                                 d.id, d.drive_type, quota_short_str(d.quota), d.status.state))
         all_drives[i] = (profile, authenticator, drive_objs)
     click.secho(translator['od_pref.print_all_drives.all_drives_table.note'], bold=True)
@@ -247,8 +247,8 @@ def print_saved_drives():
 
 def index_to_drive_table_row(index, drive_table):
     if isinstance(index, int) and 0 <= index < len(drive_table):
-        email = drive_table[index + 1][1]  # Plus one to offset the header row.
-        drive_id = drive_table[index + 1][2]
+        email = drive_table[index][1]  # Plus one to offset the header row.
+        drive_id = drive_table[index][2]
         return email, drive_id
     raise ValueError('Index is not a valid row number.')
 

@@ -14,7 +14,7 @@ class WebhookConfig(http_server.WebhookConfig):
 
     def __init__(self, port=0, ngrok_config_path=None):
         super().__init__(port=port)
-        self.ngrok_path = os.getenv('NGROK_PATH', 'ngrok')
+        self.ngrok_path = os.getenv('NGROK', 'ngrok')
         ngrok_config_path = os.getenv('NGROK_CONFIG_FILE', ngrok_config_path)
         if isinstance(ngrok_config_path, str):
             self.ngrok_config_path = ngrok_config_path
@@ -76,7 +76,7 @@ class WebhookListener(http_server.WebhookListener):
         for c in psutil.Process(self.ngrok_proc.pid).connections():
             if c.laddr[0] == '127.0.0.1' and c.raddr == () and c.status == psutil.CONN_LISTEN:
                 return c.laddr
-        raise RuntimeError('Did not find inspection interface of ngrok.')
+        raise RuntimeError('Did not find API interface of ngrok.')
 
     def _read_ngrok_tunnels(self):
         webhook_urls = dict()

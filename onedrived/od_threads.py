@@ -25,6 +25,6 @@ class TaskWorkerThread(threading.Thread):
                 break
             task = self.task_pool.pop_task()
             if task is not None:
-                logging.debug('Acquired task %s.', task)
+                logging.debug('Got task %s.', task)
                 task.handle()
         logging.debug('Stopped.')
