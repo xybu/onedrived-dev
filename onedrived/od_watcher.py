@@ -350,7 +350,7 @@ class LocalRepositoryWatcher:
             item_path += '/' + item_name
 
         if repo.path_filter.should_ignore(item_path, is_dir=event_isdir):
-            logging.warning('Ignored %s on path "%s" by path filter. Flags={%s}.',
+            logging.info('Ignored %s on path "%s" by path filter. Flags={%s}.',
                             str(ev), parent_dir + '/' + ev.name, ','.join([str(f) for f in flags]))
             return
 
