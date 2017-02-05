@@ -84,6 +84,18 @@ class TestMergeDirTask(TasksTestCaseBase):
                 with open(self.repo.local_root + '/' + filename, 'wb') as f:
                     f.write(rf.read(4))
 
+    def test_list_local_names(self):
+        self._generate_random_files(('foo', 'foo.txt', 'Foo.txt', 'fOO.tXT'))
+        task = merge_dir.MergeDirectoryTask(self.repo, self.task_pool, '', item_request=None)
+        entries = task.list_local_names()
+        # Sample ignore list excludes entry '/foo'.
+        self.assertNotIn('foo', entries)
+        # All other files are properly renamed.
+        self.assertEqual(3, len(entries))
+        self.assertEqual(3, len(set([ent.lower() for ent in entries])))
+        for ent in entries:
+            self.assertTrue(os.path.isfile(task.local_abspath + '/' + ent))
+
     def test_rename_with_suffix(self):
         self._generate_random_files(('foo',))
         merge_dir.rename_with_suffix(self.repo.local_root, 'foo', 'hostname')

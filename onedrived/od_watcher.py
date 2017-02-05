@@ -83,7 +83,7 @@ class LocalRepositoryWatcher:
 
             # Return True if the remote path exists and is a directory.
             if item.folder is not None:
-                return True
+                return item_name == item.name
 
             # Remote path is not a directory. Try renaming it and if renaming fails, deleting it.
             new_name = get_filename_with_incremented_count(item_name)

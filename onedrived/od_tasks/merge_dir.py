@@ -72,32 +72,32 @@ class MergeDirectoryTask(base.TaskBase):
         return type(self).__name__ + '(%s, deep=%s, remote_unchanged=%s, parent_remote_unchanged=%s)' % (
             self.local_abspath, self.deep_merge, self.assume_remote_unchanged, self.parent_remote_unchanged)
 
-    def _list_local_names(self):
+    def list_local_names(self):
         """
-        List all names under the task local directory. Try resolving naming conflict (same name case-INsensitive)
-        as it goes.
+        List all names under the task local directory.
+        Try resolving naming conflict (same name case-INsensitive) as it goes.
         :return [str]: A list of entry names.
         """
         # TODO: This logic can be improved if remote info is provided.
         ent_list = set()
         ent_count = dict()
         for ent in os.listdir(self.local_abspath):
-            ent_path = self.local_abspath + '/' + ent
-            is_dir = os.path.isdir(ent_path)
-            filename, ext = os.path.splitext(ent)
-            if self.repo.path_filter.should_ignore(self.rel_path + '/' + ent, is_dir):
+            ent_abspath = self.local_abspath + '/' + ent
+            ent_isdir = os.path.isdir(ent_abspath)
+            if self.repo.path_filter.should_ignore(self.rel_path + '/' + ent, ent_isdir):
                 logging.debug('Ignored local path "%s/%s".', self.rel_path, ent)
                 continue
             ent_lower = ent.lower()
             if ent_lower in ent_count:
+                # Case conflict in names. Append a counter to the name. Ignore duplicate counters for now.
                 ent_count[ent_lower] += 1
-                abspath = self.local_abspath + '/' + ent
                 try:
-                    ent = filename + ' ' + str(ent_count[ent_lower]) + ext
-                    os.rename(ent_path, abspath)
+                    ent_name, ent_ext = os.path.splitext(ent)
+                    ent = ent_name + ' ' + str(ent_count[ent_lower]) + ent_ext
+                    shutil.move(ent_abspath, self.local_abspath + '/' + ent)
                     ent_count[ent.lower()] = 0
                 except (IOError, OSError) as e:
-                    logging.error('Error occurred when solving name conflict of "%s": %s.', abspath, e)
+                    logging.error('Error occurred when solving name conflict of "%s": %s.', ent_abspath, e)
                     continue
             else:
                 ent_count[ent_lower] = 0
@@ -112,7 +112,7 @@ class MergeDirectoryTask(base.TaskBase):
         self.repo.context.watcher.rm_watch(self.repo, self.local_abspath)
 
         try:
-            all_local_items = self._list_local_names()
+            all_local_items = self.list_local_names()
         except (IOError, OSError) as e:
             logging.error('Error merging dir "%s": %s.', self.local_abspath, e)
             return
