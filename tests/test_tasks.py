@@ -79,22 +79,20 @@ class TestMergeDirTask(TasksTestCaseBase):
         merge_dir.MergeDirectoryTask._remote_dir_matches_record(item, record)
 
     def _generate_random_files(self, filenames):
-        with open('/dev/urandom', 'rb') as rf:
-            for filename in filenames:
-                with open(self.repo.local_root + '/' + filename, 'wb') as f:
-                    f.write(rf.read(4))
+        for filename in filenames:
+            with open(self.repo.local_root + '/' + filename, 'w') as f:
+                f.write(filename)
 
     def test_list_local_names(self):
-        self._generate_random_files(('foo', 'foo.txt', 'Foo.txt', 'fOO.tXT'))
+        self._generate_random_files(('foo.txt', 'Foo.txt', 'fOO.tXT', 'FoO 1.txt', 'fOo 2.txt'))
         task = merge_dir.MergeDirectoryTask(self.repo, self.task_pool, '', item_request=None)
         entries = task.list_local_names()
-        # Sample ignore list excludes entry '/foo'.
-        self.assertNotIn('foo', entries)
-        # All other files are properly renamed.
-        self.assertEqual(3, len(entries))
-        self.assertEqual(3, len(set([ent.lower() for ent in entries])))
         for ent in entries:
             self.assertTrue(os.path.isfile(task.local_abspath + '/' + ent))
+        # All other files are properly renamed.
+        self.assertEqual(5, len(set([ent.lower() for ent in entries])))
+        self.assertIn('FoO 1.txt', entries)
+        self.assertIn('fOo 2.txt', entries)
 
     def test_rename_with_suffix(self):
         self._generate_random_files(('foo',))

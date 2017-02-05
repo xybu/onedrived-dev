@@ -79,30 +79,35 @@ class MergeDirectoryTask(base.TaskBase):
         :return [str]: A list of entry names.
         """
         # TODO: This logic can be improved if remote info is provided.
-        ent_list = set()
-        ent_count = dict()
-        for ent in os.listdir(self.local_abspath):
+        ents_orig = os.listdir(self.local_abspath)
+        ents_lower = [s.lower() for s in ents_orig]
+        ents_lower_uniq = set(ents_lower)
+        if len(ents_orig) == len(ents_lower_uniq):
+            return set(ents_orig)
+        ents_ret = set()
+        ents_ret_lower = set()
+        for ent, ent_lower in zip(ents_orig, ents_lower):
             ent_abspath = self.local_abspath + '/' + ent
-            ent_isdir = os.path.isdir(ent_abspath)
-            if self.repo.path_filter.should_ignore(self.rel_path + '/' + ent, ent_isdir):
-                logging.debug('Ignored local path "%s/%s".', self.rel_path, ent)
-                continue
-            ent_lower = ent.lower()
-            if ent_lower in ent_count:
-                # Case conflict in names. Append a counter to the name. Ignore duplicate counters for now.
-                ent_count[ent_lower] += 1
+            if ent_lower in ents_ret_lower:
+                ent_name, ent_ext = os.path.splitext(ent)
+                count = 1
+                new_ent = ent_name + ' ' + str(count) + ent_ext
+                new_ent_lower = new_ent.lower()
+                while new_ent_lower in ents_ret_lower or new_ent_lower in ents_lower_uniq:
+                    count += 1
+                    new_ent = ent_name + ' ' + str(count) + ent_ext
+                    new_ent_lower = new_ent.lower()
                 try:
-                    ent_name, ent_ext = os.path.splitext(ent)
-                    ent = ent_name + ' ' + str(ent_count[ent_lower]) + ent_ext
-                    shutil.move(ent_abspath, self.local_abspath + '/' + ent)
-                    ent_count[ent.lower()] = 0
+                    shutil.move(ent_abspath, self.local_abspath + '/' + new_ent)
+                    ents_ret.add(new_ent)
+                    ents_ret_lower.add(new_ent_lower)
                 except (IOError, OSError) as e:
                     logging.error('Error occurred when solving name conflict of "%s": %s.', ent_abspath, e)
                     continue
             else:
-                ent_count[ent_lower] = 0
-            ent_list.add(ent)
-        return ent_list
+                ents_ret.add(ent)
+                ents_ret_lower.add(ent_lower)
+        return ents_ret
 
     def handle(self):
         if not os.path.isdir(self.local_abspath):
@@ -386,6 +391,11 @@ class MergeDirectoryTask(base.TaskBase):
         """
         if not self.deep_merge:
             return
+
+        if self.repo.path_filter.should_ignore(self.rel_path + '/' + item_name, True):
+            logging.debug('Ignored local directory "%s/%s".', self.rel_path, item_name)
+            return
+
         if item_record is not None and item_record.type == ItemRecordType.FOLDER:
             if self.assume_remote_unchanged:
                 rel_path = self.rel_path + '/' + item_name
@@ -444,6 +454,10 @@ class MergeDirectoryTask(base.TaskBase):
         :param posix.stat_result | None item_stat:
         :param str item_local_abspath:
         """
+        if self.repo.path_filter.should_ignore(self.rel_path + '/' + item_name, False):
+            logging.debug('Ignored local file "%s/%s".', self.rel_path, item_name)
+            return
+
         if item_stat is None:
             logging.info('Local-only file "%s" existed when scanning but is now gone. Skip it.', item_local_abspath)
             if item_record is not None:
