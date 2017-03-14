@@ -1,9 +1,10 @@
+import itertools
 import logging
 import os
 import shutil
 
 import onedrivesdk.error
-from onedrivesdk import Item, Folder
+from onedrivesdk import Item, Folder, ChildrenCollectionRequest
 from send2trash import send2trash
 
 from . import base
@@ -126,7 +127,25 @@ class MergeDirectoryTask(base.TaskBase):
 
         if not self.assume_remote_unchanged or not self.parent_remote_unchanged:
             try:
-                all_remote_items = item_request_call(self.repo, self.item_request.children.get)
+                remote_item_page = item_request_call(self.repo, self.item_request.children.get)
+                all_remote_items = remote_item_page
+
+                while True:
+                    # HACK: ChildrenCollectionPage is not guaranteed to have
+                    # the _next_page_link attribute and
+                    # ChildrenCollectionPage.get_next_page_request doesn't
+                    # implement the check correctly
+                    if not hasattr(remote_item_page, '_next_page_link'):
+                        break
+
+                    logging.debug('Paging for more items: %s', self.rel_path)
+                    remote_item_page = item_request_call(
+                        self.repo,
+                        ChildrenCollectionRequest.get_next_page_request(
+                            remote_item_page,
+                            self.repo.authenticator.client).get)
+                    all_remote_items = itertools.chain(
+                        all_remote_items, remote_item_page)
             except onedrivesdk.error.OneDriveError as e:
                 logging.error('Encountered API Error: %s. Skip directory "%s".', e, self.rel_path)
                 return
