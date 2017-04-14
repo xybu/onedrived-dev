@@ -70,7 +70,7 @@ following packages are needed:
 * `inotify-tools`
 * `python3-dbus` (or probably `libdbus-glib-1-dev`)
 
-On other distros like Fedora names of those packages may vary.
+On other distros like Fedora, names of those packages may vary.
 
 Note that `keyring`, which provides secure local storage for OneDrive
 credentials (the leak of which may result in total compromise of your OneDrive
@@ -79,7 +79,7 @@ Secret Service) depending on your Linux distro and desktop manager. Please
 refer to its
 [installation instructions](https://pypi.python.org/pypi/keyring#installation-instructions)
 for more details. If your environment requires `keyring.alt` package, make
-sure to use the latest version (`sudo pip3 install -U keyring.alt`).
+sure to use the latest version (`sudo pip3 install -U keyrings.alt`).
 
 To install those dependencies on Ubuntu, use `apt-get` command:
 
