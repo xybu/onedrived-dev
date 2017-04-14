@@ -23,7 +23,7 @@ to communicate with OneDrive server,
 credentials, and [Linux inotify API](https://linux.die.net/man/7/inotify) to
 monitor file system changes.
 
-**IN DEVELOPMENT. DO NOT USE.**
+**IN DEVELOPMENT. USE WITH CAUTION.**
 
 ## Installation
 
@@ -78,7 +78,8 @@ data), may require additional packages (for example, D-Bus or FreeDesktop
 Secret Service) depending on your Linux distro and desktop manager. Please
 refer to its
 [installation instructions](https://pypi.python.org/pypi/keyring#installation-instructions)
-for more details.
+for more details. If your environment requires `keyring.alt` package, make
+sure to use the latest version (`sudo pip3 install -U keyring.alt`).
 
 To install those dependencies on Ubuntu, use `apt-get` command:
 
