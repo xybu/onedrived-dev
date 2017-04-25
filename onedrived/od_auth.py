@@ -37,23 +37,26 @@ class AccountTypes:
 
 
 class OneDriveBusinessAuthenticator:
-    """
+    
     #OnedriveCMD
     APP_CLIENT_ID_BUSINESS = '6fdb55b4-c905-4612-bd23-306c3918217c'
     APP_CLIENT_SECRET_BUSINESS = 'HThkLCvKhqoxTDV9Y9uS+EvdQ72fbWr/Qrn2PFBZ/Ow='
     APP_REDIRECT_URL_BUSINESS = 'https://od.cnbeining.com'
+    
     """
     
     #Mario Microsoft
     APP_CLIENT_ID_BUSINESS = 'e800bcb1-069d-4075-817d-6a67bad19875'
     APP_CLIENT_SECRET_BUSINESS = '50564B260C0A75AF8EC9E2A4240674E1211428F5'
     APP_REDIRECT_URL_BUSINESS = 'https://onedrivesite.mario-apra.tk/'
-    
     """
+    """
+    
     #Mario Azure
     APP_CLIENT_ID_BUSINESS = 'b2fbc75d-b5a8-4604-a6e2-0c9f4c946742'
     APP_CLIENT_SECRET_BUSINESS = 'MoGKf5tCzUVmPrUdlYf9VjwydQ5FRppC74eF7P0tWfU='
     APP_REDIRECT_URL_BUSINESS = 'https://onedrivesite.mario-apra.tk/'
+    
     """
     
     ACCOUNT_TYPE = AccountTypes.BUSINESS
@@ -87,14 +90,15 @@ class OneDriveBusinessAuthenticator:
         
         # this step can be slow
         service_info = ResourceDiscoveryRequest().get_service_info(self.auth_provider.access_token)
-        print(service_info)
-        for i in range(len(service_info)):
-            print(service_info[i])
+
+        #print(service_info)
+
+        url = str(service_info[0]).split()[1]
 
         print('here 2: I will refresh token')
-        self.auth_provider.redeem_refresh_token(service_info[0])
+        self.auth_provider.redeem_refresh_token(url)#(service_info.serviceResourceId)
         print('here 3: I will update client')
-        self.client = onedrivesdk.OneDriveClient(service_info[1], self.auth_provider, self.http_provider)
+        self.client = onedrivesdk.OneDriveClient(url + '_api/v2.0/me', self.auth_provider, self.http_provider)
         print('here 4: Done')
 
     # TODO: implement this
