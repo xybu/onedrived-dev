@@ -36,15 +36,31 @@ class AccountTypes:
     BUSINESS = 1
 
 
-
 class OneDriveBusinessAuthenticator:
+    """
+    #OnedriveCMD
     APP_CLIENT_ID_BUSINESS = '6fdb55b4-c905-4612-bd23-306c3918217c'
     APP_CLIENT_SECRET_BUSINESS = 'HThkLCvKhqoxTDV9Y9uS+EvdQ72fbWr/Qrn2PFBZ/Ow='
+    APP_REDIRECT_URL_BUSINESS = 'https://od.cnbeining.com'
+    """
+    
+    #Mario Microsoft
+    APP_CLIENT_ID_BUSINESS = 'e800bcb1-069d-4075-817d-6a67bad19875'
+    APP_CLIENT_SECRET_BUSINESS = '50564B260C0A75AF8EC9E2A4240674E1211428F5'
+    APP_REDIRECT_URL_BUSINESS = 'https://onedrivesite.mario-apra.tk/'
+    
+    """
+    #Mario Azure
+    APP_CLIENT_ID_BUSINESS = 'b2fbc75d-b5a8-4604-a6e2-0c9f4c946742'
+    APP_CLIENT_SECRET_BUSINESS = 'MoGKf5tCzUVmPrUdlYf9VjwydQ5FRppC74eF7P0tWfU='
+    APP_REDIRECT_URL_BUSINESS = 'https://onedrivesite.mario-apra.tk/'
+    """
+    
+    ACCOUNT_TYPE = AccountTypes.BUSINESS
     APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
     APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
-    # TODO: change redirect url, client id and secret
-    APP_REDIRECT_URL_BUSINESS = 'https://od.cnbeining.com'
+
 
     def __init__(self):
         proxies = getproxies()
@@ -53,23 +69,24 @@ class OneDriveBusinessAuthenticator:
         else:
             from onedrivesdk.helpers.http_provider_with_proxy import HttpProviderWithProxy
             self.http_provider = HttpProviderWithProxy(proxies, verify_ssl=True)
-        
+
         self.auth_provider = onedrivesdk.AuthProvider(self.http_provider,
                                                  self.APP_CLIENT_ID_BUSINESS,
                                                  auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
                                                  auth_token_url=self.APP_TOKEN_URL_BUSINESS)
-        
+
         self.auth_url = self.auth_provider.get_auth_url(self.APP_REDIRECT_URL_BUSINESS)
         #self.auth_url = self.auth_url.encode('utf-8').replace( "('", '').replace("',)", '')
         print(self.auth_url)
-        
-        
+
+
     def get_auth_url(self):
         return self.auth_url
 
     def authenticate(self, code):
         print('here 1: I will athenticate')
         self.auth_provider.authenticate(code, self.APP_REDIRECT_URL_BUSINESS, self.APP_CLIENT_SECRET_BUSINESS, resource=self.APP_DISCOVERY_URL_BUSINESS)
+        
         # this step can be slow
         service_info = ResourceDiscoveryRequest().get_service_info(self.auth_url.access_token)[0]
         self.auth_provider.redeem_refresh_token(service_info.service_resource_id)
@@ -82,6 +99,7 @@ class OneDriveBusinessAuthenticator:
         print('here 2: I will refresh token')
         print('here 3: I will update client')
         print('here 4: Done')
+
     # TODO: implement this
     def get_profile(self, user_id='me'):
         """
