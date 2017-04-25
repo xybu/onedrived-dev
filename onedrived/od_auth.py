@@ -76,8 +76,22 @@ class OneDriveBusinessAuthenticator:
 
 
     # TODO: implement this
-    #def get_profile(self, user_id='me'):
-    
+    def get_profile(self, user_id='me'):
+        """
+        Discover the OneDrive for Business resource URI
+        reference: https://github.com/OneDrive/onedrive-api-docs/blob/master/auth/aad_oauth.md
+        """
+        url = 'https://api.office.com/discovery/v2.0/' + user_id + "/services"
+        headers = {'Authorization': 'Bearer ' + self.client.auth_provider.access_token}
+        proxies = getproxies()
+        if len(proxies) == 0:
+            proxies = None
+        response = requests.get(url, headers=headers, proxies=proxies, verify=True)
+        if response.status_code != requests.codes.ok:
+            raise ValueError('Failed to read user profile.')
+        data = response.json()
+        data['account_type'] = self.ACCOUNT_TYPE
+        return account_profile.OneDriveAccountProfile(data)
 
     @property
     def session_expires_in_sec(self):
