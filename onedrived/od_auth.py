@@ -68,13 +68,20 @@ class OneDriveBusinessAuthenticator:
         return self.auth_url
 
     def authenticate(self, code):
+        print('here 1: I will athenticate')
         self.auth_provider.authenticate(code, self.APP_REDIRECT_URL_BUSINESS, self.APP_CLIENT_SECRET_BUSINESS, resource=self.APP_DISCOVERY_URL_BUSINESS)
         # this step can be slow
         service_info = ResourceDiscoveryRequest().get_service_info(self.auth_url.access_token)[0]
         self.auth_provider.redeem_refresh_token(service_info.service_resource_id)
         self.client = onedrivesdk.OneDriveClient(service_info.service_resource_id + '_api/v2.0/', self.auth_provider, self.http_provider)
 
+        print(service_info)
+        for i in range(len(service_info)):
+            print(service_info[i])
 
+        print('here 2: I will refresh token')
+        print('here 3: I will update client')
+        print('here 4: Done')
     # TODO: implement this
     def get_profile(self, user_id='me'):
         """
