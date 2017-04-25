@@ -9,12 +9,13 @@ import click
 import keyring
 import tabulate
 
-from . import __version__
-from . import mkdir, get_resource, od_auth, od_i18n
-from .od_models import pretty_api, drive_config
-from .od_api_session import OneDriveAPISession, get_keyring_key
-from .od_models.dict_guard import GuardedDict, exceptions as guard_errors
-from .od_context import load_context, save_context
+from onedrived import __version__
+import od_auth
+from onedrived import mkdir, get_resource, od_i18n
+from onedrived.od_models import pretty_api, drive_config
+from onedrived.od_api_session import OneDriveAPISession, get_keyring_key
+from onedrived.od_models.dict_guard import GuardedDict, exceptions as guard_errors
+from onedrived.od_context import load_context, save_context
 
 
 context = load_context()
@@ -118,29 +119,52 @@ def save_account(authenticator):
               help=translator['od_pref.authenticate_account.for_business.help'])
 def authenticate_account(get_auth_url=False, code=None, for_business=False):
     if for_business:
-        error(translator['od_pref.authenticate_account.for_business_unsupported'])
-        return
-    authenticator = od_auth.OneDriveAuthenticator()
-    click.echo(translator['od_pref.authenticate_account.permission_note'])
-    if code is None:
-        click.echo(translator['od_pref.authenticate_account.paste_url_note'])
-        click.echo('\n' + click.style(authenticator.get_auth_url(), underline=True) + '\n')
-        if get_auth_url:
-            return
-        click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
-            redirect_url=click.style(authenticator.APP_REDIRECT_URL, bold=True)))
-        url = click.prompt(translator['od_pref.authenticate_account.paste_url_prompt'], type=str)
-        code = extract_qs_param(url, 'code')
+        authenticator = od_auth.OneDriveBusinessAuthenticator()
+        click.echo(translator['od_pref.authenticate_account.permission_note'])
         if code is None:
-            error(translator['od_pref.authenticate_account.error.code_not_found_in_url'])
-            return
+            click.echo(translator['od_pref.authenticate_account.paste_url_note'])
+            click.echo('\n' + click.style(authenticator.get_auth_url(), underline=True) + '\n')
+            if get_auth_url:
+                return
+            click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
+                redirect_url=click.style(authenticator.APP_REDIRECT_URL_BUSINESS, bold=True)))
+            url = click.prompt(translator['od_pref.authenticate_account.paste_url_prompt'], type=str)
+            code = extract_qs_param(url, 'code')
+            if code is None:
+                error(translator['od_pref.authenticate_account.error.code_not_found_in_url'])
+                return
 
-    try:
-        authenticator.authenticate(code)
-        success(translator['od_pref.authenticate_account.success.authorized'])
-        save_account(authenticator)
-    except Exception as e:
-        error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=str(e)))
+        try:
+            authenticator.authenticate(code)
+            success(translator['od_pref.authenticate_account.success.authorized'])
+            save_account(authenticator)
+        except Exception as e:
+            error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=str(e)))
+
+
+    #personal account
+    else:
+        authenticator = od_auth.OneDriveAuthenticator()
+        click.echo(translator['od_pref.authenticate_account.permission_note'])
+        if code is None:
+            click.echo(translator['od_pref.authenticate_account.paste_url_note'])
+            click.echo('\n' + click.style(authenticator.get_auth_url(), underline=True) + '\n')
+            if get_auth_url:
+                return
+            click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
+                redirect_url=click.style(authenticator.APP_REDIRECT_URL, bold=True)))
+            url = click.prompt(translator['od_pref.authenticate_account.paste_url_prompt'], type=str)
+            code = extract_qs_param(url, 'code')
+            if code is None:
+                error(translator['od_pref.authenticate_account.error.code_not_found_in_url'])
+                return
+
+        try:
+            authenticator.authenticate(code)
+            success(translator['od_pref.authenticate_account.success.authorized'])
+            save_account(authenticator)
+        except Exception as e:
+            error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=str(e)))
 
 
 @click.command(name='list', short_help='List all linked accounts.')

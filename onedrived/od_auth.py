@@ -10,10 +10,12 @@ import requests
 from requests.utils import getproxies
 import onedrivesdk
 import onedrivesdk.error
+from onedrivesdk.helpers import GetAuthCodeServer
+from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
 
 
-from . import od_api_session
-from .od_models import account_profile
+from onedrived import od_api_session
+from onedrived.od_models import account_profile
 
 
 def get_authenticator_and_drives(context, account_id):
@@ -33,6 +35,65 @@ class AccountTypes:
     PERSONAL = 0
     BUSINESS = 1
 
+
+
+class OneDriveBusinessAuthenticator:
+    APP_CLIENT_ID_BUSINESS = '6fdb55b4-c905-4612-bd23-306c3918217c'
+    APP_CLIENT_SECRET_BUSINESS = 'HThkLCvKhqoxTDV9Y9uS+EvdQ72fbWr/Qrn2PFBZ/Ow='
+    APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
+    APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
+    APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
+    # TODO: change redirect url, client id and secret
+    APP_REDIRECT_URL_BUSINESS = 'https://od.cnbeining.com'
+
+    def __init__(self):
+        proxies = getproxies()
+        if len(proxies) == 0:
+            self.http_provider = onedrivesdk.HttpProvider()
+        else:
+            from onedrivesdk.helpers.http_provider_with_proxy import HttpProviderWithProxy
+            self.http_provider = HttpProviderWithProxy(proxies, verify_ssl=True)
+        
+        self.auth_provider = onedrivesdk.AuthProvider(self.http_provider,
+                                                 self.APP_CLIENT_ID_BUSINESS,
+                                                 auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
+                                                 auth_token_url=self.APP_TOKEN_URL_BUSINESS)
+        
+        self.auth_url = self.auth_provider.get_auth_url(self.APP_REDIRECT_URL_BUSINESS)
+        #self.auth_url = self.auth_url.encode('utf-8').replace( "('", '').replace("',)", '')
+        print(self.auth_url)
+        
+        
+    def get_auth_url(self):
+        return self.auth_url
+
+    def authenticate(self, code):
+        self.auth_provider.authenticate(code, self.APP_REDIRECT_URL_BUSINESS, self.APP_CLIENT_SECRET_BUSINESS, resource=self.APP_DISCOVERY_URL_BUSINESS)
+        # this step can be slow
+        service_info = ResourceDiscoveryRequest().get_service_info(self.auth_url.access_token)[0]
+        self.auth_provider.redeem_refresh_token(service_info.service_resource_id)
+        self.client = onedrivesdk.OneDriveClient(service_info.service_resource_id + '_api/v2.0/', self.auth_provider, self.http_provider)
+
+
+    # TODO: implement this
+    #def get_profile(self, user_id='me'):
+    
+
+    @property
+    def session_expires_in_sec(self):
+        return self.client.auth_provider._session.expires_in_sec
+
+    def refresh_session(self, account_id):
+        self.client.auth_provider.refresh_token()
+        self.save_session(key=od_api_session.get_keyring_key(account_id))
+
+    def save_session(self, key):
+        args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
+        self.client.auth_provider.save_session(**args)
+
+    def load_session(self, key):
+        args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
+        self.client.aut
 
 class OneDriveAuthenticator:
 
