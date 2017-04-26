@@ -12,10 +12,10 @@ import threading
 from datetime import datetime
 from contextlib import closing
 
-from . import get_resource as _get_resource
-from .od_models.path_filter import PathFilter as _PathFilter
-from .od_api_helper import get_item_modified_datetime, get_item_created_datetime
-from .od_dateutils import str_to_datetime, datetime_to_str
+from onedrived import get_resource as _get_resource
+from od_models.path_filter import PathFilter as _PathFilter
+from od_api_helper import get_item_modified_datetime, get_item_created_datetime
+from od_dateutils import str_to_datetime, datetime_to_str
 
 
 class ItemRecord:

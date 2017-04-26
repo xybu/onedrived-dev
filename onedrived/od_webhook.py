@@ -6,7 +6,7 @@ import threading
 import queue
 import urllib.parse
 
-from .od_models.webhook_notification import WebhookNotification
+from od_models.webhook_notification import WebhookNotification
 
 
 def get_webhook_server(context):

@@ -1,6 +1,6 @@
 import json
 
-from . import get_resource
+import get_resource
 
 
 class Translator:

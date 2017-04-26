@@ -8,7 +8,7 @@ from official OneDrive Python SDK.
 :license: MIT
 """
 
-from .. import od_dateutils
+import onedrived.od_dateutils
 
 
 class WebhookNotification:

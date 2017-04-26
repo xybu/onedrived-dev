@@ -2,8 +2,8 @@ import logging
 
 import onedrivesdk.error
 
-from . import update_item_base
-from .. import od_api_helper
+import update_item_base
+import onedrived.od_api_helper
 
 
 class DeleteRemoteItemTask(update_item_base.UpdateItemTaskBase):
