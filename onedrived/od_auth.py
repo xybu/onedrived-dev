@@ -40,7 +40,6 @@ class AccountTypes:
 
 class OneDriveBusinessAuthenticator:
     
-
     APP_CLIENT_ID_BUSINESS = '6fdb55b4-c905-4612-bd23-306c3918217c'
     APP_CLIENT_SECRET_BUSINESS = 'HThkLCvKhqoxTDV9Y9uS+EvdQ72fbWr/Qrn2PFBZ/Ow='
     APP_REDIRECT_URL = 'https://od.cnbeining.com'
@@ -71,24 +70,21 @@ class OneDriveBusinessAuthenticator:
         return self.auth_url
 
     def authenticate(self, code):
-        print('here 1: I will athenticate')
+        print('Athenticating...')
         self.auth_provider.authenticate(code, self.APP_REDIRECT_URL, self.APP_CLIENT_SECRET_BUSINESS, resource=self.APP_DISCOVERY_URL_BUSINESS)
         
         # this step can be slow
         service_info = ResourceDiscoveryRequest().get_service_info(self.auth_provider.access_token)
-
-        #print(service_info)
-
         self.APP_ENDPOINT = str(service_info[0]).split()[1]
 
-        print('here 2: I will refresh token')
+        print('Refreshing token...')
         self.auth_provider.redeem_refresh_token(self.APP_ENDPOINT)#(service_info.serviceResourceId)
-        print('here 3: I will update client')
+        print('Updating client')
         #TODO: check if can be api/v.1.0
         self.client = onedrivesdk.OneDriveClient(self.APP_ENDPOINT + '_api/v2.0/me', self.auth_provider, self.http_provider)
-        print('here 4: Authenticated!')
+        print('Authenticated!')
 
-    # TODO: implement this
+    
     def get_profile(self, user_id='me'):
         """
         Discover the OneDrive for Business resource URI
@@ -97,19 +93,13 @@ class OneDriveBusinessAuthenticator:
         """
         url = self.APP_ENDPOINT + '_api/v1.0/me/files/root' #more detailed: ?$expand=children
         headers = {'Authorization': 'Bearer ' + self.auth_provider.access_token}
-        #print('url: ' + url)
-        #print('headers: ' + str(headers))
         proxies = getproxies()
         if len(proxies) == 0:
             proxies = None
         response = requests.get(url, headers=headers, proxies=proxies, verify=True)
-        #print('response: ' + str(response))
         data = response.json()
-        #print('data: ' + str(data))
         if response.status_code != requests.codes.ok:
             raise ValueError('Failed to read user profile:' + data['error']['message'])
-        #self.ID = data['id']
-        #self.ROOT_FOLDER_URL = data['webUrl']
         data['account_type'] = self.ACCOUNT_TYPE
         return account_profile_business.OneDriveAccountBusinessProfile(data)
 
