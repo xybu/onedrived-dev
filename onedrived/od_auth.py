@@ -15,7 +15,9 @@ from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
 
 
 from onedrived import od_api_session
-from onedrived.od_models import account_profile
+import od_models
+from od_models import account_profile
+from od_models import account_profile_business
 
 
 def get_authenticator_and_drives(context, account_id):
@@ -41,21 +43,21 @@ class OneDriveBusinessAuthenticator:
     #OnedriveCMD
     APP_CLIENT_ID_BUSINESS = '6fdb55b4-c905-4612-bd23-306c3918217c'
     APP_CLIENT_SECRET_BUSINESS = 'HThkLCvKhqoxTDV9Y9uS+EvdQ72fbWr/Qrn2PFBZ/Ow='
-    APP_REDIRECT_URL_BUSINESS = 'https://od.cnbeining.com'
+    APP_REDIRECT_URL = 'https://od.cnbeining.com'
     
     """
     
     #Mario Microsoft
     APP_CLIENT_ID_BUSINESS = 'e800bcb1-069d-4075-817d-6a67bad19875'
     APP_CLIENT_SECRET_BUSINESS = '50564B260C0A75AF8EC9E2A4240674E1211428F5'
-    APP_REDIRECT_URL_BUSINESS = 'https://onedrivesite.mario-apra.tk/'
+    APP_REDIRECT_URL = 'https://onedrivesite.mario-apra.tk/'
     """
     """
     
     #Mario Azure
     APP_CLIENT_ID_BUSINESS = 'b2fbc75d-b5a8-4604-a6e2-0c9f4c946742'
     APP_CLIENT_SECRET_BUSINESS = 'MoGKf5tCzUVmPrUdlYf9VjwydQ5FRppC74eF7P0tWfU='
-    APP_REDIRECT_URL_BUSINESS = 'https://onedrivesite.mario-apra.tk/'
+    APP_REDIRECT_URL = 'https://onedrivesite.mario-apra.tk/'
     
     """
     
@@ -63,7 +65,7 @@ class OneDriveBusinessAuthenticator:
     APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
     APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
-
+    APP_ENDPOINT = ''
 
     def __init__(self):
         proxies = getproxies()
@@ -78,7 +80,7 @@ class OneDriveBusinessAuthenticator:
                                                  auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
                                                  auth_token_url=self.APP_TOKEN_URL_BUSINESS)
 
-        self.auth_url = self.auth_provider.get_auth_url(self.APP_REDIRECT_URL_BUSINESS)
+        self.auth_url = self.auth_provider.get_auth_url(self.APP_REDIRECT_URL)
 
 
     def get_auth_url(self):
@@ -86,38 +88,46 @@ class OneDriveBusinessAuthenticator:
 
     def authenticate(self, code):
         print('here 1: I will athenticate')
-        self.auth_provider.authenticate(code, self.APP_REDIRECT_URL_BUSINESS, self.APP_CLIENT_SECRET_BUSINESS, resource=self.APP_DISCOVERY_URL_BUSINESS)
+        self.auth_provider.authenticate(code, self.APP_REDIRECT_URL, self.APP_CLIENT_SECRET_BUSINESS, resource=self.APP_DISCOVERY_URL_BUSINESS)
         
         # this step can be slow
         service_info = ResourceDiscoveryRequest().get_service_info(self.auth_provider.access_token)
 
         #print(service_info)
 
-        url = str(service_info[0]).split()[1]
+        self.APP_ENDPOINT = str(service_info[0]).split()[1]
 
         print('here 2: I will refresh token')
-        self.auth_provider.redeem_refresh_token(url)#(service_info.serviceResourceId)
+        self.auth_provider.redeem_refresh_token(self.APP_ENDPOINT)#(service_info.serviceResourceId)
         print('here 3: I will update client')
-        self.client = onedrivesdk.OneDriveClient(url + '_api/v2.0/me', self.auth_provider, self.http_provider)
-        print('here 4: Done')
+        #TODO: check if can be api/v.1.0
+        self.client = onedrivesdk.OneDriveClient(self.APP_ENDPOINT + '_api/v2.0/me', self.auth_provider, self.http_provider)
+        print('here 4: Authenticated!')
 
     # TODO: implement this
     def get_profile(self, user_id='me'):
         """
         Discover the OneDrive for Business resource URI
         reference: https://github.com/OneDrive/onedrive-api-docs/blob/master/auth/aad_oauth.md
+        util link: https://github.com/OneDrive/onedrive-api-docs
         """
-        url = 'https://api.office.com/discovery/v2.0/' + user_id + "/services"
-        headers = {'Authorization': 'Bearer ' + self.client.auth_provider.access_token}
+        url = self.APP_ENDPOINT + '_api/v1.0/me/files/root' #more detailed: ?$expand=children
+        headers = {'Authorization': 'Bearer ' + self.auth_provider.access_token}
+        #print('url: ' + url)
+        #print('headers: ' + str(headers))
         proxies = getproxies()
         if len(proxies) == 0:
             proxies = None
         response = requests.get(url, headers=headers, proxies=proxies, verify=True)
-        if response.status_code != requests.codes.ok:
-            raise ValueError('Failed to read user profile.')
+        #print('response: ' + str(response))
         data = response.json()
+        #print('data: ' + str(data))
+        if response.status_code != requests.codes.ok:
+            raise ValueError('Failed to read user profile:' + data['error']['message'])
+        #self.ID = data['id']
+        #self.ROOT_FOLDER_URL = data['webUrl']
         data['account_type'] = self.ACCOUNT_TYPE
-        return account_profile.OneDriveAccountProfile(data)
+        return account_profile_business.OneDriveAccountBusinessProfile(data)
 
     @property
     def session_expires_in_sec(self):
