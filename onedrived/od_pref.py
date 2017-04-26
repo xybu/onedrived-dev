@@ -12,10 +12,10 @@ import tabulate
 from onedrived import __version__
 import od_auth
 from onedrived import mkdir, get_resource, od_i18n
-from onedrived.od_models import pretty_api, drive_config
-from onedrived.od_api_session import OneDriveAPISession, get_keyring_key
-from onedrived.od_models.dict_guard import GuardedDict, exceptions as guard_errors
-from onedrived.od_context import load_context, save_context
+from od_models import pretty_api, drive_config
+from od_api_session import OneDriveAPISession, get_keyring_key
+from od_models.dict_guard import GuardedDict, exceptions as guard_errors
+from od_context import load_context, save_context
 
 
 context = load_context()
