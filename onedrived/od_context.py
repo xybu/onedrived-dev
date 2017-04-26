@@ -139,6 +139,7 @@ class UserContext:
         :return od_models.account_profile.OneDriveAccountProfile:
             An OneDriveAccountProfile object of the account profile.
         """
+        #TODO: can return oneDriveBusiness too
         return _account_profile.OneDriveAccountProfile(self.config['accounts'][account_id])
 
     def delete_account(self, account_id):
