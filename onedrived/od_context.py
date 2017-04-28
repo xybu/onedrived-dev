@@ -6,9 +6,10 @@ from pwd import getpwnam
 
 import click
 
-from onedrived import mkdir, get_resource, od_webhooks
-from od_models import account_profile as _account_profile
-from od_models import drive_config as _drive_config
+
+from . import mkdir, get_resource, od_webhooks
+from .od_models import account_profile as _account_profile
+from .od_models import drive_config as _drive_config
 
 
 def is_invalid_username(s):

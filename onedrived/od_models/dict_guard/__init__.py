@@ -1,6 +1,6 @@
 import os
 
-import exceptions
+from . import exceptions
 
 
 class DictEntryTypes:

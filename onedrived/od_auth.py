@@ -14,11 +14,9 @@ from onedrivesdk.helpers import GetAuthCodeServer
 from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
 
 
-from onedrived import od_api_session
-import od_models
-from od_models import account_profile
-from od_models import account_profile_business
 
+from . import od_api_session
+from .od_models import account_profile, account_profile_business
 
 def get_authenticator_and_drives(context, account_id):
     # TODO: Ideally we should recursively get all drives because the API pages them.

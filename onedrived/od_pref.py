@@ -9,14 +9,12 @@ import click
 import keyring
 import tabulate
 
-from onedrived import __version__
-import od_auth
-from onedrived import mkdir, get_resource, od_i18n
-from od_models import pretty_api, drive_config
-from od_api_session import OneDriveAPISession, get_keyring_key
-from od_models.dict_guard import GuardedDict, exceptions as guard_errors
-from od_context import load_context, save_context
-
+from . import __version__
+from . import mkdir, get_resource, od_auth, od_i18n
+from .od_models import pretty_api, drive_config
+from .od_api_session import OneDriveAPISession, get_keyring_key
+from .od_models.dict_guard import GuardedDict, exceptions as guard_errors
+from .od_context import load_context, save_context
 
 context = load_context()
 translator = od_i18n.Translator(('od_pref', ), locale_str=str(locale.getlocale()[0]))
@@ -97,7 +95,6 @@ def change_account():
 
 def save_account(authenticator):
     try:
-        print("I'm here")
         account_profile = authenticator.get_profile()
         authenticator.save_session(key=get_keyring_key(account_profile.account_id))
         context.add_account(account_profile)

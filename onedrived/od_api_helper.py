@@ -6,7 +6,7 @@ import onedrivesdk
 import onedrivesdk.error
 import requests
 
-import od_dateutils
+from . import od_dateutils
 
 THROTTLE_PAUSE_SEC = 60
 

@@ -23,7 +23,7 @@ class OneDriveAccountProfile:
     @property
     def account_email(self):
         return self.data['emails']['account']
-
+    
     @property
     def account_type(self):
         return self.data['account_type']
