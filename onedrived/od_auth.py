@@ -46,7 +46,6 @@ class OneDriveBusinessAuthenticator:
     APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
     APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
-    APP_ENDPOINT = ''
 
     def __init__(self):
         proxies = getproxies()
@@ -76,7 +75,7 @@ class OneDriveBusinessAuthenticator:
         self.APP_ENDPOINT = str(service_info[0]).split()[1]
 
         print('Refreshing token...')
-        self.auth_provider.redeem_refresh_token(self.APP_ENDPOINT)#(service_info.serviceResourceId)
+        self.auth_provider.redeem_refresh_token(self.APP_ENDPOINT)
         print('Updating client')
         #TODO: check if can be api/v.1.0
         self.client = onedrivesdk.OneDriveClient(self.APP_ENDPOINT + '_api/v2.0/me', self.auth_provider, self.http_provider)
