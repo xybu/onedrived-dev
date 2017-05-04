@@ -44,12 +44,21 @@ def quota_short_str(q):
 
 
 def print_all_accounts(ctx):
-    all_accounts = []
+    all_accounts_personal = []
+    all_accounts_business = []
+
     all_account_ids = ctx.all_accounts()
+
     for i, account_id in enumerate(all_account_ids):
         account = ctx.get_account(account_id)
-        all_accounts.append((str(i), account_id, account.account_name, account.account_email))
-    click.echo(tabulate.tabulate(all_accounts, headers=('#', 'Account ID', 'Owner Name', 'Email Address')))
+        if account.account_type == od_auth.AccountTypes.BUSINESS:
+            all_accounts_business.append((str(i), account.account_id, account.account_root_folder))
+        else:
+            all_accounts_personal.append((str(i), account_id, account.account_name, account.account_email))
+    click.echo('Personal profile')
+    click.echo(tabulate.tabulate(all_accounts_personal, headers=('#', 'Account ID', 'Owner Name', 'Email Address')))
+    click.echo('\nBusiness profile')
+    click.echo(tabulate.tabulate(all_accounts_business, headers=('#', 'Account ID', 'Root Folder')))
     return all_account_ids
 
 
@@ -58,8 +67,9 @@ def email_to_account_id(ctx, email, all_account_ids=None):
         all_account_ids = ctx.all_accounts()
     for s in all_account_ids:
         account = ctx.get_account(s)
-        if account.account_email == email:
-            return s
+        if account.account_type == od_auth.AccountTypes.PERSONAL:
+            if account.account_email == email:
+                return s
     raise ValueError('Did not find existing account with email address "%s".' % email)
 
 
