@@ -16,7 +16,7 @@ from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
 
 
 from . import od_api_session
-from .od_models import account_profile, account_profile_business
+from .od_models import account_profile
 
 def get_authenticator_and_drives(context, account_id):
     # TODO: Ideally we should recursively get all drives because the API pages them.
@@ -99,7 +99,7 @@ class OneDriveBusinessAuthenticator:
         if response.status_code != requests.codes.ok:
             raise ValueError('Failed to read user profile:' + data['error']['message'])
         data['account_type'] = self.ACCOUNT_TYPE
-        return account_profile_business.OneDriveAccountBusinessProfile(data)
+        return account_profile.OneDriveAccountBusiness(data)
 
     @property
     def session_expires_in_sec(self):
@@ -162,7 +162,7 @@ class OneDriveAuthenticator:
             raise ValueError('Failed to read user profile.')
         data = response.json()
         data['account_type'] = self.ACCOUNT_TYPE
-        return account_profile.OneDriveAccountProfile(data)
+        return account_profile.OneDriveAccountPersonal(data)
 
     @property
     def session_expires_in_sec(self):

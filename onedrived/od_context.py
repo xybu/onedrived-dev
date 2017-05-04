@@ -8,8 +8,9 @@ import click
 
 
 from . import mkdir, get_resource, od_webhooks
-from .od_models import account_profile as _account_profile
+from .od_models import account_profile
 from .od_models import drive_config as _drive_config
+from .od_auth import AccountTypes
 
 
 def is_invalid_username(s):
@@ -131,6 +132,7 @@ class UserContext:
         :param od_models.account_profile.OneDriveAccountProfile account_profile:
         :return od_models.account_profile.OneDriveAccountProfile: The account profile argument.
         """
+
         return self._add_and_return('accounts', 'account_id', account_profile, account_profile.data)
 
     def get_account(self, account_id):
