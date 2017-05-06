@@ -64,6 +64,11 @@ class OneDriveAccountBusiness:
     @property
     def account_type(self):
         return self.data['account_type']
+    
+    @property
+    def tenant(self):
+        site = self.account_root_folder
+        return site[8:site.find('-my.sharepoint.com/')]
 
     @property
     def account_name(self):
