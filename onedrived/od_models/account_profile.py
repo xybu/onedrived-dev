@@ -24,6 +24,7 @@ class OneDriveAccountPersonal:
 
     @property
     def account_id(self):
+        #TODO: check if can be 36 digits instead of 17(personal)
         return self.data['id']
 
     @property
