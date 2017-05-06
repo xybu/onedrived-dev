@@ -64,3 +64,20 @@ class OneDriveAccountBusiness:
     @property
     def account_type(self):
         return self.data['account_type']
+
+    @property
+    def account_name(self):
+        return self.data['name']
+
+    @property
+    def account_firstname(self):
+        return self.data['first_name']
+
+    @property
+    def account_lastname(self):
+        return self.data['last_name']
+
+    @property
+    def account_email(self):
+        return self.data['emails']
+    

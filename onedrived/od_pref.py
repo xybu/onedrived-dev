@@ -44,21 +44,20 @@ def quota_short_str(q):
 
 
 def print_all_accounts(ctx):
-    all_accounts_personal = []
-    all_accounts_business = []
+    all_accounts = []
 
     all_account_ids = ctx.all_accounts()
 
     for i, account_id in enumerate(all_account_ids):
         account = ctx.get_account(account_id)
         if account.account_type == od_auth.AccountTypes.BUSINESS:
-            all_accounts_business.append((str(i), account.account_id, account.account_root_folder))
+            acc_type = 'Business'
         else:
-            all_accounts_personal.append((str(i), account_id, account.account_name, account.account_email))
-    click.echo('Personal profile')
-    click.echo(tabulate.tabulate(all_accounts_personal, headers=('#', 'Account ID', 'Owner Name', 'Email Address')))
-    click.echo('\nBusiness profile')
-    click.echo(tabulate.tabulate(all_accounts_business, headers=('#', 'Account ID', 'Root Folder')))
+            acc_type = 'Personal'
+        
+        all_accounts.append((str(i), account_id, account.account_name, account.account_email, acc_type))
+
+    click.echo(tabulate.tabulate(all_accounts, headers=('#', 'Account ID', 'Owner Name', 'Email Address', 'Profile Type')))
     return all_account_ids
 
 
@@ -67,9 +66,8 @@ def email_to_account_id(ctx, email, all_account_ids=None):
         all_account_ids = ctx.all_accounts()
     for s in all_account_ids:
         account = ctx.get_account(s)
-        if account.account_type == od_auth.AccountTypes.PERSONAL:
-            if account.account_email == email:
-                return s
+        if account.account_email == email:
+            return s
     raise ValueError('Did not find existing account with email address "%s".' % email)
 
 
@@ -107,11 +105,11 @@ def change_account():
 
 def save_account(authenticator):
     try:
-        account_profile = authenticator.get_profile()
-        authenticator.save_session(key=get_keyring_key(account_profile.account_id))
-        context.add_account(account_profile)
+        acc_profile = authenticator.get_profile()
+        authenticator.save_session(key=get_keyring_key(acc_profile.account_id))
+        context.add_account(acc_profile)
         save_context(context)
-        success(translator['od_pref.save_account.success'].format(profile=account_profile))
+        success(translator['od_pref.save_account.success'].format(profile=acc_profile))
         click.echo()
         click.echo(translator['od_pref.save_account.print_header'].format(context=context))
         click.echo()
@@ -363,9 +361,9 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
         curr_drive_config = context.get_drive(drive_id)
 
     click.echo()
-    account_profile = all_drives[account_id][0]
+    acc_profile = all_drives[account_id][0]
     click.echo(click.style(
-        'Going to add/edit Drive "%s" of account "%s"...' % (drive_id, account_profile.account_email), fg='cyan'))
+        'Going to add/edit Drive "%s" of account "%s"...' % (drive_id, acc_profile.account_email), fg='cyan'))
 
     if interactive:
         local_root, ignore_file = read_drive_config_interactively(drive_exists, curr_drive_config)
@@ -399,7 +397,7 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
     d = context.add_drive(drive_config.LocalDriveConfig(drive_id, account_id, ignore_file, local_root))
     save_context(context)
     success('\nSuccessfully configured Drive %s of account %s (%s):' % (
-        d.drive_id, account_profile.account_email, d.account_id))
+        d.drive_id, acc_profile.account_email, d.account_id))
     click.echo('  Local directory: ' + d.localroot_path)
     click.echo('  Ignore file path: ' + d.ignorefile_path)
 

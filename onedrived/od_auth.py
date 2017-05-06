@@ -6,16 +6,16 @@ Core component for user authentication and authorization.
 """
 
 import logging
+import locale
 import requests
 from requests.utils import getproxies
 import onedrivesdk
 import onedrivesdk.error
 from onedrivesdk.helpers import GetAuthCodeServer
 from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
+import click
 
-
-
-from . import od_api_session
+from . import od_api_session, od_i18n, od_pref
 from .od_models import account_profile
 
 def get_authenticator_and_drives(context, account_id):
@@ -43,6 +43,7 @@ class OneDriveBusinessAuthenticator:
     APP_REDIRECT_URL = 'https://od.cnbeining.com'
 
     ACCOUNT_TYPE = AccountTypes.BUSINESS
+    
     APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
     APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
@@ -72,6 +73,7 @@ class OneDriveBusinessAuthenticator:
         
         # this step can be slow
         service_info = ResourceDiscoveryRequest().get_service_info(self.auth_provider.access_token)
+
         self.APP_ENDPOINT = str(service_info[0]).split()[1]
 
         print('Refreshing token...')
@@ -82,7 +84,7 @@ class OneDriveBusinessAuthenticator:
         print('Authenticated!')
 
     
-    def get_profile(self, user_id='me'):
+    def get_profile(self):
         """
         Discover the OneDrive for Business resource URI
         reference: https://github.com/OneDrive/onedrive-api-docs/blob/master/auth/aad_oauth.md
@@ -98,21 +100,78 @@ class OneDriveBusinessAuthenticator:
         if response.status_code != requests.codes.ok:
             raise ValueError('Failed to read user profile:' + data['error']['message'])
         data['account_type'] = self.ACCOUNT_TYPE
+
+        #Get user informations
+        print('Need authenticate again to get personal information')
+        
+        app_id = '0e170d2c-0ac5-4a4f-9099-c6bb0fb52d0c'
+        app_secret = 'xdGsBCTOiCHxBWJcKyK2WpA'
+        base_url='https://graph.microsoft.com/v1.0/'
+        access_token_url='https://login.microsoftonline.com/common/oauth2/v2.0/token'
+        authorize_url='https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+        redirect_url = 'https://onedrivesite.mario-apra.tk/'
+
+        auth_url = authorize_url + '?client_id=' + app_id + '&response_type=code&redirect_uri=https%3A%2F%2Fonedrivesite.mario-apra.tk%2F&scope=User.Read'
+
+        
+
+        translator = od_i18n.Translator(('od_pref', ), locale_str=str(locale.getlocale()[0]))
+
+        click.echo(translator['od_pref.authenticate_account.paste_url_note'])
+        click.echo('\n' + click.style(auth_url, underline=True) + '\n')
+        click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
+            redirect_url=click.style(redirect_url, bold=True)))
+        url = click.prompt(translator['od_pref.authenticate_account.paste_url_prompt'], type=str)
+        code = od_pref.extract_qs_param(url, 'code')
+
+        url = access_token_url
+
+        content = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirect_url,
+            'scope': 'User.Read',
+            'client_id': app_id,
+            'client_secret': app_secret
+            }
+
+        response = requests.post(url, content)
+        resp = response.json()
+
+        token = resp['access_token']
+
+        url = base_url + 'me/'
+        headers = {'Authorization': 'Bearer ' + token}
+
+        response = requests.get(url, headers=headers)
+        resp = response.json()
+
+        data['name'] = resp['displayName']
+        data['first_name'] = resp['givenName']
+        data['last_name'] = resp['surname']
+        data['emails'] = resp['mail']
+        
+        #End user informations
+
         return account_profile.OneDriveAccountBusiness(data)
 
     @property
     def session_expires_in_sec(self):
+        #TODO: check this
         return self.client.auth_provider._session.expires_in_sec
 
     def refresh_session(self, account_id):
+        #TODO: check this
         self.client.auth_provider.refresh_token()
         self.save_session(key=od_api_session.get_keyring_key(account_id))
 
     def save_session(self, key):
+        #TODO: check this
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.save_session(**args)
 
     def load_session(self, key):
+        #TODO: check this
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.aut
 
