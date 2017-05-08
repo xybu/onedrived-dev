@@ -18,9 +18,16 @@ import click
 from . import od_api_session, od_i18n, od_pref
 from .od_models import account_profile
 
-def get_authenticator_and_drives(context, account_id):
+def get_authenticator_and_drives(context, account_id, account_type = 0, endpoint=None):
     # TODO: Ideally we should recursively get all drives because the API pages them.
-    authenticator = OneDriveAuthenticator()
+    if account_type == AccountTypes.PERSONAL:
+        authenticator = OneDriveAuthenticator()
+    elif account_type == AccountTypes.BUSINESS:
+        authenticator = OneDriveBusinessAuthenticator(endpoint)
+    else:
+        logging.error("Error loading session: account_type don't exists")
+        return
+
     try:
         authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
         drives = authenticator.client.drives.get()
@@ -48,7 +55,7 @@ class OneDriveBusinessAuthenticator:
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
     APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
 
-    def __init__(self):
+    def __init__(self, endpoint=None):
         proxies = getproxies()
         if len(proxies) == 0:
             self.http_provider = onedrivesdk.HttpProvider()
@@ -61,11 +68,11 @@ class OneDriveBusinessAuthenticator:
                                                  auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
                                                  auth_token_url=self.APP_TOKEN_URL_BUSINESS)
 
-        self.auth_url = self.auth_provider.get_auth_url(self.APP_REDIRECT_URL)
-
+        if (endpoint is not None):
+            self.client = onedrivesdk.OneDriveClient(endpoint + '_api/v2.0/', self.auth_provider, self.http_provider)
 
     def get_auth_url(self):
-        return self.auth_url
+        return self.auth_provider.get_auth_url(self.APP_REDIRECT_URL)
 
     def authenticate(self, code):
         print('Athenticating...')
@@ -79,8 +86,7 @@ class OneDriveBusinessAuthenticator:
         print('Refreshing token...')
         self.auth_provider.redeem_refresh_token(self.APP_ENDPOINT)
         print('Updating client')
-        #TODO: check if can be api/v.1.0
-        self.client = onedrivesdk.OneDriveClient(self.APP_ENDPOINT + '_api/v2.0/me', self.auth_provider, self.http_provider)
+        self.client = onedrivesdk.OneDriveClient(self.APP_ENDPOINT + '_api/v2.0/', self.auth_provider, self.http_provider)
         print('Authenticated!')
 
     
@@ -95,6 +101,7 @@ class OneDriveBusinessAuthenticator:
         proxies = getproxies()
         if len(proxies) == 0:
             proxies = None
+        #print('get from: curl --header "' + str(headers) + '" '  + str(url))
         response = requests.get(url, headers=headers, proxies=proxies, verify=True)
         data = response.json()
         if response.status_code != requests.codes.ok:
@@ -103,17 +110,17 @@ class OneDriveBusinessAuthenticator:
 
         #Get user informations
         print('Need authenticate again to get personal information')
-        
+
         app_id = '0e170d2c-0ac5-4a4f-9099-c6bb0fb52d0c'
         app_secret = 'xdGsBCTOiCHxBWJcKyK2WpA'
-        base_url='https://graph.microsoft.com/v1.0/'
-        access_token_url='https://login.microsoftonline.com/common/oauth2/v2.0/token'
-        authorize_url='https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+        base_url = 'https://graph.microsoft.com/v1.0/'
+        access_token_url = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
+        authorize_url = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
         redirect_url = 'https://onedrivesite.mario-apra.tk/'
 
         auth_url = authorize_url + '?client_id=' + app_id + '&response_type=code&redirect_uri=https%3A%2F%2Fonedrivesite.mario-apra.tk%2F&scope=User.Read'
 
-        
+
 
         translator = od_i18n.Translator(('od_pref', ), locale_str=str(locale.getlocale()[0]))
 
@@ -123,6 +130,7 @@ class OneDriveBusinessAuthenticator:
             redirect_url=click.style(redirect_url, bold=True)))
         url = click.prompt(translator['od_pref.authenticate_account.paste_url_prompt'], type=str)
         code = od_pref.extract_qs_param(url, 'code')
+        click.echo()
 
         url = access_token_url
 
@@ -173,7 +181,7 @@ class OneDriveBusinessAuthenticator:
     def load_session(self, key):
         #TODO: check this
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
-        self.client.aut
+        self.client.auth_provider.load_session(**args)
 
 class OneDriveAuthenticator:
 
