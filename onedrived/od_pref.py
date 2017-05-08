@@ -17,7 +17,6 @@ from .od_models.dict_guard import GuardedDict, exceptions as guard_errors
 from .od_context import load_context, save_context
 
 
-
 context = load_context()
 translator = od_i18n.Translator(('od_pref', ), locale_str=str(locale.getlocale()[0]))
 config_schema = json.loads(get_resource('data/config_schema.json', pkg_name='onedrived'))
@@ -105,7 +104,10 @@ def change_account():
 
 def save_account(authenticator):
     try:
+        print('start save account')
+        print('authenticator type: ' + str(authenticator.ACCOUNT_TYPE))
         acc_profile = authenticator.get_profile()
+        print('profile getted')
         authenticator.save_session(key=get_keyring_key(acc_profile.account_id))
         context.add_account(acc_profile)
         save_context(context)
@@ -126,6 +128,7 @@ def save_account(authenticator):
 @click.option('--for-business', '-b', is_flag=True, default=False, required=False,
               help=translator['od_pref.authenticate_account.for_business.help'])
 def authenticate_account(get_auth_url=False, code=None, for_business=False):
+    
     if for_business:
         authenticator = od_auth.OneDriveBusinessAuthenticator()
     else: #personal account
@@ -199,7 +202,7 @@ def delete_account(yes=False, index=None, email=None, account_id=None):
         prompt_text = 'Are you sure to delete account %s?' % account
         if yes or click.confirm(prompt_text):
             context.delete_account(account_id)
-            keyring.delete_password(OneDriveAPISession.KEYRING_SERVICE_NAME, get_keyring_key(account_id))
+            #keyring.delete_password(OneDriveAPISession.KEYRING_SERVICE_NAME, get_keyring_key(account_id))
             save_context(context)
             success('Successfully deleted account from onedrived.')
         else:
