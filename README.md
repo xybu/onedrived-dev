@@ -9,6 +9,8 @@
 [![Code Climate](https://codeclimate.com/github/xybu/onedrived-dev/badges/gpa.svg)](https://codeclimate.com/github/xybu/onedrived-dev)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/93853554008645059a6b17325be4fd6d)](https://www.codacy.com/app/xybu/onedrived-dev?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=xybu/onedrived-dev&amp;utm_campaign=Badge_Grade)
 
+
+
 ## Introduction
 
 `onedrived` is a client program for [Microsoft OneDrive](https://onedrive.com)
@@ -83,10 +85,17 @@ sure to use the latest version (`sudo pip3 install -U keyrings.alt`).
 
 To install those dependencies on Ubuntu, use `apt-get` command:
 
-```bash
-# Install gcc and other C-level pre-requisites.
-$ sudo apt-get install build-essential python3-dev libssl-dev inotify-tools python3-dbus
-```
+ ```bash
+ # Install gcc and other C-level pre-requisites.
+ $ sudo apt install build-essential python3-dev libssl-dev inotify-tools python3-dbus libdbus-1-dev libdbus-glib-1-dev
+ 
+ # Install keyring to store the passwords
+ $ sudo apt install gnome-keyring
+ $ eval `gnome-keyring-daemon`
+ $ eval `dbus-launch`
+
+ # install ngrok from own website, install in /usr/local/bin
+ ```
 
 Python-level pre-requisites are listed in `requirements.txt` and will be
 installed automatically when installing `onedrived`.
