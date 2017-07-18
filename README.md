@@ -60,6 +60,12 @@ $ wget -O- https://bootstrap.pypa.io/get-pip.py | sudo python3
 $ sudo pip3 install -U pip setuptools
 ```
 
+To run on Raspbery PI 3, is necessary add more packages.
+```bash
+$ sudo apt-get install python3 build-essential python3-dev libssl-dev inotify-tools python3-dbus libffi-dev dbus-devel libdbus-glib-1-dev -y
+$ sudo pip3 install pydbus
+```
+
 ### Pre-requisites
 
 The use of low-level tools and APIs like `inotify` and `keyring` introduces
