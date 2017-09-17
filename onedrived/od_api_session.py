@@ -39,7 +39,6 @@ class OneDriveAPISession(onedrivesdk.session.Session):
         if keyarg not in load_session_kwargs:
             raise ValueError('"%s" must be specified in load_session() argument.' % keyarg)
         saved_data = keyring.get_password(OneDriveAPISession.KEYRING_SERVICE_NAME, load_session_kwargs[keyarg])
-        print('saved_data: ' + str(saved_data))
         
         if saved_data is None:
             raise ValueError("Don't find anything")
