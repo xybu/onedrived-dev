@@ -199,7 +199,7 @@ def delete_account(yes=False, index=None, email=None, account_id=None):
         prompt_text = 'Are you sure to delete account %s?' % account
         if yes or click.confirm(prompt_text):
             context.delete_account(account_id)
-            #keyring.delete_password(OneDriveAPISession.KEYRING_SERVICE_NAME, get_keyring_key(account_id))
+            keyring.delete_password(OneDriveAPISession.KEYRING_SERVICE_NAME, get_keyring_key(account_id))
             save_context(context)
             success('Successfully deleted account from onedrived.')
         else:
