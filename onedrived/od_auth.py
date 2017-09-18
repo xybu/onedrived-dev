@@ -65,6 +65,7 @@ class OneDriveBusinessAuthenticator:
 
         self.auth_provider = onedrivesdk.AuthProvider(self.http_provider,
                                                  self.APP_CLIENT_ID_BUSINESS,
+                                                 session_type=od_api_session.OneDriveAPISession,
                                                  auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
                                                  auth_token_url=self.APP_TOKEN_URL_BUSINESS)
 
@@ -180,8 +181,7 @@ class OneDriveBusinessAuthenticator:
         print("start save session BUSINESS with key: " + str(key))
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.save_session(**args)
-
-        print('session saved!')
+        print('Business session saved!')
 
     def load_session(self, key):
         #TODO: check this
