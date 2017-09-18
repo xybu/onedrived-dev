@@ -104,10 +104,7 @@ def change_account():
 
 def save_account(authenticator):
     try:
-        print('start save account')
-        print('authenticator type: ' + str(authenticator.ACCOUNT_TYPE))
         acc_profile = authenticator.get_profile()
-        print('profile getted')
         authenticator.save_session(key=get_keyring_key(acc_profile.account_id))
         context.add_account(acc_profile)
         save_context(context)
