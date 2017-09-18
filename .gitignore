@@ -257,3 +257,5 @@ GitHub.sublime-settings
 # End of https://www.gitignore.io/api/linux,windows,macos,python,pycharm,vim,sublimetext
 
 \.vscode/
+
+session\.pickle
