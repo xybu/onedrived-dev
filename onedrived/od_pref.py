@@ -228,8 +228,13 @@ def print_all_drives():
             authenticator, drives = od_auth.get_authenticator_and_drives(context, i, profile.account_type)
         for d in drives:
             drive_objs.append(d)
-            drive_table.append((str(len(drive_table)), profile.account_email,
-                                d.id, d.drive_type, quota_short_str(d.quota), d.status.state))
+            if(profile.account_type == od_auth.AccountTypes.BUSINESS):
+                drive_table.append((str(len(drive_table)), profile.account_email,
+                                    d.id, d.drive_type, quota_short_str(d.quota), d.quota.state))
+            else:
+                drive_table.append((str(len(drive_table)), profile.account_email,
+                                    d.id, d.drive_type, quota_short_str(d.quota), d.status.state))
+
         all_drives[i] = (profile, authenticator, drive_objs)
     click.secho(translator['od_pref.print_all_drives.all_drives_table.note'], bold=True)
     click.echo()
