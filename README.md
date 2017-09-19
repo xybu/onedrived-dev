@@ -100,7 +100,8 @@ To install those dependencies on Ubuntu, use `apt-get` command:
  $ eval `gnome-keyring-daemon`
  $ eval `dbus-launch`
 
- # install ngrok from own website, install in /usr/local/bin
+ # install ngrok from own website (ngrok.com) and install in /usr/local/bin
+ # Don't install ngrok with sudo apt-get install ngrok-client, it does not install the 'good' ngrok!
  ```
 
 Python-level pre-requisites are listed in `requirements.txt` and will be
