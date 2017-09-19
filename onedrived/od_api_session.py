@@ -23,7 +23,6 @@ class OneDriveAPISession(onedrivesdk.session.Session):
         return self._expires_at - time()
 
     def save_session(self, **save_session_kwargs):
-        print('OneDriveAPISession.save_session')
         if self.SESSION_ARG_KEYNAME not in save_session_kwargs:
             raise ValueError('"%s" must be specified in save_session() argument.' % self.SESSION_ARG_KEYNAME)
         data = base64.b64encode(zlib.compress(pickle.dumps(self, self.PICKLE_PROTOCOL))).decode('utf-8')

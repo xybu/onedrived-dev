@@ -178,7 +178,6 @@ class OneDriveBusinessAuthenticator:
 
     def save_session(self, key):
         #TODO: check this
-        print("start save session BUSINESS with key: " + str(key))
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.save_session(**args)
         print('Business session saved!')
