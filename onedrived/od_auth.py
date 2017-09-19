@@ -148,6 +148,7 @@ class OneDriveBusinessAuthenticator:
         resp = response.json()
 
         token = resp['access_token']
+        data['refresh_token'] = resp['refresh_token']
 
         url = base_url + 'me/'
         headers = {'Authorization': 'Bearer ' + token}
