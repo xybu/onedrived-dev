@@ -18,11 +18,14 @@ import click
 from . import od_api_session, od_i18n, od_pref
 from .od_models import account_profile
 
-def get_authenticator_and_drives(context, account_id, account_type = 0, endpoint=None):
+def get_authenticator_and_drives(context, account_id):
     # TODO: Ideally we should recursively get all drives because the API pages them.
+    account_type = context.config['accounts'][account_id]['account_type']
     if account_type == AccountTypes.PERSONAL:
         authenticator = OneDriveAuthenticator()
     elif account_type == AccountTypes.BUSINESS:
+        endpoint = context.config['accounts'][account_id]['webUrl']
+        endpoint = endpoint[:endpoint.find('-my.sharepoint.com/')] + '-my.sharepoint.com/'
         authenticator = OneDriveBusinessAuthenticator(endpoint)
     else:
         logging.error("Error loading session: account_type don't exists")
@@ -30,6 +33,8 @@ def get_authenticator_and_drives(context, account_id, account_type = 0, endpoint
 
     try:
         authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
+        if account_type == AccountTypes.BUSINESS:
+            authenticator.refresh_session(account_id)
         drives = authenticator.client.drives.get()
     except (onedrivesdk.error.OneDriveError, RuntimeError) as e:
         logging.error('Error loading session: %s. Try refreshing token.', e)
