@@ -16,7 +16,7 @@
 `onedrived` is a client program for [Microsoft OneDrive](https://onedrive.com)
 for Linux. It enables you to sync local directories with remote OneDrive
 repositories (a.k.a., _"Drive"_) of one or more OneDrive  Personal account
-(OneDrive for Business accounts are not yet supported. See #1).
+(OneDrive for Business accounts are in beta tests, use with caution!).
 
 The program is written in Python3, and uses
 [official OneDrive Python SDK](https://github.com/OneDrive/onedrive-sdk-python)
@@ -142,7 +142,7 @@ Notes:
 to all users in the OS), remove argument `--user` from the command).
 
 ```bash
-$ pip3 install --user git+https://github.com/xybu/onedrived-dev.git
+$ pip3 install --user git+https://github.com/derrix060/onedriveClient.git
 ```
 
 #### Install from source manually
@@ -150,7 +150,7 @@ $ pip3 install --user git+https://github.com/xybu/onedrived-dev.git
 First pull the code from GitHub repository:
 
 ```bash
-$ git clone https://github.com/xybu/onedrived-dev.git
+$ git clone https://github.com/derrix060/onedriveClient.git
 $ cd onedrived-dev
 
 ```
@@ -286,6 +286,17 @@ All OneDrive accounts associated with user "xb":
   0  <account_id_token>  Xiangyu Bu    xybu92@live.com
 ```
 
+###### One Drive for Business Support
+Be careful, it's still on beta test. As explained before, the onedrive needs some informations. In case of Business, it needs to use 2 different services, one of them to do the background tasks (add, remove, rename some item) and another one just to get your name and email. That's why you need to authenticate in two different services.
+
+To add a business account, just insert the tag '-b' at end:
+
+```bash
+$ onedrived-pref account add -b
+```
+
+As happen in normal account, you need to click on link showed and copy the entire link (not only the code!!), but as explained before, you need to do this twice (one for each service).
+
 ##### Command mode
 
 Instead of giving the sign-in URL and then prompting for the callback URL, use
@@ -410,7 +421,7 @@ To stop the daemon,
 onedrived stop
 ```
 
-or send `SIGTERM` to the process.
+or send `SIGTERM` to the process (Ctrl + C).
 
 ### More Usages
 
