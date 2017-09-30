@@ -16,7 +16,7 @@ class PathFilter(zgitignore.ZgitIgnore):
         :param [str] rules: List of gitignore rules.
         """
         super().__init__(rules, ignore_case=True)
-        self.add_patterns((self.TMP_PREFIX + '*' + self.TMP_SUFFIX, '*[<>?*:"|]*', '.*'))
+        self.add_patterns((self.TMP_PREFIX + '*' + self.TMP_SUFFIX, '*[<>?*:"|]*'))
 
     def add_rules(self, rules):
         """
