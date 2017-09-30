@@ -1,7 +1,6 @@
 # Hard-coded rules:
 # .*.odtemp! -- onedrived temp files.
 # *[<>?*:"|]* -- NTFS namespace violation.
-# .* -- NTFS namespace violation.
 
 # Created by https://www.gitignore.io/api/linux,windows,macos
 
