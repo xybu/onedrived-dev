@@ -35,9 +35,9 @@ def get_webhook_server(context):
 
 def parse_notification_body(body):
     try:
-        decoded_body = body.decode('utf-8')
-    except:
         decoded_body = body.decode('utf-8-sig')
+    except ValueError:
+        decoded_body = body.decode('utf-8')
 
     try:
         data = json.loads(decoded_body)
