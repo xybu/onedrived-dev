@@ -35,7 +35,12 @@ def get_webhook_server(context):
 
 def parse_notification_body(body):
     try:
-        data = json.loads(body.decode('utf-8'))
+        decoded_body = body.decode('utf-8')
+    except:
+        decoded_body = body.decode('utf-8-sig')
+
+    try:
+        data = json.loads(decoded_body)
         try:
             subscription_ids = set([WebhookNotification(v).subscription_id for v in data['value']])
         except KeyError:

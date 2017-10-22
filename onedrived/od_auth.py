@@ -84,7 +84,7 @@ class OneDriveBusinessAuthenticator:
                                                  auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
                                                  auth_token_url=self.APP_TOKEN_URL_BUSINESS)
 
-        if (endpoint is not None):
+        if endpoint is not None:
             self.client = onedrivesdk.OneDriveClient(endpoint + '_api/v2.0/', self.auth_provider, self.http_provider)
 
     def get_auth_url(self):
@@ -111,7 +111,8 @@ class OneDriveBusinessAuthenticator:
         reference: https://github.com/OneDrive/onedrive-api-docs/blob/master/auth/aad_oauth.md
         util link: https://github.com/OneDrive/onedrive-api-docs
         """
-        url = self.APP_ENDPOINT + '_api/v1.0/me/files/root' #more detailed: ?$expand=children
+        # more detailed: ?$expand=children
+        url = self.APP_ENDPOINT + '_api/v1.0/me/files/root'
         headers = {'Authorization': 'Bearer ' + self.auth_provider.access_token}
         proxies = getproxies()
         if len(proxies) == 0:
@@ -148,7 +149,7 @@ class OneDriveBusinessAuthenticator:
         data['last_name'] = resp['surname']
         data['emails'] = resp['mail']
         
-        # End user informations
+        # End user information
         return account_profile.OneDriveAccountBusiness(data)
 
     @property
