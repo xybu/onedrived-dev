@@ -9,6 +9,11 @@ import urllib.parse
 
 from .od_models.webhook_notification import WebhookNotification
 
+try:
+    JSONDecodeError = json.JSONDecodeError
+except AttributeError:
+    JSONDecodeError = ValueError
+
 
 def get_webhook_server(context):
     """
@@ -30,18 +35,13 @@ def get_webhook_server(context):
 
 def parse_notification_body(body):
     try:
-        decoded_body = body.decode('utf-8-sig')
-    except:
-        decoded_body = body.decode('utf-8')
-
-    try:
-        data = json.loads(decoded_body)
+        data = json.loads(body.decode('utf-8'))
         try:
             subscription_ids = set([WebhookNotification(v).subscription_id for v in data['value']])
         except KeyError:
             subscription_ids = (WebhookNotification(data).subscription_id,)
         return subscription_ids
-    except (UnicodeError, ValueError, json.JSONDecodeError, KeyError) as e:
+    except (UnicodeError, ValueError, JSONDecodeError, KeyError) as e:
         logging.error(e)
     except Exception as e:
         logging.error(e)
