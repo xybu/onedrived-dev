@@ -1,5 +1,8 @@
 
-from .. import od_auth
+class AccountTypes:
+    PERSONAL = 0
+    BUSINESS = 1
+
 
 class OneDriveAccount:
     
@@ -11,7 +14,7 @@ class OneDriveAccount:
         return self.data['account_type']
     
     def getAccount(self):
-        if self.account_type == od_auth.AccountTypes.BUSINESS:
+        if self.account_type == AccountTypes.BUSINESS:
             return OneDriveAccountBusiness(self.data)
         else:
             return OneDriveAccountPersonal(self.data)
@@ -45,7 +48,6 @@ class OneDriveAccountPersonal:
     @property
     def account_type(self):
         return self.data['account_type']
-
 
 
 class OneDriveAccountBusiness:

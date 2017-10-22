@@ -6,6 +6,8 @@ Core component for user authentication and authorization.
 """
 
 import logging
+import urllib
+
 import locale
 import requests
 from requests.utils import getproxies
@@ -15,15 +17,24 @@ from onedrivesdk.helpers import GetAuthCodeServer
 from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
 import click
 
-from . import od_api_session, od_i18n, od_pref
+from . import od_api_session, od_i18n
 from .od_models import account_profile
+
+
+def extract_qs_param(url, key):
+    if url is not None and '?' in url:
+        qs_dict = urllib.parse.parse_qs(url.split('?')[1])
+        if key in qs_dict:
+            return qs_dict[key]
+    return None
+
 
 def get_authenticator_and_drives(context, account_id):
     # TODO: Ideally we should recursively get all drives because the API pages them.
     account_type = context.config['accounts'][account_id]['account_type']
-    if account_type == AccountTypes.PERSONAL:
+    if account_type == account_profile.AccountTypes.PERSONAL:
         authenticator = OneDriveAuthenticator()
-    elif account_type == AccountTypes.BUSINESS:
+    elif account_type == account_profile.AccountTypes.BUSINESS:
         endpoint = context.config['accounts'][account_id]['webUrl']
         endpoint = endpoint[:endpoint.find('-my.sharepoint.com/')] + '-my.sharepoint.com/'
         authenticator = OneDriveBusinessAuthenticator(endpoint)
@@ -33,7 +44,7 @@ def get_authenticator_and_drives(context, account_id):
 
     try:
         authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
-        if account_type == AccountTypes.BUSINESS:
+        if account_type == account_profile.AccountTypes.BUSINESS:
             authenticator.refresh_session(account_id)
         drives = authenticator.client.drives.get()
     except (onedrivesdk.error.OneDriveError, RuntimeError) as e:
@@ -43,18 +54,13 @@ def get_authenticator_and_drives(context, account_id):
     return authenticator, drives
 
 
-class AccountTypes:
-    PERSONAL = 0
-    BUSINESS = 1
-
-
 class OneDriveBusinessAuthenticator:
     
     APP_CLIENT_ID_BUSINESS = '6fdb55b4-c905-4612-bd23-306c3918217c'
     APP_CLIENT_SECRET_BUSINESS = 'HThkLCvKhqoxTDV9Y9uS+EvdQ72fbWr/Qrn2PFBZ/Ow='
     APP_REDIRECT_URL = 'https://od.cnbeining.com'
 
-    ACCOUNT_TYPE = AccountTypes.BUSINESS
+    ACCOUNT_TYPE = account_profile.AccountTypes.BUSINESS
     
     APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
@@ -95,7 +101,6 @@ class OneDriveBusinessAuthenticator:
         self.client = onedrivesdk.OneDriveClient(self.APP_ENDPOINT + '_api/v2.0/', self.auth_provider, self.http_provider)
         print('Authenticated!')
 
-    
     def get_profile(self):
         """
         Discover the OneDrive for Business resource URI
@@ -135,7 +140,7 @@ class OneDriveBusinessAuthenticator:
         click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
             redirect_url=click.style(redirect_url, bold=True)))
         url = click.prompt(translator['od_pref.authenticate_account.paste_url_prompt'], type=str)
-        code = od_pref.extract_qs_param(url, 'code')
+        code = extract_qs_param(url, 'code')
         click.echo()
 
         url = access_token_url
@@ -153,7 +158,7 @@ class OneDriveBusinessAuthenticator:
         resp = response.json()
 
         token = resp['access_token']
-        data['refresh_token'] = resp['refresh_token']
+        data['refresh_token'] = token
 
         url = base_url + 'me/'
         headers = {'Authorization': 'Bearer ' + token}
@@ -186,7 +191,7 @@ class OneDriveBusinessAuthenticator:
         #TODO: check this
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.save_session(**args)
-        print('Business session saved!')
+        # print('Business session saved!')
 
     def load_session(self, key):
         #TODO: check this
@@ -194,9 +199,10 @@ class OneDriveBusinessAuthenticator:
         self.client.auth_provider.load_session(**args)
         print('session loaded')
 
+
 class OneDriveAuthenticator:
 
-    ACCOUNT_TYPE = AccountTypes.PERSONAL
+    ACCOUNT_TYPE = account_profile.AccountTypes.PERSONAL
     APP_CLIENT_ID = '000000004010C916'
     APP_CLIENT_SECRET = 'PimIrUibJfsKsMcd0SqwPBwMTV7NDgYi'
     APP_BASE_URL = 'https://api.onedrive.com/v1.0/'
