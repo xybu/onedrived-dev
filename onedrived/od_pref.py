@@ -145,12 +145,36 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
         if code is None:
             error(translator['od_pref.authenticate_account.error.code_not_found_in_url'])
             return
+
+    # Second authorization for the business accounts
+    if for_business:
+        auth_url = authenticator.authentication_url
+        redirect_url = authenticator.REDIRECT_URL
+        try:
+            # Get user information
+            click.echo(translator['od_pref.authenticate_account.second_authentication'])
+            click.echo(translator['od_pref.authenticate_account.paste_url_note'])
+            click.echo('\n' + click.style(auth_url, underline=True) + '\n')
+            click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
+                redirect_url=click.style(redirect_url, bold=True)))
+            url = click.prompt(
+                translator['od_pref.authenticate_account.paste_url_prompt'],
+                type=str)
+            authenticator.code = extract_qs_param(url, 'code')
+            click.echo()
+        except Exception as e:
+            error(translator[
+                      'od_pref.authenticate_account.error.authorization'].format(
+                error_message=str(e)))
+
     try:
         authenticator.authenticate(code)
         success(translator['od_pref.authenticate_account.success.authorized'])
         save_account(authenticator)
     except Exception as e:
         error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=str(e)))
+
+
 
 
 @click.command(name='list', short_help='List all linked accounts.')

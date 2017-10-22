@@ -39,6 +39,7 @@
   "od_pref.authenticate_account.permission_note": "NOTE: To better manage your OneDrive accounts, onedrived needs permission to access your account info (e.g., email address to distinguish different accounts) and read/write your OneDrive files.\n",
   "od_pref.authenticate_account.paste_url_note": "Paste this URL into your browser to sign in and authorize onedrived:",
   "od_pref.authenticate_account.paste_url_instruction": "The authentication web page will finish with a blank page whose URL starts with \"{redirect_url}\". Paste this URL after the prompt.",
+  "od_pref.authenticate_account.second_authentication": "Need authenticate again to get personal information'",
   "od_pref.authenticate_account.paste_url_prompt": "Paste URL here",
   "od_pref.authenticate_account.error.code_not_found_in_url": "Error: did not find authorization code in URL.",
   "od_pref.authenticate_account.success.authorized": "Successfully authorized onedrived.",

@@ -21,13 +21,6 @@ from . import od_api_session, od_i18n
 from .od_models import account_profile
 
 
-def extract_qs_param(url, key):
-    if url is not None and '?' in url:
-        qs_dict = urllib.parse.parse_qs(url.split('?')[1])
-        if key in qs_dict:
-            return qs_dict[key]
-    return None
-
 
 def get_authenticator_and_drives(context, account_id):
     # TODO: Ideally we should recursively get all drives because the API pages them.
@@ -66,7 +59,18 @@ class OneDriveBusinessAuthenticator:
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
     APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
 
+    # TODO Remove before merge
+    APP_ID = '0e170d2c-0ac5-4a4f-9099-c6bb0fb52d0c'
+    APP_SECRET = 'xdGsBCTOiCHxBWJcKyK2WpA'
+
+    BASE_URL = 'https://graph.microsoft.com/v1.0/'
+
+    ACCESS_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
+    AUTORIZE_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+    REDIRECT_URL = 'https://onedrivesite.mario-apra.tk/'
+
     def __init__(self, endpoint=None):
+        self.code = None
         proxies = getproxies()
         if len(proxies) == 0:
             self.http_provider = onedrivesdk.HttpProvider()
@@ -112,55 +116,28 @@ class OneDriveBusinessAuthenticator:
         proxies = getproxies()
         if len(proxies) == 0:
             proxies = None
-        #print('get from: curl --header "' + str(headers) + '" '  + str(url))
         response = requests.get(url, headers=headers, proxies=proxies, verify=True)
         data = response.json()
         if response.status_code != requests.codes.ok:
             raise ValueError('Failed to read user profile:' + data['error']['message'])
         data['account_type'] = self.ACCOUNT_TYPE
-
-        #Get user informations
-        print('Need authenticate again to get personal information')
-
-        app_id = '0e170d2c-0ac5-4a4f-9099-c6bb0fb52d0c'
-        app_secret = 'xdGsBCTOiCHxBWJcKyK2WpA'
-        base_url = 'https://graph.microsoft.com/v1.0/'
-        access_token_url = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
-        authorize_url = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
-        redirect_url = 'https://onedrivesite.mario-apra.tk/'
-
-        auth_url = authorize_url + '?client_id=' + app_id + '&response_type=code&redirect_uri=https%3A%2F%2Fonedrivesite.mario-apra.tk%2F&scope=User.Read'
-
-
-
-        translator = od_i18n.Translator(('od_pref', ), locale_str=str(locale.getlocale()[0]))
-
-        click.echo(translator['od_pref.authenticate_account.paste_url_note'])
-        click.echo('\n' + click.style(auth_url, underline=True) + '\n')
-        click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
-            redirect_url=click.style(redirect_url, bold=True)))
-        url = click.prompt(translator['od_pref.authenticate_account.paste_url_prompt'], type=str)
-        code = extract_qs_param(url, 'code')
-        click.echo()
-
-        url = access_token_url
+        url = self.ACCESS_TOKEN_URL
 
         content = {
             'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': redirect_url,
+            'code': self.code,
+            'redirect_uri': self.REDIRECT_URL,
             'scope': 'User.Read',
-            'client_id': app_id,
-            'client_secret': app_secret
+            'client_id': self.APP_ID,
+            'client_secret': self.APP_SECRET
             }
 
         response = requests.post(url, content)
         resp = response.json()
-
         token = resp['access_token']
         data['refresh_token'] = token
 
-        url = base_url + 'me/'
+        url = self.BASE_URL + 'me/'
         headers = {'Authorization': 'Bearer ' + token}
 
         response = requests.get(url, headers=headers)
@@ -171,9 +148,16 @@ class OneDriveBusinessAuthenticator:
         data['last_name'] = resp['surname']
         data['emails'] = resp['mail']
         
-        #End user informations
-
+        # End user informations
         return account_profile.OneDriveAccountBusiness(data)
+
+    @property
+    def authentication_url(self):
+        return "{auth_url}?client_id={app_id}&response_type=code" \
+               "&redirect_uri={redirect_url}&scope=User.Read".format(
+                                                auth_url=self.AUTORIZE_URL,
+                                                app_id=self.APP_ID,
+                                                redirect_url=self.REDIRECT_URL)
 
     @property
     def session_expires_in_sec(self):
