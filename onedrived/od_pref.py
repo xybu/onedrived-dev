@@ -10,7 +10,7 @@ import keyring
 import tabulate
 
 from . import __version__
-from . import mkdir, get_resource, od_auth, od_i18n
+from . import mkdir, get_resource, od_i18n, od_auth
 from .od_models import pretty_api, drive_config, account_profile
 from .od_api_session import OneDriveAPISession, get_keyring_key
 from .od_models.dict_guard import GuardedDict, exceptions as guard_errors
@@ -49,7 +49,7 @@ def print_all_accounts(ctx):
 
     for i, account_id in enumerate(all_account_ids):
         account = ctx.get_account(account_id)
-        if account.account_type == od_auth.AccountTypes.BUSINESS:
+        if account.account_type == account_profile.AccountTypes.BUSINESS:
             acc_type = 'Business'
         else:
             acc_type = 'Personal'
@@ -105,7 +105,8 @@ def change_account():
 def save_account(authenticator):
     try:
         acc_profile = authenticator.get_profile()
-        authenticator.save_session(key=get_keyring_key(acc_profile.account_id))
+        k = get_keyring_key(acc_profile.account_id)
+        authenticator.save_session(key=k)
         context.add_account(acc_profile)
         save_context(context)
         success(translator['od_pref.save_account.success'].format(profile=acc_profile))
@@ -128,7 +129,7 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
     
     if for_business:
         authenticator = od_auth.OneDriveBusinessAuthenticator()
-    else: #personal account
+    else:  # personal account
         authenticator = od_auth.OneDriveAuthenticator()
 
     click.echo(translator['od_pref.authenticate_account.permission_note'])
@@ -145,12 +146,35 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
             error(translator['od_pref.authenticate_account.error.code_not_found_in_url'])
             return
 
+    # Second authorization for the business accounts
+    if for_business:
+        auth_url = authenticator.authentication_url
+        redirect_url = authenticator.REDIRECT_URL
+        try:
+            # Get user information
+            click.echo(translator['od_pref.authenticate_account.second_authentication'])
+            click.echo(translator['od_pref.authenticate_account.paste_url_note'])
+            click.echo('\n' + click.style(auth_url, underline=True) + '\n')
+            click.echo(translator['od_pref.authenticate_account.paste_url_instruction'].format(
+                redirect_url=click.style(redirect_url, bold=True)))
+            url = click.prompt(
+                translator['od_pref.authenticate_account.paste_url_prompt'],
+                type=str)
+            authenticator.code = extract_qs_param(url, 'code')
+            click.echo()
+        except Exception as e:
+            error(translator[
+                      'od_pref.authenticate_account.error.authorization'].format(
+                error_message=str(e)))
+
     try:
         authenticator.authenticate(code)
         success(translator['od_pref.authenticate_account.success.authorized'])
         save_account(authenticator)
     except Exception as e:
         error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=str(e)))
+
+
 
 
 @click.command(name='list', short_help='List all linked accounts.')
@@ -219,13 +243,13 @@ def print_all_drives():
     for i in context.all_accounts():
         drive_objs = []
         profile = context.get_account(i)
-        if(profile.account_type == od_auth.AccountTypes.BUSINESS):
+        if profile.account_type == account_profile.AccountTypes.BUSINESS:
             authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
         else:  
             authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
         for d in drives:
             drive_objs.append(d)
-            if(profile.account_type == od_auth.AccountTypes.BUSINESS):
+            if profile.account_type == account_profile.AccountTypes.BUSINESS :
                 drive_table.append((str(len(drive_table)), profile.account_email,
                                     d.id, d.drive_type, quota_short_str(d.quota), d.quota.state))
             else:

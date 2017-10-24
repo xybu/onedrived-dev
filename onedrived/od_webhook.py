@@ -1,4 +1,5 @@
 import http.server
+import http.client
 import json
 import logging
 import os
@@ -7,6 +8,11 @@ import queue
 import urllib.parse
 
 from .od_models.webhook_notification import WebhookNotification
+
+try:
+    JSONDecodeError = json.JSONDecodeError
+except AttributeError:
+    JSONDecodeError = ValueError
 
 
 def get_webhook_server(context):
@@ -29,13 +35,18 @@ def get_webhook_server(context):
 
 def parse_notification_body(body):
     try:
-        data = json.loads(body.decode('utf-8'))
+        decoded_body = body.decode('utf-8-sig')
+    except ValueError:
+        decoded_body = body.decode('utf-8')
+
+    try:
+        data = json.loads(decoded_body)
         try:
             subscription_ids = set([WebhookNotification(v).subscription_id for v in data['value']])
         except KeyError:
             subscription_ids = (WebhookNotification(data).subscription_id,)
         return subscription_ids
-    except (UnicodeError, json.JSONDecodeError, KeyError) as e:
+    except (UnicodeError, ValueError, JSONDecodeError, KeyError) as e:
         logging.error(e)
     except Exception as e:
         logging.error(e)
@@ -109,7 +120,7 @@ class OneDriveWebhookHandler(http.server.BaseHTTPRequestHandler):
         :param str s:
         """
         s = s.encode('utf-8')
-        self.send_response(http.server.HTTPStatus.OK)
+        self.send_response(http.client.OK)
         self.send_header('Content-Type', 'text/plain')
         self.send_header('Content-Length', str(len(s)))
         self.end_headers()
@@ -121,7 +132,7 @@ class OneDriveWebhookHandler(http.server.BaseHTTPRequestHandler):
 
         # Some basic validation.
         if url.path != '/' + self.server.session_token:
-            return self.send_error(http.server.HTTPStatus.UNAUTHORIZED)
+            return self.send_error(http.client.UNAUTHORIZED)
 
         # Handle webhook validation request.
         query = urllib.parse.parse_qs(url.query)
@@ -131,7 +142,7 @@ class OneDriveWebhookHandler(http.server.BaseHTTPRequestHandler):
         # Handle notifications.
         content_length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_length)
-        self.send_response(http.server.HTTPStatus.OK)
+        self.send_response(http.client.OK)
         self.send_header('Content-Type', 'text/plain')
         self.send_header('Content-Length', '0')
         self.end_headers()
