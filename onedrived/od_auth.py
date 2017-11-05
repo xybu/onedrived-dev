@@ -16,11 +16,15 @@ import onedrivesdk.error
 from onedrivesdk.helpers import GetAuthCodeServer
 from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
 import click
+import os
+import yaml
 
 from . import od_api_session, od_i18n
 from .od_models import account_profile
 
-
+path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+with open(os.path.abspath(path + '/onedrive_config.yml'), 'r', encoding='utf8') as yml:
+    acc_config = yaml.load(yml)
 
 def get_authenticator_and_drives(context, account_id):
     # TODO: Ideally we should recursively get all drives because the API pages them.
@@ -49,25 +53,23 @@ def get_authenticator_and_drives(context, account_id):
 
 class OneDriveBusinessAuthenticator:
     
-    APP_CLIENT_ID_BUSINESS = '6fdb55b4-c905-4612-bd23-306c3918217c'
-    APP_CLIENT_SECRET_BUSINESS = 'HThkLCvKhqoxTDV9Y9uS+EvdQ72fbWr/Qrn2PFBZ/Ow='
-    APP_REDIRECT_URL = 'https://od.cnbeining.com'
+    # This is to use OAuth v1
+    APP_CLIENT_ID_BUSINESS = acc_config['BUSINESS_V1']['CLIENT_ID']
+    APP_CLIENT_SECRET_BUSINESS = acc_config['BUSINESS_V1']['CLIENT_SECRET']
+    APP_REDIRECT_URL = acc_config['BUSINESS_V1']['REDIRECT']
+    # This is to use OAuth v2 (Graph)
+    APP_ID = acc_config['BUSINESS_V2']['CLIENT_ID']
+    APP_SECRET = acc_config['BUSINESS_V2']['CLIENT_SECRET']
+    REDIRECT_URL = acc_config['BUSINESS_V2']['REDIRECT']
 
     ACCOUNT_TYPE = account_profile.AccountTypes.BUSINESS
-    
     APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
     APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
-
-    # TODO Remove before merge
-    APP_ID = '0e170d2c-0ac5-4a4f-9099-c6bb0fb52d0c'
-    APP_SECRET = 'xdGsBCTOiCHxBWJcKyK2WpA'
-
+    
     BASE_URL = 'https://graph.microsoft.com/v1.0/'
-
     ACCESS_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
     AUTORIZE_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
-    REDIRECT_URL = 'https://onedrivesite.mario-apra.tk/'
 
     def __init__(self, endpoint=None):
         self.code = None
@@ -188,10 +190,11 @@ class OneDriveBusinessAuthenticator:
 class OneDriveAuthenticator:
 
     ACCOUNT_TYPE = account_profile.AccountTypes.PERSONAL
-    APP_CLIENT_ID = '000000004010C916'
-    APP_CLIENT_SECRET = 'PimIrUibJfsKsMcd0SqwPBwMTV7NDgYi'
+    APP_CLIENT_ID = acc_config['PERSONAL']['CLIENT_ID']
+    APP_CLIENT_SECRET = acc_config['PERSONAL']['CLIENT_SECRET']
+    APP_REDIRECT_URL = acc_config['PERSONAL']['REDIRECT']
+
     APP_BASE_URL = 'https://api.onedrive.com/v1.0/'
-    APP_REDIRECT_URL = 'https://login.live.com/oauth20_desktop.srf'
     APP_SCOPES = ['wl.signin', 'wl.emails', 'wl.offline_access', 'onedrive.readwrite']
 
     def __init__(self):

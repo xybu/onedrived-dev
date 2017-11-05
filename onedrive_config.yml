@@ -1,0 +1,14 @@
+BUSINESS_V1:
+  CLIENT_ID: '6fdb55b4-c905-4612-bd23-306c3918217c'
+  CLIENT_SECRET: 'HThkLCvKhqoxTDV9Y9uS+EvdQ72fbWr/Qrn2PFBZ/Ow='
+  REDIRECT: 'https://od.cnbeining.com'
+
+BUSINESS_V2:
+  CLIENT_ID: '0e170d2c-0ac5-4a4f-9099-c6bb0fb52d0c'
+  CLIENT_SECRET: 'xdGsBCTOiCHxBWJcKyK2WpA'
+  REDIRECT: 'https://onedrivesite.mario-apra.tk/'
+
+PERSONAL:
+  CLIENT_ID: '000000004010C916'
+  CLIENT_SECRET: 'PimIrUibJfsKsMcd0SqwPBwMTV7NDgYi'
+  REDIRECT: 'https://login.live.com/oauth20_desktop.srf'
