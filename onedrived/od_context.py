@@ -54,7 +54,7 @@ class UserContext:
         'webhook_port': 0,
         'webhook_renew_interval_sec': 7200,  # Renew webhook every 2 hours.
         'webhook_action_delay_sec': 120,
-        'num_workers': 2,
+        'num_workers': 16,
         'start_delay_sec': 0,
         'logfile_path': ''
     }
