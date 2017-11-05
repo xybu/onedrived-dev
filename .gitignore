@@ -259,3 +259,5 @@ GitHub.sublime-settings
 \.vscode/
 
 session\.pickle
+
+onedrive_config\.yml
