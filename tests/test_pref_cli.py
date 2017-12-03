@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import tempfile
 import unittest
@@ -7,7 +8,7 @@ import click
 import onedrivesdk
 import requests_mock
 
-from onedrived import get_resource, od_pref
+from onedrived import get_resource, od_pref, od_repo
 
 
 class TestPrefCLI(unittest.TestCase):
@@ -94,16 +95,43 @@ class TestPrefCLI(unittest.TestCase):
         quota = onedrivesdk.Quota(json.loads(get_resource('data/quota_response.json', 'tests')))
         self.assertIsInstance(od_pref.quota_short_str(quota), str)
 
-    @requests_mock.mock()
-    def test_list_drives(self, mock):
+    def _setup_list_drive_mock(self, mock):
         all_drives = json.loads(get_resource('data/list_drives.json', pkg_name='tests'))
         mock.register_uri('GET', 'https://api.onedrive.com/v1.0/drives',
                           [{'status_code': 200, 'json': {'value': all_drives['value'][0:-1]}},
                            {'status_code': 200, 'json': {'value': all_drives['value'][-1:]}}])
         mock.post('https://login.live.com/oauth20_token.srf',
                   json=json.loads(get_resource('data/session_response.json', pkg_name='tests')))
+
+    @requests_mock.mock()
+    def test_list_drives(self, mock):
+        self._setup_list_drive_mock(mock)
         try:
             od_pref.list_drives(args=())
+        except SystemExit as e:
+            if e.code == 0:
+                pass
+
+    @requests_mock.mock()
+    def test_add_drive(self, mock):
+        drive_id = 'xb_drive_id'
+        self._setup_list_drive_mock(mock)
+        tmp_local_repo = tempfile.TemporaryDirectory()
+        try:
+            od_pref.set_drive(
+                args=('--drive-id', drive_id, '--email', 'xybu92@live.com', '--local-root', tmp_local_repo.name))
+            self.assertTrue(os.path.isfile(od_repo.get_drive_db_path(od_pref.context.config_dir, drive_id)))
+        except SystemExit as e:
+            if e.code == 0:
+                pass
+
+    @requests_mock.mock()
+    def test_del_drive(self, mock):
+        drive_id = 'xb_drive_id'
+        self.test_add_drive()
+        try:
+            od_pref.delete_drive(args=('--drive-id', drive_id, '--yes'))
+            self.assertFalse(os.path.exists(od_repo.get_drive_db_path(od_pref.context.config_dir, drive_id)))
         except SystemExit as e:
             if e.code == 0:
                 pass

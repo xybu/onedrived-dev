@@ -22,6 +22,9 @@
   "od_pref.drive.submain.short_help": "List all remote OneDrive repositories (Drives) of linked accounts, add new Drives to sync, edit configurations of existing Drives, or remove a Drive from local list.",
   "od_pref.list_drive.short_help": "List all available Drives.",
   "od_pref.del_drive.short_help": "Stop syncing a Drive with local directory.",
+  "od_pref.del_drive.specify_drive_to_delete": "Please specify the Drive ID to delete.",
+  "od_pref.del_drive.choose_index": "Please enter the # number of the Drive to delete (CTRL+C to abort)",
+  "od_pref.del_drive.error_del_db_file": "Error deleting drive database: {error}.",
 
   "od_pref.config.submain.short_help": "Modify config (e.g., intervals, number of workers, etc.) for current user.",
   "od_pref.set_config.short_help": "Update a config parameter.",

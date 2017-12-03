@@ -41,6 +41,10 @@ class RepositoryType:
     BUSINESS = 1
 
 
+def get_drive_db_path(config_dir, drive_id):
+    return config_dir +  '/items_' + drive_id + '.sqlite3'
+
+
 class OneDriveLocalRepository:
     SESSION_EXPIRE_THRESHOLD_SEC = 120
 
@@ -64,7 +68,7 @@ class OneDriveLocalRepository:
 
     @property
     def _item_store_path(self):
-        return ''.join((self.context.config_dir, '/items_', self.drive.id, '.sqlite3'))
+        return get_drive_db_path(self.context.config_dir, self.drive.id)
 
     def _init_path_filter(self, ignore_file):
         try:
