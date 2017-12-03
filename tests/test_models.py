@@ -165,5 +165,26 @@ class TestWebhookNotification(unittest.TestCase):
         self._assert_missing_property_none('context', 'context')
 
 
+class TestBidict(unittest.TestCase):
+    """
+    Bidict is used in od_watcher for fd -> (repo, file_path) mapping.
+    """
+    def test_use(self):
+        d = od_models.bidict.loosebidict()
+        key, val = (123, 'abc')
+        d[key] = val
+        # Test ordinary operations.
+        self.assertIn(key, d)
+        self.assertEqual(val, d[key])
+        # Test inv operations.
+        self.assertIn(val, d.inv)
+        self.assertEqual(key, d.inv[val])
+        # Test inv removal.
+        popped_key = d.inv.pop(val)
+        self.assertNotIn(key, d)
+        self.assertNotIn(val, d.inv)
+        self.assertEqual(key, popped_key)
+
+
 if __name__ == '__main__':
     unittest.main()

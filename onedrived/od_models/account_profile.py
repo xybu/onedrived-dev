@@ -1,5 +1,3 @@
-
-
 class OneDriveAccountProfile:
 
     def __init__(self, data):
