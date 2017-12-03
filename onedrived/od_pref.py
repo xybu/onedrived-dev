@@ -400,6 +400,9 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
 def delete_drive(drive_id=None, yes=False):
     all_drive_ids = print_saved_drives()
 
+    if len(all_drive_ids) == 0:
+        return
+
     if drive_id is None:
         if yes:
             error('Please specify the Drive ID to delete.')
