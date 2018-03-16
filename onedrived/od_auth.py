@@ -6,41 +6,41 @@ Core component for user authentication and authorization.
 """
 
 import logging
-import urllib
 
-import locale
 import requests
 from requests.utils import getproxies
 import onedrivesdk
 import onedrivesdk.error
-from onedrivesdk.helpers import GetAuthCodeServer
 from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
-import click
 import os
 import yaml
 
-from . import od_api_session, od_i18n
+from . import od_api_session
 from .od_models import account_profile
 
 path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 with open(os.path.abspath(path + '/onedrive_config.yml'), 'r', encoding='utf8') as yml:
     acc_config = yaml.load(yml)
 
+
 def get_authenticator_and_drives(context, account_id):
-    # TODO: Ideally we should recursively get all drives because the API pages them.
+    # TODO: Ideally we should recursively get all drives because the API pages
+    # them.
     account_type = context.config['accounts'][account_id]['account_type']
     if account_type == account_profile.AccountTypes.PERSONAL:
         authenticator = OneDriveAuthenticator()
     elif account_type == account_profile.AccountTypes.BUSINESS:
         endpoint = context.config['accounts'][account_id]['webUrl']
-        endpoint = endpoint[:endpoint.find('-my.sharepoint.com/')] + '-my.sharepoint.com/'
+        endpoint = endpoint[:endpoint.find(
+            '-my.sharepoint.com/')] + '-my.sharepoint.com/'
         authenticator = OneDriveBusinessAuthenticator(endpoint)
     else:
         logging.error("Error loading session: account_type don't exists")
         return
 
     try:
-        authenticator.load_session(key=od_api_session.get_keyring_key(account_id))
+        authenticator.load_session(
+            key=od_api_session.get_keyring_key(account_id))
         if account_type == account_profile.AccountTypes.BUSINESS:
             authenticator.refresh_session(account_id)
         drives = authenticator.client.drives.get()
@@ -52,7 +52,7 @@ def get_authenticator_and_drives(context, account_id):
 
 
 class OneDriveBusinessAuthenticator:
-    
+
     # This is to use OAuth v1
     APP_CLIENT_ID_BUSINESS = acc_config['BUSINESS_V1']['CLIENT_ID']
     APP_CLIENT_SECRET_BUSINESS = acc_config['BUSINESS_V1']['CLIENT_SECRET']
@@ -66,7 +66,7 @@ class OneDriveBusinessAuthenticator:
     APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
     APP_AUTH_SERVER_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/authorize'
     APP_TOKEN_URL_BUSINESS = 'https://login.microsoftonline.com/common/oauth2/token'
-    
+
     BASE_URL = 'https://graph.microsoft.com/v1.0/'
     ACCESS_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
     AUTORIZE_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
@@ -78,33 +78,44 @@ class OneDriveBusinessAuthenticator:
             self.http_provider = onedrivesdk.HttpProvider()
         else:
             from onedrivesdk.helpers.http_provider_with_proxy import HttpProviderWithProxy
-            self.http_provider = HttpProviderWithProxy(proxies, verify_ssl=True)
+            self.http_provider = HttpProviderWithProxy(
+                proxies, verify_ssl=True)
 
-        self.auth_provider = onedrivesdk.AuthProvider(self.http_provider,
-                                                 self.APP_CLIENT_ID_BUSINESS,
-                                                 session_type=od_api_session.OneDriveAPISession,
-                                                 auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
-                                                 auth_token_url=self.APP_TOKEN_URL_BUSINESS)
+        self.auth_provider = onedrivesdk.AuthProvider(
+            self.http_provider,
+            self.APP_CLIENT_ID_BUSINESS,
+            session_type=od_api_session.OneDriveAPISession,
+            auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
+            auth_token_url=self.APP_TOKEN_URL_BUSINESS)
 
         if endpoint is not None:
-            self.client = onedrivesdk.OneDriveClient(endpoint + '_api/v2.0/', self.auth_provider, self.http_provider)
+            self.client = onedrivesdk.OneDriveClient(
+                endpoint + '_api/v2.0/', self.auth_provider, self.http_provider)
 
     def get_auth_url(self):
         return self.auth_provider.get_auth_url(self.APP_REDIRECT_URL)
 
     def authenticate(self, code):
         print('Athenticating...')
-        self.auth_provider.authenticate(code, self.APP_REDIRECT_URL, self.APP_CLIENT_SECRET_BUSINESS, resource=self.APP_DISCOVERY_URL_BUSINESS)
-        
+        self.auth_provider.authenticate(
+            code,
+            self.APP_REDIRECT_URL,
+            self.APP_CLIENT_SECRET_BUSINESS,
+            resource=self.APP_DISCOVERY_URL_BUSINESS)
+
         # this step can be slow
-        service_info = ResourceDiscoveryRequest().get_service_info(self.auth_provider.access_token)
+        service_info = ResourceDiscoveryRequest().get_service_info(
+            self.auth_provider.access_token)
 
         self.APP_ENDPOINT = str(service_info[0]).split()[1]
 
         print('Refreshing token...')
         self.auth_provider.redeem_refresh_token(self.APP_ENDPOINT)
         print('Updating client')
-        self.client = onedrivesdk.OneDriveClient(self.APP_ENDPOINT + '_api/v2.0/', self.auth_provider, self.http_provider)
+        self.client = onedrivesdk.OneDriveClient(
+            self.APP_ENDPOINT + '_api/v2.0/',
+            self.auth_provider,
+            self.http_provider)
         print('Authenticated!')
 
     def get_profile(self):
@@ -115,14 +126,21 @@ class OneDriveBusinessAuthenticator:
         """
         # more detailed: ?$expand=children
         url = self.APP_ENDPOINT + '_api/v1.0/me/files/root'
-        headers = {'Authorization': 'Bearer ' + self.auth_provider.access_token}
+        headers = {'Authorization': 'Bearer ' +
+                   self.auth_provider.access_token}
         proxies = getproxies()
         if len(proxies) == 0:
             proxies = None
-        response = requests.get(url, headers=headers, proxies=proxies, verify=True)
+        response = requests.get(
+            url,
+            headers=headers,
+            proxies=proxies,
+            verify=True)
         data = response.json()
         if response.status_code != requests.codes.ok:
-            raise ValueError('Failed to read user profile:' + data['error']['message'])
+            raise ValueError(
+                'Failed to read user profile:' +
+                data['error']['message'])
         data['account_type'] = self.ACCOUNT_TYPE
         url = self.ACCESS_TOKEN_URL
 
@@ -133,7 +151,7 @@ class OneDriveBusinessAuthenticator:
             'scope': 'User.Read',
             'client_id': self.APP_ID,
             'client_secret': self.APP_SECRET
-            }
+        }
 
         response = requests.post(url, content)
         resp = response.json()
@@ -150,7 +168,7 @@ class OneDriveBusinessAuthenticator:
         data['first_name'] = resp['givenName']
         data['last_name'] = resp['surname']
         data['emails'] = resp['mail']
-        
+
         # End user information
         return account_profile.OneDriveAccountBusiness(data)
 
@@ -158,30 +176,31 @@ class OneDriveBusinessAuthenticator:
     def authentication_url(self):
         return "{auth_url}?client_id={app_id}&response_type=code" \
                "&redirect_uri={redirect_url}&scope=User.Read".format(
-                                                auth_url=self.AUTORIZE_URL,
-                                                app_id=self.APP_ID,
-                                                redirect_url=self.REDIRECT_URL)
+                   auth_url=self.AUTORIZE_URL,
+                   app_id=self.APP_ID,
+                   redirect_url=self.REDIRECT_URL)
 
     @property
     def session_expires_in_sec(self):
-        #TODO: check this
-        print('expires in: ' + str(self.client.auth_provider._session.expires_in_sec))
+        # TODO: check this
+        print('expires in: ' +
+              str(self.client.auth_provider._session.expires_in_sec))
         return self.client.auth_provider._session.expires_in_sec
 
     def refresh_session(self, account_id):
-        #TODO: check this
+        # TODO: check this
         self.client.auth_provider.refresh_token()
         self.save_session(key=od_api_session.get_keyring_key(account_id))
         print('session refreshed')
 
     def save_session(self, key):
-        #TODO: check this
+        # TODO: check this
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.save_session(**args)
         # print('Business session saved!')
 
     def load_session(self, key):
-        #TODO: check this
+        # TODO: check this
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.load_session(**args)
         print('session loaded')
@@ -195,7 +214,11 @@ class OneDriveAuthenticator:
     APP_REDIRECT_URL = acc_config['PERSONAL']['REDIRECT']
 
     APP_BASE_URL = 'https://api.onedrive.com/v1.0/'
-    APP_SCOPES = ['wl.signin', 'wl.emails', 'wl.offline_access', 'onedrive.readwrite']
+    APP_SCOPES = [
+        'wl.signin',
+        'wl.emails',
+        'wl.offline_access',
+        'onedrive.readwrite']
 
     def __init__(self):
         proxies = getproxies()
@@ -204,17 +227,20 @@ class OneDriveAuthenticator:
         else:
             from onedrivesdk.helpers.http_provider_with_proxy import HttpProviderWithProxy
             http_provider = HttpProviderWithProxy(proxies, verify_ssl=True)
-        auth_provider = onedrivesdk.AuthProvider(http_provider=http_provider,
-                                                 client_id=self.APP_CLIENT_ID,
-                                                 session_type=od_api_session.OneDriveAPISession,
-                                                 scopes=self.APP_SCOPES)
-        self.client = onedrivesdk.OneDriveClient(self.APP_BASE_URL, auth_provider, http_provider)
+        auth_provider = onedrivesdk.AuthProvider(
+            http_provider=http_provider,
+            client_id=self.APP_CLIENT_ID,
+            session_type=od_api_session.OneDriveAPISession,
+            scopes=self.APP_SCOPES)
+        self.client = onedrivesdk.OneDriveClient(
+            self.APP_BASE_URL, auth_provider, http_provider)
 
     def get_auth_url(self):
         return self.client.auth_provider.get_auth_url(self.APP_REDIRECT_URL)
 
     def authenticate(self, code):
-        self.client.auth_provider.authenticate(code, self.APP_REDIRECT_URL, self.APP_CLIENT_SECRET)
+        self.client.auth_provider.authenticate(
+            code, self.APP_REDIRECT_URL, self.APP_CLIENT_SECRET)
 
     def get_profile(self, user_id='me'):
         """
@@ -224,11 +250,16 @@ class OneDriveAuthenticator:
             An OneDriveUserProfile object that od_models the user info.
         """
         url = 'https://apis.live.net/v5.0/' + user_id
-        headers = {'Authorization': 'Bearer ' + self.client.auth_provider.access_token}
+        headers = {'Authorization': 'Bearer ' +
+                   self.client.auth_provider.access_token}
         proxies = getproxies()
         if len(proxies) == 0:
             proxies = None
-        response = requests.get(url, headers=headers, proxies=proxies, verify=True)
+        response = requests.get(
+            url,
+            headers=headers,
+            proxies=proxies,
+            verify=True)
         if response.status_code != requests.codes.ok:
             raise ValueError('Failed to read user profile.')
         data = response.json()

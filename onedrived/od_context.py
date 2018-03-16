@@ -12,7 +12,6 @@ from .od_models import account_profile
 from .od_models import drive_config as _drive_config
 
 
-
 def is_invalid_username(s):
     return s is None or not isinstance(s, str) or len(s.strip()) == 0
 
