@@ -18,9 +18,9 @@ import yaml
 from . import od_api_session
 from .od_models import account_profile
 
-path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-with open(os.path.abspath(path + '/onedrive_config.yml'), 'r', encoding='utf8') as yml:
-    acc_config = yaml.load(yml)
+PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+with open(os.path.join(PATH, 'onedrived', 'data', 'security_config.yml')) as config:
+    SECURITY_CONFIG = yaml.load(config)
 
 
 def get_authenticator_and_drives(context, account_id):
@@ -54,13 +54,13 @@ def get_authenticator_and_drives(context, account_id):
 class OneDriveBusinessAuthenticator:
 
     # This is to use OAuth v1
-    APP_CLIENT_ID_BUSINESS = acc_config['BUSINESS_V1']['CLIENT_ID']
-    APP_CLIENT_SECRET_BUSINESS = acc_config['BUSINESS_V1']['CLIENT_SECRET']
-    APP_REDIRECT_URL = acc_config['BUSINESS_V1']['REDIRECT']
+    APP_CLIENT_ID_BUSINESS = SECURITY_CONFIG['BUSINESS_V1']['CLIENT_ID']
+    APP_CLIENT_SECRET_BUSINESS = SECURITY_CONFIG['BUSINESS_V1']['CLIENT_SECRET']
+    APP_REDIRECT_URL = SECURITY_CONFIG['BUSINESS_V1']['REDIRECT']
     # This is to use OAuth v2 (Graph)
-    APP_ID = acc_config['BUSINESS_V2']['CLIENT_ID']
-    APP_SECRET = acc_config['BUSINESS_V2']['CLIENT_SECRET']
-    REDIRECT_URL = acc_config['BUSINESS_V2']['REDIRECT']
+    APP_ID = SECURITY_CONFIG['BUSINESS_V2']['CLIENT_ID']
+    APP_SECRET = SECURITY_CONFIG['BUSINESS_V2']['CLIENT_SECRET']
+    REDIRECT_URL = SECURITY_CONFIG['BUSINESS_V2']['REDIRECT']
 
     ACCOUNT_TYPE = account_profile.AccountTypes.BUSINESS
     APP_DISCOVERY_URL_BUSINESS = 'https://api.office.com/discovery/'
@@ -209,9 +209,9 @@ class OneDriveBusinessAuthenticator:
 class OneDriveAuthenticator:
 
     ACCOUNT_TYPE = account_profile.AccountTypes.PERSONAL
-    APP_CLIENT_ID = acc_config['PERSONAL']['CLIENT_ID']
-    APP_CLIENT_SECRET = acc_config['PERSONAL']['CLIENT_SECRET']
-    APP_REDIRECT_URL = acc_config['PERSONAL']['REDIRECT']
+    APP_CLIENT_ID = SECURITY_CONFIG['PERSONAL']['CLIENT_ID']
+    APP_CLIENT_SECRET = SECURITY_CONFIG['PERSONAL']['CLIENT_SECRET']
+    APP_REDIRECT_URL = SECURITY_CONFIG['PERSONAL']['REDIRECT']
 
     APP_BASE_URL = 'https://api.onedrive.com/v1.0/'
     APP_SCOPES = [
