@@ -314,8 +314,8 @@ def read_drive_config_interactively(drive_exists, curr_drive_config):
         local_root_default = curr_drive_config.localroot_path
         ignore_file_default = curr_drive_config.ignorefile_path
     else:
-        local_root_default = context.user_home + '/OneDrive'
-        ignore_file_default = context.config_dir + '/' + context.DEFAULT_IGNORE_FILENAME
+        local_root_default = os.path.join(context.user_home, 'OneDrive')
+        ignore_file_default = os.path.join(context.config_dir, context.DEFAULT_IGNORE_FILENAME)
     while local_root is None:
         local_root = click.prompt('Enter the directory path to sync with this Drive',
                                   type=str, default=local_root_default)
