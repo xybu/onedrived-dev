@@ -1,6 +1,6 @@
 arrow==0.12.1
 asn1crypto==0.24.0
-bidict==0.14.2
+bidict==0.13.1
 certifi==2018.1.18
 cffi==1.11.5
 chardet==3.0.4
