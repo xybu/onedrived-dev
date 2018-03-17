@@ -96,7 +96,7 @@ class OneDriveBusinessAuthenticator:
         return self.auth_provider.get_auth_url(self.APP_REDIRECT_URL)
 
     def authenticate(self, code):
-        print('Authenticating...')
+        log.info('Authenticating...')
         self.auth_provider.authenticate(
             code,
             self.APP_REDIRECT_URL,
@@ -109,14 +109,14 @@ class OneDriveBusinessAuthenticator:
 
         self.APP_ENDPOINT = str(service_info[0]).split()[1]
 
-        print('Refreshing token...')
+        log.info('Refreshing token...')
         self.auth_provider.redeem_refresh_token(self.APP_ENDPOINT)
-        print('Updating client')
+        log.info('Updating client')
         self.client = onedrivesdk.OneDriveClient(
             self.APP_ENDPOINT + '_api/v2.0/',
             self.auth_provider,
             self.http_provider)
-        print('Authenticated!')
+        log.info('Authenticated!')
 
     def get_profile(self):
         """
@@ -182,28 +182,19 @@ class OneDriveBusinessAuthenticator:
 
     @property
     def session_expires_in_sec(self):
-        # TODO: check this
-        print('expires in: ' +
-              str(self.client.auth_provider._session.expires_in_sec))
         return self.client.auth_provider._session.expires_in_sec
 
     def refresh_session(self, account_id):
-        # TODO: check this
         self.client.auth_provider.refresh_token()
         self.save_session(key=od_api_session.get_keyring_key(account_id))
-        print('session refreshed')
 
     def save_session(self, key):
-        # TODO: check this
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.save_session(**args)
-        # print('Business session saved!')
 
     def load_session(self, key):
-        # TODO: check this
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.load_session(**args)
-        print('session loaded')
 
 
 class OneDriveAuthenticator:
@@ -275,10 +266,8 @@ class OneDriveAuthenticator:
         self.save_session(key=od_api_session.get_keyring_key(account_id))
 
     def save_session(self, key):
-        print('save_session Personal with key: ' + key)
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
         self.client.auth_provider.save_session(**args)
-        print('Personal session saved!')
 
     def load_session(self, key):
         args = {od_api_session.OneDriveAPISession.SESSION_ARG_KEYNAME: key}
