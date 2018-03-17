@@ -321,16 +321,13 @@ def read_drive_config_interactively(drive_exists, curr_drive_config):
                                   type=str, default=local_root_default)
         local_root = os.path.abspath(local_root)
         if not os.path.exists(local_root):
-            if click.confirm('Directory "%s" does not exist. Create it?' % local_root):
-                try:
-                    mkdir(local_root, context.user_uid)
-                except OSError as e:
-                    error('OSError: %s' % e)
-                    local_root = None
+            mkdir(local_root, context.user_uid)
         elif not os.path.isdir(local_root):
             error('Path "%s" should be a directory.' % local_root)
             local_root = None
-        elif not click.confirm('Syncing with directory "%s"?' % local_root):
+        elif not click.confirm('Syncing with directory "%s"? Be careful!! If this directory was cleaned '
+                               'recently, all your files will be deleted from cloud. Type Ctrl + C to '
+                               'abort the operation. Do you want to continue?' % local_root):
             local_root = None
     while ignore_file is None:
         ignore_file = click.prompt('Enter the path to ignore file for this Drive',
