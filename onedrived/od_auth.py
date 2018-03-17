@@ -96,7 +96,7 @@ class OneDriveBusinessAuthenticator:
         return self.auth_provider.get_auth_url(self.APP_REDIRECT_URL)
 
     def authenticate(self, code):
-        print('Athenticating...')
+        print('Authenticating...')
         self.auth_provider.authenticate(
             code,
             self.APP_REDIRECT_URL,
