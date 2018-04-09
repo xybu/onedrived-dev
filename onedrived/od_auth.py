@@ -20,7 +20,7 @@ from .od_models import account_profile
 
 PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 with open(os.path.join(PATH, 'onedrived', 'data', 'security_config.yml')) as config:
-    SECURITY_CONFIG = yaml.load(config)
+    SECURITY_CONFIG = yaml.safe_load(config)
 
 
 def get_authenticator_and_drives(context, account_id):
