@@ -1,0 +1,23 @@
+{
+    "@odata.context": "https://testtenant-my.sharepoint.com/_api/v1.0/$metadata#files/$entity",
+    "@odata.editLink": "me/files/01EHFUASDHKL",
+    "@odata.id": "https://testtenant-my.sharepoint.com/_api/v1.0/me/files/01EHFUASDHKL",
+    "@odata.type": "#Microsoft.FileServices.Folder",
+    "account_type": 1,
+    "childCount": 4,
+    "createdBy": null,
+    "dateTimeCreated": "2015-09-13T22:12:52Z",
+    "dateTimeLastModified": "2018-03-15T15:38:46Z",
+    "eTag": null,
+    "emails": "first.last@tenant.com",
+    "first_name": "first",
+    "id": "01EHFUASDHKL",
+    "lastModifiedBy": null,
+    "last_name": "last",
+    "name": "first midle last",
+    "parentReference": null,
+    "refresh_token": "eyJ0eXAiOiJKV1QiLCJub25...",
+    "size": 0,
+    "type": "Folder",
+    "webUrl": "https://testtenant-my.sharepoint.com/personal/first_last_tenant_com/Documents"
+}

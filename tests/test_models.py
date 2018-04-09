@@ -40,6 +40,29 @@ class TestAccountPersonalProfile(unittest.TestCase):
         self.assertIsInstance(str(self.account), str)
 
 
+class TestAccountBusinessProfile(unittest.TestCase):
+
+    def setUp(self):
+        self.data = json.loads(get_resource('data/me_profile_business_response.json', pkg_name='tests'))
+        self.account = od_models.account_profile.OneDriveAccount(self.data).get_account()
+
+    def test_properties(self):
+        self.assertEqual(self.data['id'], self.account.account_id)
+        self.assertEqual(self.data['name'], self.account.account_name)
+        self.assertEqual(self.data['emails']['account'], self.account.account_email)
+        self.assertEqual(self.data['first_name'], self.account.account_firstname)
+        self.assertEqual(self.data['last_name'], self.account.account_lastname)
+        self.assertEqual(od_models.account_profile.AccountTypes.BUSINESS, self.account.account_type)
+        self.assertEqual((self.data['webUrl'], self.account.account_root_folder))
+        self.assertIn(self.account.tenant, self.account.endpoint)
+        self.assertIn(self.account.endpoint, self.account.account_root_folder)
+        with self.assertRaises(AttributeError):
+            self.account.get_account()
+
+    def test_to_string(self):
+        self.assertIsInstance(str(self.account), str)
+
+
 class TestPathFilter(unittest.TestCase):
     def setUp(self):
         self.rules = get_resource('data/ignore_list.txt', pkg_name='tests').splitlines()
