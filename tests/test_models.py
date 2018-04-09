@@ -49,7 +49,7 @@ class TestAccountBusinessProfile(unittest.TestCase):
     def test_properties(self):
         self.assertEqual(self.data['id'], self.account.account_id)
         self.assertEqual(self.data['name'], self.account.account_name)
-        self.assertEqual(self.data['emails']['account'], self.account.account_email)
+        self.assertEqual(self.data['emails'], self.account.account_email)
         self.assertEqual(self.data['first_name'], self.account.account_firstname)
         self.assertEqual(self.data['last_name'], self.account.account_lastname)
         self.assertEqual(od_models.account_profile.AccountTypes.BUSINESS, self.account.account_type)
