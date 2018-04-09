@@ -153,7 +153,7 @@ def delete_temp_files(all_accounts):
     for repo in itertools.chain.from_iterable(all_accounts.values()):
         if os.path.isdir(repo.local_root):
             subprocess.call(('find', repo.local_root, '-type', 'f',
-                             '-name',repo.path_filter.get_temp_name('*'), '-delete'))
+                             '-name', repo.path_filter.get_temp_name('*'), '-delete'))
 
 
 def repo_updated_callback(repo):

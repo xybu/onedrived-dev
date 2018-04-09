@@ -58,7 +58,7 @@ class TestApiHelper(unittest.TestCase):
             error.OneDriveError(prop_dict={'code': error.ErrorCode.Unauthenticated, 'message': 'dummy'},
                                 status_code=requests.codes.unauthorized))
         self.assertEqual(1, len(mock_repo.mock_calls))
-        name, args, kwargs = mock_repo.method_calls[0]
+        name, args, _ = mock_repo.method_calls[0]
         self.assertEqual('authenticator.refresh_session', name)
         self.assertEqual((account_id,), args)
 

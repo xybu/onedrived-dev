@@ -261,3 +261,5 @@ GitHub.sublime-settings
 session\.pickle
 
 onedrive_config\.yml
+
+\.pytest_cache

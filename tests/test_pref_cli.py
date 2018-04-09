@@ -56,10 +56,12 @@ class TestPrefCLI(unittest.TestCase):
 
     def _call_authenticate_account(self, mock, code, args):
         profile = json.loads(get_resource('data/me_profile_response.json', pkg_name='tests'))
+
         def callback_auth(request, context):
             self.assertIn('code=' + code, request.text)
             context.status_code = 200
             return json.loads(get_resource('data/session_response.json', pkg_name='tests'))
+
         def callback_profile(request, context):
             context.status_code = 200
             return profile

@@ -53,7 +53,7 @@ def print_all_accounts(ctx):
             acc_type = 'Business'
         else:
             acc_type = 'Personal'
-        
+
         all_accounts.append((str(i), account_id, account.account_name, account.account_email, acc_type))
 
     click.echo(tabulate.tabulate(all_accounts, headers=('#', 'Account ID', 'Owner Name', 'Email Address', 'Profile Type')))
@@ -126,7 +126,7 @@ def save_account(authenticator):
 @click.option('--for-business', '-b', is_flag=True, default=False, required=False,
               help=translator['od_pref.authenticate_account.for_business.help'])
 def authenticate_account(get_auth_url=False, code=None, for_business=False):
-    
+
     if for_business:
         authenticator = od_auth.OneDriveBusinessAuthenticator()
     else:  # personal account
@@ -164,7 +164,7 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
             click.echo()
         except Exception as e:
             error(translator[
-                      'od_pref.authenticate_account.error.authorization'].format(
+                'od_pref.authenticate_account.error.authorization'].format(
                 error_message=str(e)))
 
     try:
@@ -173,8 +173,6 @@ def authenticate_account(get_auth_url=False, code=None, for_business=False):
         save_account(authenticator)
     except Exception as e:
         error(translator['od_pref.authenticate_account.error.authorization'].format(error_message=str(e)))
-
-
 
 
 @click.command(name='list', short_help='List all linked accounts.')
@@ -247,11 +245,11 @@ def print_all_drives():
         profile = context.get_account(i)
         if profile.account_type == account_profile.AccountTypes.BUSINESS:
             authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
-        else:  
+        else:
             authenticator, drives = od_auth.get_authenticator_and_drives(context, i)
         for d in drives:
             drive_objs.append(d)
-            if profile.account_type == account_profile.AccountTypes.BUSINESS :
+            if profile.account_type == account_profile.AccountTypes.BUSINESS:
                 drive_table.append((str(len(drive_table)), profile.account_email,
                                     d.id, d.drive_type, quota_short_str(d.quota), d.quota.state))
             else:
@@ -510,8 +508,6 @@ def set_config(key, value):
         error(translator[str_key].format(key=e.key, path=e.value))
     except OSError as e:
         error(translator['configurator.error_generic'].format(key=key, error_message=str(e)))
-    except:
-        raise
 
 
 if __name__ == '__main__':
