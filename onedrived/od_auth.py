@@ -96,7 +96,7 @@ class OneDriveBusinessAuthenticator:
         return self.auth_provider.get_auth_url(self.APP_REDIRECT_URL)
 
     def authenticate(self, code):
-        log.info('Authenticating...')
+        logging.info('Authenticating...')
         self.auth_provider.authenticate(
             code,
             self.APP_REDIRECT_URL,
@@ -109,14 +109,14 @@ class OneDriveBusinessAuthenticator:
 
         self.APP_ENDPOINT = str(service_info[0]).split()[1]
 
-        log.info('Refreshing token...')
+        logging.info('Refreshing token...')
         self.auth_provider.redeem_refresh_token(self.APP_ENDPOINT)
-        log.info('Updating client')
+        logging.info('Updating client')
         self.client = onedrivesdk.OneDriveClient(
             self.APP_ENDPOINT + '_api/v2.0/',
             self.auth_provider,
             self.http_provider)
-        log.info('Authenticated!')
+        logging.info('Authenticated!')
 
     def get_profile(self):
         """
