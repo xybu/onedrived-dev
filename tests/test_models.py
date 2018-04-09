@@ -33,6 +33,8 @@ class TestAccountPersonalProfile(unittest.TestCase):
         self.assertEqual(self.data['first_name'], self.account.account_firstname)
         self.assertEqual(self.data['last_name'], self.account.account_lastname)
         self.assertEqual(od_models.account_profile.AccountTypes.PERSONAL, self.account.account_type)
+        with self.assertRaises(AttributeError):
+            self.account.get_account()
 
     def test_to_string(self):
         self.assertIsInstance(str(self.account), str)
