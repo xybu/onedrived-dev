@@ -1,13 +1,13 @@
 # onedrived-dev
 
-[![GitHub version](https://badge.fury.io/gh/xybu%2Fonedrived-dev.svg)](https://badge.fury.io/gh/xybu%2Fonedrived-dev)
-[![Build Status](https://travis-ci.org/xybu/onedrived-dev.svg?branch=master)](https://travis-ci.org/xybu/onedrived-dev)
-[![Dependency Status](https://www.versioneye.com/user/projects/587f9689452b83003d3c8fd3/badge.svg)](https://www.versioneye.com/user/projects/587f9689452b83003d3c8fd3)
-[![License](https://img.shields.io/github/license/xybu/onedrived-dev.svg "MIT License")](LICENSE)
-[![codecov](https://codecov.io/gh/xybu/onedrived-dev/branch/master/graph/badge.svg)](https://codecov.io/gh/xybu/onedrived-dev)
-[![Coverage Status](https://coveralls.io/repos/github/xybu/onedrived-dev/badge.svg)](https://coveralls.io/github/xybu/onedrived-dev)
-[![Code Climate](https://codeclimate.com/github/xybu/onedrived-dev/badges/gpa.svg)](https://codeclimate.com/github/xybu/onedrived-dev)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/93853554008645059a6b17325be4fd6d)](https://www.codacy.com/app/xybu/onedrived-dev?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=xybu/onedrived-dev&amp;utm_campaign=Badge_Grade)
+[![GitHub version](https://badge.fury.io/gh/derrix060%2FonedriveClient.svg)](https://badge.fury.io/gh/derrix060%2FonedriveClient)
+[![Build Status](https://travis-ci.org/derrix060/onedriveClient.svg?branch=master)](https://travis-ci.org/derrix060/onedriveClient)
+[![Dependency Status](https://www.versioneye.com/user/projects/5acb32c50fb24f39e74fbb7d/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5acb32c50fb24f39e74fbb7d)
+[![License](https://img.shields.io/github/license/derrix060/onedriveClient.svg "MIT License")](LICENSE)
+[![codecov](https://codecov.io/gh/derrix060/onedriveClient/branch/master/graph/badge.svg)](https://codecov.io/gh/derrix060/onedriveClient)
+[![Coverage Status](https://coveralls.io/repos/github/derrix060/onedriveClient/badge.svg)](https://coveralls.io/github/derrix060/onedriveClient)
+[![Code Climate](https://codeclimate.com/github/derrix060/onedriveClient/badges/gpa.svg)](https://codeclimate.com/github/derrix060/onedriveClient)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9c0ff0f7b1e64120bcd66dc2e72f932e)](https://www.codacy.com/app/derrix060/onedriveClient?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=derrix060/onedriveClient&amp;utm_campaign=Badge_Grade)
 
 
 
