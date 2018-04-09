@@ -53,7 +53,7 @@ class TestAccountBusinessProfile(unittest.TestCase):
         self.assertEqual(self.data['first_name'], self.account.account_firstname)
         self.assertEqual(self.data['last_name'], self.account.account_lastname)
         self.assertEqual(od_models.account_profile.AccountTypes.BUSINESS, self.account.account_type)
-        self.assertEqual((self.data['webUrl'], self.account.account_root_folder))
+        self.assertEqual(self.data['webUrl'], self.account.account_root_folder)
         self.assertIn(self.account.tenant, self.account.endpoint)
         self.assertIn(self.account.endpoint, self.account.account_root_folder)
         with self.assertRaises(AttributeError):
