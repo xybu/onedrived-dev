@@ -20,11 +20,11 @@ def get_sample_drive_config():
     return drive_dict, od_models.drive_config.LocalDriveConfig(**drive_dict)
 
 
-class TestAccountProfile(unittest.TestCase):
+class TestAccountPersonalProfile(unittest.TestCase):
 
     def setUp(self):
         self.data = json.loads(get_resource('data/me_profile_response.json', pkg_name='tests'))
-        self.account = od_models.account_profile.OneDriveAccountProfile(self.data)
+        self.account = od_models.account_profile.OneDriveAccount(self.data).get_account()
 
     def test_properties(self):
         self.assertEqual(self.data['id'], self.account.account_id)
