@@ -142,7 +142,7 @@ class UserContext:
             An OneDriveAccount object of the account profile.
         """
         account = account_profile.OneDriveAccount(self.config['accounts'][account_id])
-        return account.getAccount()
+        return account.get_account()
 
     def delete_account(self, account_id):
         """
