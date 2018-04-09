@@ -44,7 +44,7 @@ class OneDriveAccountPersonal(OneDriveAccount):
 
     @property
     def account_email(self):
-        return super().account_email()['account']
+        return super().account_email['account']
 
     def get_account(self):
         raise AttributeError("'OneDriveAccountPersonal' object has no attribute 'get_account'")
