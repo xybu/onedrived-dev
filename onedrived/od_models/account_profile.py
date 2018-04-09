@@ -87,7 +87,7 @@ class OneDriveAccountBusiness:
     @property
     def tenant(self):
         site = self.account_root_folder
-        return site[8:site.find('-my.sharepoint.com/')]
+        return site[:site.find('-my.sharepoint.com/')].lstrip('https://')
 
     @property
     def endpoint(self):
