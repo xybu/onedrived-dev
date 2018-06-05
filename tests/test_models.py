@@ -81,7 +81,9 @@ class TestPathFilter(unittest.TestCase):
             ('/a.swp', False, True),
             ('/hello/world.swp', False, True),
             ('/.ignore', False, True),
+            ('/.notignore', False, False),
             ('/baz/.ignore', True, True),
+            ('/baz/.notignore', False, False),
             ('/baz/dont.ignore', False, False),
             ('/build', True, True),  # This rule tests case-insensitiveness
             ('/tmp/build', True, True)  # because the rule is "BUILD/"
