@@ -111,7 +111,7 @@ class TestMergeDirTask(TasksTestCaseBase):
         self.assertTrue(os.path.isfile(self.repo.local_root + '/foo 3 (hostname).txt'))
 
     def test_get_os_stat(self):
-        self.assertIsNone(merge_dir.get_os_stat('/tmp/random_file_sdhfuhsaiu123blah'))
+        self.assertIsNone(merge_dir.get_os_stat('/foo/bar/baz/blah'))
         self.assertIsNotNone(merge_dir.get_os_stat('/'))
 
 
