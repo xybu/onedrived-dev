@@ -3,11 +3,11 @@ import os
 import threading
 
 import onedrivesdk.error
-from bidict import loosebidict
 from inotify_simple import flags as _inotify_flags, masks as _inotify_masks, INotify as _INotify
 
 from .od_tasks import delete_item, move_item, merge_dir, update_mtime, upload_file
 from .od_models.path_filter import PathFilter
+from .od_models.bidict import loosebidict
 from .od_api_helper import item_request_call
 from .od_hashutils import hash_match
 from .od_repo import ItemRecordType
@@ -51,14 +51,14 @@ class LocalRepositoryWatcher:
     def add_watch(self, repo, local_abspath):
         logging.debug('Adding watcher for "%s"', local_abspath)
         with self._lock:
-            if (repo, local_abspath) not in self.watch_descriptors:
+            if (repo, local_abspath) not in self.watch_descriptors.inv:
                 wd = self.notifier.add_watch(local_abspath, self.FLAGS)
                 self.watch_descriptors[wd] = (repo, local_abspath)
 
     def rm_watch(self, repo, local_abspath):
         logging.debug('Removing watcher for "%s"', local_abspath)
         with self._lock:
-            if (repo, local_abspath) in self.watch_descriptors:
+            if (repo, local_abspath) in self.watch_descriptors.inv:
                 wd = self.watch_descriptors.inv.pop((repo, local_abspath))
                 self.notifier.rm_watch(wd)
 

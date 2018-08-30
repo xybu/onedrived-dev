@@ -15,6 +15,7 @@ from .od_models import pretty_api, drive_config, account_profile
 from .od_api_session import OneDriveAPISession, get_keyring_key
 from .od_models.dict_guard import GuardedDict, exceptions as guard_errors
 from .od_context import load_context, save_context
+from .od_repo import get_drive_db_path
 
 
 context = load_context()
@@ -25,6 +26,10 @@ config_guard = GuardedDict(config_dict=context.config, config_schema_dict=config
 
 def error(s):
     click.secho(s, fg='red')
+
+
+def warning(s):
+    click.secho(s, fg='yellow')
 
 
 def success(s):
@@ -439,11 +444,14 @@ def set_drive(drive_id=None, email=None, local_root=None, ignore_file=None):
 def delete_drive(drive_id=None, yes=False):
     all_drive_ids = print_saved_drives()
 
+    if len(all_drive_ids) == 0:
+        return
+
     if drive_id is None:
         if yes:
-            error('Please specify the Drive ID to delete.')
+            error(translator['od_pref.del_drive.specify_drive_to_delete'])
             return
-        index = click.prompt('Please enter the # number of the Drive to delete (CTRL+C to abort)', type=int)
+        index = click.prompt(translator['od_pref.del_drive.choose_index'], type=int)
         if isinstance(index, int) and 0 <= index < len(all_drive_ids):
             drive_id = all_drive_ids[index]
         else:
@@ -456,6 +464,10 @@ def delete_drive(drive_id=None, yes=False):
 
     if yes or click.confirm('Continue to delete Drive "%s" (its local directory will NOT be deleted)?' % drive_id,
                             abort=True):
+        try:
+            os.unlink(get_drive_db_path(context.config_dir, drive_id))
+        except Exception as e:
+            warning(translator['od_pref.del_drive.error_del_db_file'].format(error=str(e)))
         context.delete_drive(drive_id)
         save_context(context)
         success('Successfully deleted Drive "%s" from onedrived.' % drive_id)
