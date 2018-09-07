@@ -8,11 +8,11 @@ A Microsoft OneDrive client for Linux.
 import os
 import pkgutil
 
-__project__ = 'onedrived'
-__author__ = 'Xiangyu Bu'
-__email__ = 'xybu92@live.com'
-__version__ = '2.0.0'
-__homepage__ = 'https://github.com/xybu/onedrived-dev'
+__project__ = 'onedriveClient'
+__author__ = 'Mario Apra'
+__email__ = 'mariotapra@gmail.com'
+__version__ = '2.0.1'
+__homepage__ = 'https://github.com/derrix060/onedriveClient'
 
 
 def mkdir(path, uid, mode=0o700, exist_ok=True):
