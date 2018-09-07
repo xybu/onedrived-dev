@@ -70,6 +70,7 @@ class OneDriveBusinessAuthenticator:
     BASE_URL = 'https://graph.microsoft.com/v1.0/'
     ACCESS_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
     AUTORIZE_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+    SCOPES = 'User.Read offline_access'
 
     def __init__(self, endpoint=None):
         self.code = None
@@ -86,7 +87,9 @@ class OneDriveBusinessAuthenticator:
             self.APP_CLIENT_ID_BUSINESS,
             session_type=od_api_session.OneDriveAPISession,
             auth_server_url=self.APP_AUTH_SERVER_URL_BUSINESS,
-            auth_token_url=self.APP_TOKEN_URL_BUSINESS)
+            auth_token_url=self.APP_TOKEN_URL_BUSINESS,
+            scopes=self.SCOPES,
+        )
 
         if endpoint is not None:
             self.client = onedrivesdk.OneDriveClient(
@@ -148,7 +151,7 @@ class OneDriveBusinessAuthenticator:
             'grant_type': 'authorization_code',
             'code': self.code,
             'redirect_uri': self.REDIRECT_URL,
-            'scope': 'User.Read',
+            'scope': self.SCOPES,
             'client_id': self.APP_ID,
             'client_secret': self.APP_SECRET
         }
@@ -175,10 +178,11 @@ class OneDriveBusinessAuthenticator:
     @property
     def authentication_url(self):
         return "{auth_url}?client_id={app_id}&response_type=code" \
-               "&redirect_uri={redirect_url}&scope=User.Read".format(
+               "&redirect_uri={redirect_url}&scope={scope}".format(
                    auth_url=self.AUTORIZE_URL,
                    app_id=self.APP_ID,
-                   redirect_url=self.REDIRECT_URL)
+                   redirect_url=self.REDIRECT_URL,
+                   scope=self.SCOPES)
 
     @property
     def session_expires_in_sec(self):
