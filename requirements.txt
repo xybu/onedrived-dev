@@ -15,7 +15,7 @@ onedrivesdk==1.1.8
 psutil==5.4.3
 pycparser==2.18
 python-dateutil==2.7.0
-PyYAML==3.12
+PyYAML==3.13
 requests==2.18.4
 SecretStorage==2.3.1
 Send2Trash==1.5.0
