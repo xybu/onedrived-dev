@@ -1,4 +1,4 @@
-# onedrive_client-dev
+# onedriveCLient
 
 [![GitHub version](https://badge.fury.io/gh/derrix060%2FonedriveClient.svg)](https://badge.fury.io/gh/derrix060%2FonedriveClient)
 [![Build Status](https://travis-ci.org/derrix060/onedriveClient.svg?branch=master)](https://travis-ci.org/derrix060/onedriveClient)
@@ -13,7 +13,7 @@
 
 ## Introduction
 
-`onedrive_client` is a client program for [Microsoft OneDrive](https://onedrive.com)
+`onedrive-client` is a client program for [Microsoft OneDrive](https://onedrive.com)
 for Linux. It enables you to sync local directories with remote OneDrive
 repositories (a.k.a., _"Drive"_) of one or more OneDrive  Personal account
 (OneDrive for Business accounts are in beta tests, use with caution!).
@@ -29,8 +29,8 @@ monitor file system changes.
 
 ## Installation
 
-To install `onedrive_client`, install all pre-requisite packages, make sure old
-versions of `onedrive_client` are uninstalled, and lastly install `onedrive_client`.
+To install `onedrive-client`, install all pre-requisite packages, make sure old
+versions of `onedrive-client` are uninstalled, and lastly install `onedrive-client`.
 Each of those steps will be addressed in following subsections.
 
 The guide that follows will assume an environment with Python3 interpreter
@@ -105,41 +105,41 @@ To install those dependencies on Ubuntu, use `apt-get` command:
  ```
 
 Python-level pre-requisites are listed in `requirements.txt` and will be
-installed automatically when installing `onedrive_client`.
+installed automatically when installing `onedrive-client`.
 
-### Uninstall older `onedrive_client`
+### Uninstall older `onedrive-client`
 
-If you have old versions of `onedrive_client` (also named `onedrive-d` in the
+If you have old versions of `onedrive-client` (also named `onedrive-d` in the
 past) in system, please uninstall them before proceeding. The packages
 can be easily removed with `pip`.
 
 ```bash
 # Remove Python packages of older onedrive-d.
-$ sudo pip3 uninstall onedrive_d onedrive_client
+$ sudo pip3 uninstall onedrive_d onedrive-client
 
 # Remove useless config files.
-$ rm -rf ~/.onedrive ~/.onedrive_client
+$ rm -rf ~/.onedrive ~/.onedrive-client
 ```
 
-### Install `onedrive_client`
+### Install `onedrive-client`
 
-You can either install `onedrive_client` by `pip3` or pull the code and install
+You can either install `onedrive-client` by `pip3` or pull the code and install
 manually. Note that you may want to check out this repository regularly to
 have the latest version installed, and run the included tests to see whether
-`onedrive_client` can actually run on your setup.
+`onedrive-client` can actually run on your setup.
 
 #### Install from PyPI with `pip`
 
-`onedrive_client` is not yet available on PyPI.
+`onedrive-client` is not yet available on PyPI.
 
 #### Install from source with `pip` (recommended)
 
-To install latest `onedrive_client` from source with `pip3`, run the command below.
+To install latest `onedrive-client` from source with `pip3`, run the command below.
 
 Notes:
 
 1. `git` must be installed on the system.
-2. To install onedrive_client system-wide (that is, make onedrive_client program available
+2. To install onedrive-client system-wide (that is, make onedrive-client program available
 to all users in the OS), remove argument `--user` from the command).
 
 ```bash
@@ -152,7 +152,7 @@ First pull the code from GitHub repository:
 
 ```bash
 $ git clone https://github.com/derrix060/onedriveClient.git
-$ cd onedrive_client-dev
+$ cd onedrive-client-dev
 
 ```
 
@@ -167,10 +167,10 @@ $ python3 ./setup.py test
 $ python3 -m pytest
 ```
 
-Then install `onedrive_client` with one of the following command:
+Then install `onedrive-client` with one of the following command:
 
 ```bash
-# Use pip to install onedrive_client.
+# Use pip to install onedrive-client.
 $ pip3 install -e .
 
 # Or use the built-in setuptools package from Python.
@@ -179,24 +179,24 @@ $ python3 ./setup.py install --user
 
 ## Usage
 
-`onedrive_client` exposes two commands -- `onedrive_client` and `onedrive_client-pref`. The
+`onedrive-client` exposes two commands -- `onedrive-client` and `onedrive-client-pref`. The
 former is the "synchronizer" and the latter is the "configurator". If you
 want to run it directly in code repository without installing the package, in
-the following example commands replace `onedrive_client` with
-`python3 -m onedrive_client.od_main` and replace `onedrive_client-pref` with
-`python3 -m onedrive_client.od_pref`.
+the following example commands replace `onedrive-client` with
+`python3 -m onedrive-client.od_main` and replace `onedrive-client-pref` with
+`python3 -m onedrive-client.od_pref`.
 
-### Configure `onedrive_client`
+### Configure `onedrive-client`
 
-Before running `onedrive_client` for the first time, or whenever you need to change
-the configurations, you will need to use `onedrive_client-pref` command. The
+Before running `onedrive-client` for the first time, or whenever you need to change
+the configurations, you will need to use `onedrive-client-pref` command. The
 subsections that follow introduces the basic usage scenarios. For more usage
 scenarios, refer to "More Usages" section.
 
-To read the complete usage of `onedrive_client-pref`, use argument `--help`:
+To read the complete usage of `onedrive-client-pref`, use argument `--help`:
 
 ```bash
-$ onedrive_client-pref --help
+$ onedrive-client-pref --help
 Usage: od_pref.py [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -204,7 +204,7 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  account  Add new OneDrive account to onedrive_client, list all existing ones, or
+  account  Add new OneDrive account to onedrive-client, list all existing ones, or
            remove some.
   config   Modify config (e.g., proxies, intervals) for current user.
   drive    List all remote OneDrive repositories (Drives) of linked accounts,
@@ -215,26 +215,26 @@ Commands:
 #### Authorizing accounts
 
 Operations related to configuring accounts can be listed by command
-`onedrive_client-pref account`
+`onedrive-client-pref account`
 
 ```bash
-$ onedrive_client-pref account --help
+$ onedrive-client-pref account --help
 Usage: od_pref.py account [OPTIONS] COMMAND [ARGS]...
 
 Options:
   -h, --help  Show this message and exit.
 
 Commands:
-  add   Add a new OneDrive account to onedrive_client.
-  del   De-authorize and delete an existing account from onedrive_client.
+  add   Add a new OneDrive account to onedrive-client.
+  del   De-authorize and delete an existing account from onedrive-client.
   list  List all linked accounts.
 ```
 
-To add an OneDrive account to `onedrive_client`, you will need command
-`onedrive_client-pref account add`. Help message for this command is as follows:
+To add an OneDrive account to `onedrive-client`, you will need command
+`onedrive-client-pref account add`. Help message for this command is as follows:
 
 ```bash
-$ onedrive_client-pref account add --help
+$ onedrive-client-pref account add --help
 Usage: od_pref.py account add [OPTIONS]
 
 Options:
@@ -253,22 +253,22 @@ you provide the information from command line arguments.
 
 In interactive mode, the program will provide you with an URL to visit. Open
 this URL with a web browser (e.g., Chrome, Firefox), sign in with your
-Microsoft Account and authorize `onedrive_client` to access your OneDrive data. The
+Microsoft Account and authorize `onedrive-client` to access your OneDrive data. The
 web page will eventually land to a blank page whose URL starts with
 "https://login.live.com/oauth20_desktop.srf". Paste this URL
 (a.k.a., _callback URL_) back to the program.
 
-Note that `onedrive_client` needs your basic account information (e.g., email
+Note that `onedrive-client` needs your basic account information (e.g., email
 address) to distinguish different accounts (otherwise OneDrive returns
 "tokens" from which you cannot tell which account they stand for).
 
 ```bash
-$ onedrive_client-pref account add
+$ onedrive-client-pref account add
 
-NOTE: To better manage your OneDrive accounts, onedrive_client needs permission to access your account info (e.g., email
+NOTE: To better manage your OneDrive accounts, onedrive-client needs permission to access your account info (e.g., email
 address to distinguish different accounts) and read/write your OneDrive files.
 
-Paste this URL into your browser to sign in and authorize onedrive_client:
+Paste this URL into your browser to sign in and authorize onedrive-client:
 
 https://login.live.com/oauth20_authorize.srf?response_type=code&scope=wl.signin+wl.emails+wl.offline_access+
 onedrive.readwrite&client_id=000000004010C916&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf
@@ -277,7 +277,7 @@ The authentication web page will finish with a blank page whose URL starts with
 "https://login.live.com/oauth20_desktop.srf". Paste this URL here.
 Paste URL here: https://login.live.com/oauth20_desktop.srf?code=<some_code_here>&lc=1033
 
-Successfully authorized onedrive_client.
+Successfully authorized onedrive-client.
 Successfully added account for Xiangyu Bu (xybu92@live.com, <account_id_token>)!
 
 All OneDrive accounts associated with user "xb":
@@ -293,7 +293,7 @@ Be careful, it's still on beta test. As explained before, the onedrive needs som
 To add a business account, just insert the tag '-b' at end:
 
 ```bash
-$ onedrive_client-pref account add -b
+$ onedrive-client-pref account add -b
 ```
 
 As happen in normal account, you need to click on link showed and copy the entire link (not only the code!!), but as explained before, you need to do this twice (one for each service).
@@ -304,11 +304,11 @@ Instead of giving the sign-in URL and then prompting for the callback URL, use
 the following command to get the sign-in URL:
 
 ```bash
-$ onedrive_client-pref account add --get-auth-url
-NOTE: To better manage your OneDrive accounts, onedrive_client needs permission to access your account info (e.g., email
+$ onedrive-client-pref account add --get-auth-url
+NOTE: To better manage your OneDrive accounts, onedrive-client needs permission to access your account info (e.g., email
 address to distinguish different accounts) and read/write your OneDrive files.
 
-Paste this URL into your browser to sign in and authorize onedrive_client:
+Paste this URL into your browser to sign in and authorize onedrive-client:
 
 https://login.live.com/oauth20_authorize.srf?response_type=code&client_id=000000004010C916&redirect_uri=https%3A%2F%2F
 login.live.com%2Foauth20_desktop.srf&scope=wl.signin+wl.emails+wl.offline_access+onedrive.readwrite
@@ -321,21 +321,21 @@ example, in URL
 find the part `?code=<some_code_here>&` and the code is the part
 `<some_code_here>`.
 
-Use command `onedrive_client-pref account add --code <some_code_here>`, where
+Use command `onedrive-client-pref account add --code <some_code_here>`, where
 `<some_code_here>` is the code, to add your account.
 
-#### Adding Drives to `onedrive_client`
+#### Adding Drives to `onedrive-client`
 
-After you authorize `onedrive_client` to access your OneDrive data, you are now able
+After you authorize `onedrive-client` to access your OneDrive data, you are now able
 to add Drives. Each OneDrive account has one or more Drive associated, and
-`onedrive_client` allows you to choose which Drive to sync. Similar to the step of
-authorizing `onedrive_client`, the CLI provides both interactive mode and command
+`onedrive-client` allows you to choose which Drive to sync. Similar to the step of
+authorizing `onedrive-client`, the CLI provides both interactive mode and command
 mode.
 
 #### Interactive mode
 
 ```bash
-$ onedrive_client-pref drive set
+$ onedrive-client-pref drive set
 Reading drives information from OneDrive server...
 
 All available Drives of authorized accounts:
@@ -349,11 +349,11 @@ Please enter row number of the Drive to add or modify (CTRL+C to abort): 0
 Going to add/edit Drive "<some_drive_id>" of account "<some_email>"...
 Enter the directory path to sync with this Drive [/home/xb/OneDrive]:  
 Syncing with directory "/home/xb/OneDrive"? [y/N]: y
-Enter the path to ignore file for this Drive [/home/xb/.config/onedrive_client/ignore_v2.txt]: 
+Enter the path to ignore file for this Drive [/home/xb/.config/onedrive-client/ignore_v2.txt]: 
 
 Successfully configured Drive <some_drive_id> of account <some_email> (<some_user_id>):
   Local directory: /home/xb/OneDrive
-  Ignore file path: /home/xb/.config/onedrive_client/ignore_v2.txt
+  Ignore file path: /home/xb/.config/onedrive-client/ignore_v2.txt
 ```
 
 If you have more than one account authorized, all drives of all authorized
@@ -362,7 +362,7 @@ accounts will appear in the table.
 #### Command mode
 
 Please find the available command-line arguments from help message using
-command `onedrive_client-pref drive set --help`. 
+command `onedrive-client-pref drive set --help`. 
 
 ### Set up webhook
 
@@ -374,68 +374,68 @@ For now, refer to issue #19. More details TBA.
 
 Download and install [ngrok](https://ngrok.com).
 
-By default, `onedrive_client` will look for `ngrok` binary from `PATH`. To specify
+By default, `onedrive-client` will look for `ngrok` binary from `PATH`. To specify
 path to the binary manually, set up environment variable `NGROK` when running
-`onedrive_client`. For example, `NGROK=~/utils/ngrok onedrive_client start --debug`.
+`onedrive-client`. For example, `NGROK=~/utils/ngrok onedrive-client start --debug`.
 
 To use a custom config file for `ngrok`, set environment variable
-`NGROK_CONFIG_FILE` to path of your desired config file. Note that `onedrive_client`
+`NGROK_CONFIG_FILE` to path of your desired config file. Note that `onedrive-client`
 will create a HTTPS tunnel automatically and there is no need to specify
 tunnels. The purpose of using a custom `ngrok` config file should be to adjust
 resource usage, or link `ngrok` process with your paid `ngrok` account. The
-default `ngrok` config file shipped with `onedrive_client` turns off terminal output
+default `ngrok` config file shipped with `onedrive-client` turns off terminal output
 of `ngrok` and disables inspection database.
 
 #### Using direct connection
 
 TBA. Not applicable to most end-user machines.
 
-### Run `onedrive_client` in debug mode
+### Run `onedrive-client` in debug mode
 
-Use argument `--debug` so that `onedrive_client` runs in debug mode, using
+Use argument `--debug` so that `onedrive-client` runs in debug mode, using
 debug-level log verbosity and printing log to `stderr`.
 
 ```bash
-onedrive_client start --debug
+onedrive-client start --debug
 ```
 
-To stop `onedrive_client` process which is running in debug mode, send `SIGINT` to
+To stop `onedrive-client` process which is running in debug mode, send `SIGINT` to
 the process or hitting CTRL+C if it runs in a terminal.
 
-### Run `onedrive_client` as daemon
+### Run `onedrive-client` as daemon
 
 It's suggested that you set up a log file before running in daemon mode:
 
 ```
-$ onedrive_client-pref config set logfile_path PATH_TO_SOME_WRITABLE_FILE
+$ onedrive-client-pref config set logfile_path PATH_TO_SOME_WRITABLE_FILE
 ```
 
 To start the program as daemon,
 
 ```bash
-onedrive_client start
+onedrive-client start
 ```
 
 To stop the daemon,
 
 ```bash
-onedrive_client stop
+onedrive-client stop
 ```
 
 or send `SIGTERM` to the process (Ctrl + C).
 
 ### More Usages
 
-#### Run `onedrive_client` with proxies
+#### Run `onedrive-client` with proxies
 
-`onedrive_client` follows behavior of standard Python library function
+`onedrive-client` follows behavior of standard Python library function
 [`getproxies()`](https://docs.python.org/3/library/urllib.request.html#urllib.request.getproxies)
 to read proxies information from the OS. That is, run the command with
 environment variable `HTTP_PROXY` (or `http_proxy`) to set up a HTTP proxy, and
 variable `HTTPS_PROXY` (or `https_proxy`) to set up a HTTPS proxy. For example,
 
 ```bash
-$ HTTPS_PROXY=https://user:pass@host:port/some_path onedrive_client start --debug
+$ HTTPS_PROXY=https://user:pass@host:port/some_path onedrive-client start --debug
 ```
 
 A HTTPS proxy must have a verifiable SSL certificate.
@@ -450,22 +450,22 @@ A HTTPS proxy must have a verifiable SSL certificate.
 
 #### Edit ignore list (selective sync)
 
-#### Remove a Drive from `onedrive_client`
+#### Remove a Drive from `onedrive-client`
 
 ##### Interactive mode
 
 ```bash
-$ onedrive_client-pref drive del
+$ onedrive-client-pref drive del
 Drives that have been set up:
 
  #0 - Drive "<some_drive_id_here>":
    Account:     <some_account_email> (<some_user_id_here>)
    Local root:  /home/xb/OneDrive
-   Ignore file: /home/xb/.config/onedrive_client/ignore_v2.txt
+   Ignore file: /home/xb/.config/onedrive-client/ignore_v2.txt
 
 Please enter the # number of the Drive to delete (CTRL+C to abort): 0
 Continue to delete Drive "<some_drive_id_here>" (its local directory will NOT be deleted)? [y/N]: y
-Successfully deleted Drive "<some_drive_id_here>" from onedrive_client.
+Successfully deleted Drive "<some_drive_id_here>" from onedrive-client.
 ```
 
 ##### Command mode
@@ -473,25 +473,25 @@ Successfully deleted Drive "<some_drive_id_here>" from onedrive_client.
 The command-mode equivalent is:
 
 ```bash
-onedrive_client-pref drive del --drive-id <some_drive_id_here> [--yes]
+onedrive-client-pref drive del --drive-id <some_drive_id_here> [--yes]
 ```
 
 If argument `--yes` is used, the specified Drive, if already added, will be
 deleted without confirmation. 
 
-#### Adjusting parameters of `onedrive_client`
+#### Adjusting parameters of `onedrive-client`
 
-#### Check latest version of `onedrive_client`
+#### Check latest version of `onedrive-client`
 
 ## Uninstallation
 
-Use `pip3` to uninstall `onedrive_client` from system:
+Use `pip3` to uninstall `onedrive-client` from system:
 
 ```bash
-$ pip3 uninstall onedrive_client
+$ pip3 uninstall onedrive-client
 ```
 
-If `--user` argument was not used when installing (that is, `onedrive_client` was
+If `--user` argument was not used when installing (that is, `onedrive-client` was
 installed as a system-level package), you will need root permission to run
 the command above.
 
