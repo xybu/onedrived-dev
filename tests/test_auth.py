@@ -4,7 +4,7 @@ import unittest
 
 from onedrivesdk.helpers.http_provider_with_proxy import HttpProviderWithProxy
 
-from onedrived import get_resource, od_auth, od_api_session
+from onedrive_client import get_resource, od_auth, od_api_session
 
 
 def get_sample_authenticator():

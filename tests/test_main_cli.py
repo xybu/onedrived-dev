@@ -3,7 +3,7 @@ import unittest
 
 import click
 
-from onedrived import od_main
+from onedrive_client import od_main
 
 
 class TestMainCLI(unittest.TestCase):

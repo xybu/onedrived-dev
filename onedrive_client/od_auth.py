@@ -19,7 +19,7 @@ from . import od_api_session
 from .od_models import account_profile
 
 PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-with open(os.path.join(PATH, 'onedrived', 'data', 'security_config.yml')) as config:
+with open(os.path.join(PATH, 'onedrive_client', 'data', 'security_config.yml')) as config:
     SECURITY_CONFIG = yaml.safe_load(config)
 
 

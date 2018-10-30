@@ -5,7 +5,7 @@ import unittest
 
 import onedrivesdk
 
-from onedrived import get_resource, od_models, od_dateutils
+from onedrive_client import get_resource, od_models, od_dateutils
 
 
 def get_sample_drive():

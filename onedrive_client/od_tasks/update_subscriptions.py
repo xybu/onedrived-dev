@@ -12,9 +12,9 @@ class UpdateSubscriptionTask(TaskBase):
 
     def __init__(self, repo, task_pool, webhook_worker, subscription_id=None):
         """
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
-        :param onedrived.od_task.TaskPool | None task_pool:
-        :param onedrived.od_webhook.WebhookWorkerThread webhook_worker:
+        :param onedrive_client.od_repo.OneDriveLocalRepository repo:
+        :param onedrive_client.od_task.TaskPool | None task_pool:
+        :param onedrive_client.od_webhook.WebhookWorkerThread webhook_worker:
         :param str | None subscription_id:
         """
         super().__init__(repo, task_pool)

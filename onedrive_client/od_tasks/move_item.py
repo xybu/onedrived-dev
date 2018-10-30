@@ -13,8 +13,8 @@ class MoveItemTask(update_mtime.UpdateTimestampTask):
     def __init__(self, repo, task_pool, parent_relpath, item_name,
                  new_parent_relpath=None, new_name=None, item_id=None, is_folder=False):
         """
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
-        :param onedrived.od_task.TaskPool task_pool:
+        :param onedrive_client.od_repo.OneDriveLocalRepository repo:
+        :param onedrive_client.od_task.TaskPool task_pool:
         :param str parent_relpath:
         :param str item_name:
         :param str | None new_parent_relpath:

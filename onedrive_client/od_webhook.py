@@ -17,7 +17,7 @@ except AttributeError:
 
 def get_webhook_server(context):
     """
-    :param onedrived.od_context.UserContext context:
+    :param onedrive_client.od_context.UserContext context:
     """
     if context.config['webhook_type'] == 'direct':
         from .od_webhooks.http_server import WebhookConfig, WebhookListener
@@ -69,7 +69,7 @@ class WebhookWorkerThread(threading.Thread):
     def add_subscription(self, subscription, repo):
         """
         :param onedrivesdk.Subscription subscription:
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
+        :param onedrive_client.od_repo.OneDriveLocalRepository repo:
         """
         self._registered_subscriptions[subscription.id] = repo
         logging.debug('Subscribed to root updates of drive %s. Subscription ID: %s.',

@@ -5,11 +5,11 @@ import unittest
 import onedrivesdk
 import requests_mock
 
-from onedrived import get_resource, od_task, od_webhook
-from onedrived.od_tasks.base import TaskBase
-from onedrived.od_tasks.start_repo import StartRepositoryTask
-from onedrived.od_tasks.update_subscriptions import UpdateSubscriptionTask
-import onedrived.od_tasks.merge_dir as merge_dir
+from onedrive_client import get_resource, od_task, od_webhook
+from onedrive_client.od_tasks.base import TaskBase
+from onedrive_client.od_tasks.start_repo import StartRepositoryTask
+from onedrive_client.od_tasks.update_subscriptions import UpdateSubscriptionTask
+import onedrive_client.od_tasks.merge_dir as merge_dir
 
 from tests.test_repo import get_sample_repo
 

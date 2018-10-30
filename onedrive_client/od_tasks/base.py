@@ -2,8 +2,8 @@ class TaskBase:
 
     def __init__(self, repo, task_pool):
         """
-        :param onedrived.od_repo.OneDriveLocalRepository | None repo:
-        :param onedrived.od_task.TaskPool task_pool:
+        :param onedrive_client.od_repo.OneDriveLocalRepository | None repo:
+        :param onedrive_client.od_task.TaskPool task_pool:
         """
         self.repo = repo
         self.task_pool = task_pool

@@ -2,7 +2,7 @@ import unittest
 
 import inotify_simple
 
-from onedrived import od_task, od_watcher
+from onedrive_client import od_task, od_watcher
 
 
 class TestLocalRepositoryWatcher(unittest.TestCase):

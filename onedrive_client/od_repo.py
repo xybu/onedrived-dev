@@ -51,10 +51,10 @@ class OneDriveLocalRepository:
 
     def __init__(self, context, authenticator, drive, drive_config):
         """
-        :param onedrived.od_context.UserContext context:
-        :param onedrived.od_auth.OneDriveAuthenticator authenticator:
+        :param onedrive_client.od_context.UserContext context:
+        :param onedrive_client.od_auth.OneDriveAuthenticator authenticator:
         :param onedrivesdk.model.drive.Drive drive:
-        :param onedrived.od_models.drive_config.LocalDriveConfig drive_config:
+        :param onedrive_client.od_models.drive_config.LocalDriveConfig drive_config:
         """
         self.context = context
         self.authenticator = authenticator
@@ -82,7 +82,7 @@ class OneDriveLocalRepository:
 
     def _init_item_store(self):
         self._conn = sqlite3.connect(self._item_store_path, check_same_thread=False)
-        self._conn.execute(_get_resource('data/items_db.sql', pkg_name='onedrived'))
+        self._conn.execute(_get_resource('data/items_db.sql', pkg_name='onedrive_client'))
         atexit.register(self.close)
 
     def refresh_session(self):

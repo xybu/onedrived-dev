@@ -23,7 +23,7 @@ from .od_watcher import LocalRepositoryWatcher
 
 
 context = load_context(asyncio.get_event_loop())
-pidfile = context.config_dir + '/onedrived.pid'
+pidfile = context.config_dir + '/onedrive_client.pid'
 task_workers = weakref.WeakSet()
 task_pool = None
 webhook_server = None
@@ -89,13 +89,13 @@ def shutdown_callback(code, _):
 
 def get_repo_table(ctx):
     """
-    :param onedrived.od_context.UserContext ctx:
-    :return dict[str, [onedrived.od_repo.OneDriveLocalRepository]]:
+    :param onedrive_client.od_context.UserContext ctx:
+    :return dict[str, [onedrive_client.od_repo.OneDriveLocalRepository]]:
     """
     all_accounts = {}
     all_account_ids = ctx.all_accounts()
     if len(all_account_ids) == 0:
-        logging.critical('onedrived is not linked with any OneDrive account. Please configure onedrived first.')
+        logging.critical('onedrive_client is not linked with any OneDrive account. Please configure onedrive_client first.')
         sys.exit(1)
     for account_id in all_account_ids:
         authenticator, drives = get_authenticator_and_drives(ctx, account_id)
@@ -111,7 +111,7 @@ def get_repo_table(ctx):
 
 def update_subscription_for_repo(repo, subscription_id=None):
     """
-    :param onedrived.od_repo.OneDriveLocalRepository repo:
+    :param onedrive_client.od_repo.OneDriveLocalRepository repo:
     :param str | None subscription_id:
     :return onedrivesdk.Subscription | None:
     """
@@ -128,7 +128,7 @@ def update_subscription_for_repo(repo, subscription_id=None):
 
 def gen_start_repo_tasks(all_accounts):
     """
-    :param dict[str, [onedrived.od_repo.OneDriveLocalRepository]] all_accounts:
+    :param dict[str, [onedrive_client.od_repo.OneDriveLocalRepository]] all_accounts:
     """
     if task_pool.outstanding_task_count == 0:
         for repo in itertools.chain.from_iterable(all_accounts.values()):
@@ -145,11 +145,11 @@ def gen_start_repo_tasks(all_accounts):
 
 def delete_temp_files(all_accounts):
     """
-    Delete all onedrived temporary files from repository.
-    :param dict[str, [onedrived.od_repo.OneDriveLocalRepository]] all_accounts:
+    Delete all onedrive_client temporary files from repository.
+    :param dict[str, [onedrive_client.od_repo.OneDriveLocalRepository]] all_accounts:
     :return:
     """
-    logging.info('Sweeping onedrived temporary files from local repositories.')
+    logging.info('Sweeping onedrive_client temporary files from local repositories.')
     for repo in itertools.chain.from_iterable(all_accounts.values()):
         if os.path.isdir(repo.local_root):
             subprocess.call(('find', repo.local_root, '-type', 'f',

@@ -3,8 +3,8 @@ import os
 import tempfile
 import unittest
 
-from onedrived import get_resource
-from onedrived.od_models.dict_guard import GuardedDict, DictEntryTypes, SchemaValidator, exceptions
+from onedrive_client import get_resource
+from onedrive_client.od_models.dict_guard import GuardedDict, DictEntryTypes, SchemaValidator, exceptions
 
 
 class TestDictGuard(unittest.TestCase):
@@ -142,7 +142,7 @@ class TestDictGuard(unittest.TestCase):
 class TestConfigSchema(unittest.TestCase):
 
     def test_config_schema(self):
-        curr_config_schema = json.loads(get_resource('data/config_schema.json', pkg_name='onedrived'))
+        curr_config_schema = json.loads(get_resource('data/config_schema.json', pkg_name='onedrive_client'))
         SchemaValidator(curr_config_schema).validate()
 
 

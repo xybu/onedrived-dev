@@ -30,7 +30,7 @@ class LocalRepositoryWatcher:
 
     def __init__(self, task_pool, loop=None):
         """
-        :param onedrived.od_task.TaskPool task_pool:
+        :param onedrive_client.od_task.TaskPool task_pool:
         :param asyncio.SelectorEventLoop | None loop:
         """
         self._lock = threading.RLock()
@@ -66,7 +66,7 @@ class LocalRepositoryWatcher:
         """
         Make sure the path is a folder in remote repository. If the path does not exist, create it. If the path is a
         file, rename the file and create the dir. Return False if the remote path can't be made a dir.
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
+        :param onedrive_client.od_repo.OneDriveLocalRepository repo:
         :param str rel_path:
         :return True | False:
         """
@@ -213,8 +213,8 @@ class LocalRepositoryWatcher:
         :param [inotify_simple.flags] from_flags:
         :param str | None from_parent_dir:
         :param str | None from_parent_relpath:
-        :param onedrived.od_repo.OneDriveLocalRepository | None from_repo:
-        :param onedrived.od_repo.ItemRecord | None from_item_record:
+        :param onedrive_client.od_repo.OneDriveLocalRepository | None from_repo:
+        :param onedrive_client.od_repo.ItemRecord | None from_item_record:
         """
 
         if from_parent_dir is None or from_repo is None:

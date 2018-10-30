@@ -5,8 +5,8 @@ class UpdateItemTaskBase(base.TaskBase):
 
     def __init__(self, repo, task_pool, parent_relpath, item_name, item_id=None, is_folder=False):
         """
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
-        :param onedrived.od_task.TaskPool task_pool:
+        :param onedrive_client.od_repo.OneDriveLocalRepository repo:
+        :param onedrive_client.od_task.TaskPool task_pool:
         :param str parent_relpath:
         :param str item_name:
         :param str | None item_id:

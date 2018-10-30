@@ -1,6 +1,6 @@
 {
   "account_id": "acct_id",
   "drive_id": "drive_id",
-  "ignorefile_path": "/home/xb/.config/onedrived/ignore_v2.txt",
+  "ignorefile_path": "/home/xb/.config/onedrive_client/ignore_v2.txt",
   "localroot_path": "/home/foobar/OneDrive"
 }

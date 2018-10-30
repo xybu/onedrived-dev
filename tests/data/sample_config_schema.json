@@ -13,7 +13,7 @@
     "create_if_missing": true,
     "allow_empty": true,
     "permissions": "w",
-    "@default_value": "/var/log/onedrived.log",
+    "@default_value": "/var/log/onedrive_client.log",
     "description": "@lang['config.logfile_path.desc']"
   },
   "webhook_type": {

@@ -1,5 +1,5 @@
 # Hard-coded rules:
-# .*.odtemp! -- onedrived temp files.
+# .*.odtemp! -- onedrive_client temp files.
 # *[<>?*:"|]* -- NTFS namespace violation.
 # .* -- NTFS namespace violation.
 

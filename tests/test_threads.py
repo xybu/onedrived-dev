@@ -1,8 +1,8 @@
 import threading
 import unittest
 
-from onedrived import od_threads, od_task
-from onedrived.od_tasks.base import TaskBase
+from onedrive_client import od_threads, od_task
+from onedrive_client.od_tasks.base import TaskBase
 
 
 class DummyTask(TaskBase):
