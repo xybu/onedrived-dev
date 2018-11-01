@@ -2,7 +2,7 @@ import unittest
 
 import keyring
 
-from onedrived import od_api_session, od_auth
+from onedrive_client import od_api_session, od_auth
 
 
 class OneDriveAPISession(unittest.TestCase):

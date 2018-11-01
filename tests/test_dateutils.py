@@ -3,7 +3,7 @@ from datetime import timezone, timedelta
 
 import arrow
 
-from onedrived import od_dateutils
+from onedrive_client import od_dateutils
 
 
 class TestDateUtils(unittest.TestCase):
@@ -28,7 +28,7 @@ class TestDateUtils(unittest.TestCase):
 
     def test_datetime_to_timestamp_implicit_utc(self):
         """
-        onedrivesdk-python returns datetime objects that do not have tzinfo but onedrived wants it to be explicit.
+        onedrivesdk-python returns datetime objects that do not have tzinfo but onedrive_client wants it to be explicit.
         This test case check if the machine and program can handle implicit UTC.
         """
         self.assertEqual(self.DT_UTC_OBJ.float_timestamp, od_dateutils.datetime_to_timestamp(self.DT_OBJ))

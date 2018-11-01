@@ -1,7 +1,7 @@
 import asyncio
 import unittest
 
-from onedrived import od_context
+from onedrive_client import od_context
 
 
 def get_sample_context():

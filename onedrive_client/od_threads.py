@@ -6,7 +6,7 @@ class TaskWorkerThread(threading.Thread):
 
     def __init__(self, name, task_pool):
         """
-        :param onedrived.od_task.TaskPool task_pool:
+        :param onedrive_client.od_task.TaskPool task_pool:
         """
         super().__init__(name=name, daemon=False)
         self.task_pool = task_pool

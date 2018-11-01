@@ -4,7 +4,7 @@ import unittest
 
 import onedrivesdk
 
-from onedrived import get_resource, od_webhook
+from onedrive_client import get_resource, od_webhook
 
 from tests.test_repo import get_sample_repo
 

@@ -10,7 +10,7 @@ A Microsoft OneDrive client for Linux.
 import sys
 from setuptools import setup, find_packages
 
-from onedrived import __author__, __email__, __homepage__, __project__, __version__
+from onedrive_client import __author__, __email__, __homepage__, __project__, __version__
 
 
 with open('requirements.txt', 'r') as f:
@@ -47,13 +47,13 @@ setup(
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     package_data={
-            'onedrived': ['data/*', 'lang/*']
+            'onedrive_client': ['data/*', 'lang/*']
     },
-    package_dir={'onedrived': 'onedrived'},
+    package_dir={'onedrive_client': 'onedrive_client'},
     entry_points={
         'console_scripts': [
-            'onedrived = onedrived.od_main:main',
-            'onedrived-pref = onedrived.od_pref:main'
+            'onedrive-client = onedrive_client.od_main:main',
+            'onedrive-client-pref = onedrive_client.od_pref:main'
         ],
         'gui_scripts': []
     },

@@ -8,7 +8,7 @@ except ImportError:
 
 import onedrivesdk
 
-from onedrived import od_context, od_repo, od_api_helper, get_resource
+from onedrive_client import od_context, od_repo, od_api_helper, get_resource
 from tests.test_auth import get_sample_authenticator
 from tests.test_models import get_sample_drive, get_sample_drive_config
 
@@ -54,7 +54,7 @@ class TestOneDriveLocalRepository(unittest.TestCase):
     def _check_item_props(self, item, record, expected_type=od_repo.ItemRecordType.FILE):
         """
         :param onedrivesdk.Item item:
-        :param onedrived.od_repo.ItemRecord record:
+        :param onedrive_client.od_repo.ItemRecord record:
         """
         self.assertIsInstance(record, od_repo.ItemRecord)
         self.assertEqual(item.id, record.item_id)

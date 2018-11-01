@@ -20,7 +20,7 @@ from .od_repo import get_drive_db_path
 
 context = load_context()
 translator = od_i18n.Translator(('od_pref', ), locale_str=str(locale.getlocale()[0]))
-config_schema = json.loads(get_resource('data/config_schema.json', pkg_name='onedrived'))
+config_schema = json.loads(get_resource('data/config_schema.json', pkg_name='onedrive_client'))
 config_guard = GuardedDict(config_dict=context.config, config_schema_dict=config_schema)
 
 
@@ -186,7 +186,7 @@ def list_accounts():
     print_all_accounts(context)
 
 
-@click.command(name='del', short_help='De-authorize and delete an existing account from onedrived.')
+@click.command(name='del', short_help='De-authorize and delete an existing account from onedrive_client.')
 @click.option('--yes', '-y', is_flag=True, default=False, required=False,
               help='If set, do not ask for confirmation but simply delete if account exists.')
 @click.option('--index', '-i', type=int, required=False, default=None,
@@ -230,7 +230,7 @@ def delete_account(yes=False, index=None, email=None, account_id=None):
             except keyring.errors.PasswordDeleteError:
                 pass
             save_context(context)
-            success('Successfully deleted account from onedrived.')
+            success('Successfully deleted account from onedrive_client.')
         else:
             click.echo('Operation canceled.')
 
@@ -288,7 +288,7 @@ def print_saved_drives():
             click.echo('   Ignore file: %s' % curr_drive_config.ignorefile_path)
             click.echo()
     else:
-        click.echo(' No Drive has been setup with onedrived.\n')
+        click.echo(' No Drive has been setup with onedrive_client.\n')
     return all_drive_ids
 
 
@@ -470,7 +470,7 @@ def delete_drive(drive_id=None, yes=False):
             warning(translator['od_pref.del_drive.error_del_db_file'].format(error=str(e)))
         context.delete_drive(drive_id)
         save_context(context)
-        success('Successfully deleted Drive "%s" from onedrived.' % drive_id)
+        success('Successfully deleted Drive "%s" from onedrive_client.' % drive_id)
     else:
         click.echo('Operation canceled.')
 

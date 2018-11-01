@@ -20,7 +20,7 @@ def get_drive_request_builder(repo):
 def create_subscription(folder_item_request, repo, webhook_url, expiration_time):
     """
     :param onedrivesdk.ItemRequestBuilder folder_item_request:
-    :param onedrived.od_repo.OneDriveLocalRepository repo:
+    :param onedrive_client.od_repo.OneDriveLocalRepository repo:
     :param str webhook_url:
     :param datetime.datetime.datetime expiration_time:
     :return onedrivesdk.Subscription:

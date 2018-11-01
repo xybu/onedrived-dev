@@ -52,8 +52,8 @@ class MergeDirectoryTask(base.TaskBase):
     def __init__(self, repo, task_pool, rel_path, item_request, deep_merge=True,
                  assume_remote_unchanged=False, parent_remote_unchanged=False):
         """
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
-        :param onedrived.od_task.TaskPool task_pool:
+        :param onedrive_client.od_repo.OneDriveLocalRepository repo:
+        :param onedrive_client.od_task.TaskPool task_pool:
         :param str rel_path: Path of the target item relative to repository root. Assume not ending with '/'.
         :param onedrivesdk.request.item_request_builder.ItemRequestBuilder item_request:
         :param True | False deep_merge: If False, only sync files under the specified directory.
@@ -175,7 +175,7 @@ class MergeDirectoryTask(base.TaskBase):
     def _handle_remote_file_with_record(self, remote_item, item_record, item_stat, item_local_abspath, all_local_items):
         """
         :param onedrivesdk.model.item.Item remote_item:
-        :param onedrived.od_repo.ItemRecord item_record:
+        :param onedrive_client.od_repo.ItemRecord item_record:
         :param posix.stat_result | None item_stat:
         :param str item_local_abspath:
         :param [str] all_local_items:
@@ -366,7 +366,7 @@ class MergeDirectoryTask(base.TaskBase):
         """
         :param onedrivesdk.model.item.Item remote_item:
         :param [str] all_local_items:
-        :param dict(str, onedrived.od_repo.ItemRecord) all_records:
+        :param dict(str, onedrive_client.od_repo.ItemRecord) all_records:
         """
         # So we have three pieces of information -- the remote item metadata, the record in database, and the inode
         # on local file system. For the case of handling a remote item, the last two may be missing.
@@ -405,7 +405,7 @@ class MergeDirectoryTask(base.TaskBase):
     def _handle_local_folder(self, item_name, item_record, item_local_abspath):
         """
         :param str item_name:
-        :param onedrived.od_repo.ItemRecord | None item_record:
+        :param onedrive_client.od_repo.ItemRecord | None item_record:
         :param str item_local_abspath:
         """
         if not self.deep_merge:
@@ -469,7 +469,7 @@ class MergeDirectoryTask(base.TaskBase):
     def _handle_local_file(self, item_name, item_record, item_stat, item_local_abspath):
         """
         :param str item_name:
-        :param onedrived.od_repo.ItemRecord | None item_record:
+        :param onedrive_client.od_repo.ItemRecord | None item_record:
         :param posix.stat_result | None item_stat:
         :param str item_local_abspath:
         """
@@ -523,7 +523,7 @@ class MergeDirectoryTask(base.TaskBase):
     def _handle_local_item(self, item_name, all_records):
         """
         :param str item_name:
-        :param dict(str, onedrived.od_repo.ItemRecord) all_records:
+        :param dict(str, onedrive_client.od_repo.ItemRecord) all_records:
         :return:
         """
         item_local_abspath = self.local_abspath + '/' + item_name
@@ -547,8 +547,8 @@ class CreateFolderTask(base.TaskBase):
 
     def __init__(self, repo, task_pool, item_name, parent_relpath, upload_if_success=True, abort_if_local_gone=True):
         """
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
-        :param onedrived.od_task.TaskPool task_pool:
+        :param onedrive_client.od_repo.OneDriveLocalRepository repo:
+        :param onedrive_client.od_task.TaskPool task_pool:
         :param str item_name:
         :param str parent_relpath:
         :param True | False upload_if_success:

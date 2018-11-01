@@ -2,7 +2,7 @@ import tempfile
 import unittest
 
 from onedrivesdk.model.item import Item
-from onedrived import od_hashutils
+from onedrive_client import od_hashutils
 
 
 class TestHashUtils(unittest.TestCase):

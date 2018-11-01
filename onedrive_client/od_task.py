@@ -31,7 +31,7 @@ class TaskPool:
     def add_task(self, task):
         """
         Add a task to internal storage. It will not add if there is already a task on the path.
-        :param onedrived.tasks.base.TaskBase task: The task to add.
+        :param onedrive_client.tasks.base.TaskBase task: The task to add.
         """
         logging.debug('Adding task %s...' % task)
         with self._lock:
@@ -45,7 +45,7 @@ class TaskPool:
     def pop_task(self):
         """
         Pop the oldest task. It's required that the caller first acquire the semaphore.
-        :return onedrived.od_tasks.base.TaskBase | None: The first qualified task, or None.
+        :return onedrive_client.od_tasks.base.TaskBase | None: The first qualified task, or None.
         """
         # logging.debug('Getting task...')
         with self._lock:
@@ -70,8 +70,8 @@ class TaskPool:
         """
         Record a task in progress on a local path so that duplicate tasks can be avoided.
         :param str local_abspath:
-        :param onedrived.od_tasks.base.TaskBase | None task: The task working on the path. None to blacklist the path.
-        :return onedrived.od_tasks.base.TaskBase | None:
+        :param onedrive_client.od_tasks.base.TaskBase | None task: The task working on the path. None to blacklist the path.
+        :return onedrive_client.od_tasks.base.TaskBase | None:
         """
         with self._lock:
             if local_abspath not in self.tasks_by_path:

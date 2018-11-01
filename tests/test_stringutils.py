@@ -1,6 +1,6 @@
 import unittest
 
-from onedrived import od_stringutils
+from onedrive_client import od_stringutils
 
 
 class TestStringUtils(unittest.TestCase):

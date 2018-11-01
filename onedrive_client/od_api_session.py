@@ -14,7 +14,7 @@ def get_keyring_key(account_id):
 class OneDriveAPISession(onedrivesdk.session.Session):
 
     SESSION_ARG_KEYNAME = 'key'
-    KEYRING_SERVICE_NAME = 'onedrived_v2'
+    KEYRING_SERVICE_NAME = 'onedrive_client_v2'
     KEYRING_ACCOUNT_KEY_PREFIX = 'user.'
     PICKLE_PROTOCOL = 3
 
@@ -32,7 +32,7 @@ class OneDriveAPISession(onedrivesdk.session.Session):
     def load_session(**load_session_kwargs):
         """
         :param dict[str, str] load_session_kwargs:
-        :return onedrived.od_api_session.OneDriveAPISession:
+        :return onedrive_client.od_api_session.OneDriveAPISession:
         """
         keyarg = OneDriveAPISession.SESSION_ARG_KEYNAME
         if keyarg not in load_session_kwargs:

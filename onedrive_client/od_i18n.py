@@ -16,9 +16,9 @@ class Translator:
         self.string_resources = dict()
         for lang in lang_resources:
             try:
-                t = get_resource('lang/%s.%s.json' % (lang, locale_str), pkg_name='onedrived')
+                t = get_resource('lang/%s.%s.json' % (lang, locale_str), pkg_name='onedrive_client')
             except FileNotFoundError:
-                t = get_resource('lang/%s.%s.json' % (lang, self.DEFAULT_LOCALE), pkg_name='onedrived')
+                t = get_resource('lang/%s.%s.json' % (lang, self.DEFAULT_LOCALE), pkg_name='onedrive_client')
             data = json.loads(t)
             self.string_resources.update(data)
 

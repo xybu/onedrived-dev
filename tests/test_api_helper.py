@@ -8,7 +8,7 @@ import arrow
 import requests
 from onedrivesdk import Item, FileSystemInfo, error
 
-from onedrived import od_api_helper
+from onedrive_client import od_api_helper
 
 
 class TestApiHelper(unittest.TestCase):

@@ -58,7 +58,7 @@ class UserContext:
         'logfile_path': ''
     }
 
-    DEFAULT_CONFIG_FILENAME = 'onedrived_config_v2.json'
+    DEFAULT_CONFIG_FILENAME = 'onedrive_client_config_v2.json'
     DEFAULT_IGNORE_FILENAME = 'ignore_v2.txt'
     DEFAULT_NGROK_CONF_FILENAME = 'ngrok_conf.yaml'
 
@@ -71,7 +71,7 @@ class UserContext:
         self.user_name = get_login_username()
         self.user_uid = getpwnam(self.user_name).pw_uid
         self.user_home = os.path.expanduser('~' + self.user_name)
-        self.config_dir = click.get_app_dir('onedrived')
+        self.config_dir = click.get_app_dir('onedrive_client')
         self._create_config_dir_if_missing()
         self.config = self.DEFAULT_CONFIG
         self.loop = loop
@@ -106,7 +106,7 @@ class UserContext:
     @property
     def watcher(self):
         """
-        :return onedrived.od_watcher.LocalRepositoryWatcher:
+        :return onedrive_client.od_watcher.LocalRepositoryWatcher:
         """
         return self._watcher
 

@@ -32,7 +32,7 @@ def fix_owner_and_timestamp(path, uid, t):
     os.utime(path, (t, t))
 
 
-def get_resource(rel_path, pkg_name='onedrived', is_text=True):
+def get_resource(rel_path, pkg_name='onedrive_client', is_text=True):
     """
     Read a resource file in data/.
     :param str rel_path:

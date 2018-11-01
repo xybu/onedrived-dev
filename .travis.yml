@@ -40,7 +40,7 @@ before_script:
 
 script:
   - MOCK_KEYRING=1 python3 -m pytest
-  - MOCK_KEYRING=1 coverage3 run --branch --source=onedrived setup.py test
+  - MOCK_KEYRING=1 coverage3 run --branch --source=onedrive_client setup.py test
 
 after_success:
   - coverage3 report -m

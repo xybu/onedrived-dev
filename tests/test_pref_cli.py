@@ -8,7 +8,7 @@ import click
 import onedrivesdk
 import requests_mock
 
-from onedrived import get_resource, od_pref, od_repo
+from onedrive_client import get_resource, od_pref, od_repo
 
 
 class TestPrefCLI(unittest.TestCase):

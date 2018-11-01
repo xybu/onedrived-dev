@@ -15,8 +15,8 @@ class DownloadFileTask(base.TaskBase):
 
     def __init__(self, repo, task_pool, remote_item, parent_relpath):
         """
-        :param onedrived.od_repo.OneDriveLocalRepository repo:
-        :param onedrived.od_task.TaskPool task_pool:
+        :param onedrive_client.od_repo.OneDriveLocalRepository repo:
+        :param onedrive_client.od_task.TaskPool task_pool:
         :param onedrivesdk.model.item.Item remote_item:
         :param str parent_relpath:
         """
