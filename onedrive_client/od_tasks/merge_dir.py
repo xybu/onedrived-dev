@@ -7,13 +7,15 @@ import onedrivesdk.error
 from onedrivesdk import Item, Folder, ChildrenCollectionRequest
 from send2trash import send2trash
 
-from . import base
-from . import delete_item, download_file, upload_file
-from .. import mkdir, fix_owner_and_timestamp
-from ..od_api_helper import get_item_modified_datetime, item_request_call
-from ..od_dateutils import datetime_to_timestamp, diff_timestamps
-from ..od_hashutils import hash_match, sha1_value
-from ..od_repo import ItemRecordType
+from onedrive_client.od_tasks import base, delete_item, download_file, upload_file
+from onedrive_client import mkdir, fix_owner_and_timestamp
+from onedrive_client.od_api_helper import (
+    get_item_modified_datetime,
+    item_request_call,
+)
+from onedrive_client.od_dateutils import datetime_to_timestamp, diff_timestamps
+from onedrive_client.od_hashutils import hash_match, sha1_value
+from onedrive_client.od_repo import ItemRecordType
 
 
 def rename_with_suffix(parent_abspath, name, host_name):

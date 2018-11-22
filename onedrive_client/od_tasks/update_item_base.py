@@ -1,4 +1,4 @@
-from . import base
+from onedrive_client.od_tasks import base
 
 
 class UpdateItemTaskBase(base.TaskBase):

@@ -15,8 +15,8 @@ from onedrivesdk.helpers.resource_discovery import ResourceDiscoveryRequest
 import os
 import yaml
 
-from . import od_api_session
-from .od_models import account_profile
+from onedrive_client import od_api_session
+from onedrive_client.od_models import account_profile
 
 PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 with open(os.path.join(PATH, 'onedrive_client', 'data', 'security_config.yml')) as config:

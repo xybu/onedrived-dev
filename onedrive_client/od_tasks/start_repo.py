@@ -1,8 +1,10 @@
 import logging
 import os
 
-from . import base
-from . import merge_dir
+from onedrive_client.od_tasks import (
+    base,
+    merge_dir,
+)
 
 
 class StartRepositoryTask(base.TaskBase):

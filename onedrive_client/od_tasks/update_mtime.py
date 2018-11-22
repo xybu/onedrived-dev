@@ -5,11 +5,13 @@ from datetime import datetime
 import onedrivesdk.error
 from onedrivesdk import Item, FileSystemInfo
 
-from . import update_item_base
-from .. import fix_owner_and_timestamp
-from ..od_api_helper import get_item_modified_datetime
-from ..od_api_helper import item_request_call
-from ..od_dateutils import datetime_to_timestamp
+from onedrive_client.od_tasks import update_item_base
+from onedrive_client import fix_owner_and_timestamp
+from onedrive_client.od_api_helper import (
+    get_item_modified_datetime,
+    item_request_call,
+)
+from onedrive_client.od_dateutils import datetime_to_timestamp
 
 
 class UpdateTimestampTask(update_item_base.UpdateItemTaskBase):

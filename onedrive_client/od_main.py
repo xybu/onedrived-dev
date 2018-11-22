@@ -12,14 +12,14 @@ import weakref
 import click
 import daemonocle.cli
 
-from . import od_repo
-from . import od_task
-from . import od_threads
-from . import od_webhook
-from .od_tasks import start_repo, merge_dir, update_subscriptions
-from .od_auth import get_authenticator_and_drives
-from .od_context import load_context
-from .od_watcher import LocalRepositoryWatcher
+from onedrive_client import od_repo
+from onedrive_client import od_task
+from onedrive_client import od_threads
+from onedrive_client import od_webhook
+from onedrive_client.od_tasks import start_repo, merge_dir, update_subscriptions
+from onedrive_client.od_auth import get_authenticator_and_drives
+from onedrive_client.od_context import load_context
+from onedrive_client.od_watcher import LocalRepositoryWatcher
 
 
 context = load_context(asyncio.get_event_loop())

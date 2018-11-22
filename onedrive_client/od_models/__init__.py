@@ -1,4 +1,4 @@
-from . import (
+from onedrive_client.od_models import (
     account_profile,
     bidict,
     drive_config,

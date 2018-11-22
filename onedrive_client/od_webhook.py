@@ -7,7 +7,7 @@ import threading
 import queue
 import urllib.parse
 
-from .od_models.webhook_notification import WebhookNotification
+from onedrive_client.od_models.webhook_notification import WebhookNotification
 
 try:
     JSONDecodeError = json.JSONDecodeError
@@ -20,10 +20,10 @@ def get_webhook_server(context):
     :param onedrive_client.od_context.UserContext context:
     """
     if context.config['webhook_type'] == 'direct':
-        from .od_webhooks.http_server import WebhookConfig, WebhookListener
+        from onedrive_client.od_webhooks.http_server import WebhookConfig, WebhookListener
         wh_config = WebhookConfig(host=context.config['webhook_host'], port=context.config['webhook_port'])
     elif context.config['webhook_type'] == 'ngrok':
-        from .od_webhooks.ngrok_server import WebhookConfig, WebhookListener
+        from onedrive_client.od_webhooks.ngrok_server import WebhookConfig, WebhookListener
         ngrok_config_file = context.config_dir + '/' + context.DEFAULT_NGROK_CONF_FILENAME
         if not os.path.isfile(ngrok_config_file):
             ngrok_config_file = None
