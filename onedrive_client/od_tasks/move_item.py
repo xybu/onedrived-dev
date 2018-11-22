@@ -4,8 +4,8 @@ import os
 import onedrivesdk.error
 from onedrivesdk import Item, ItemReference
 
-from . import update_mtime
-from ..od_api_helper import item_request_call
+from onedrive_client.od_tasks import update_mtime
+from onedrive_client.od_api_helper import item_request_call
 
 
 class MoveItemTask(update_mtime.UpdateTimestampTask):

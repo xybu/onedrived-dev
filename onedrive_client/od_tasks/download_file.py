@@ -3,12 +3,12 @@ import os
 
 import onedrivesdk.error
 
-from . import base
-from .. import fix_owner_and_timestamp
-from ..od_api_helper import get_item_modified_datetime
-from ..od_api_helper import item_request_call
-from ..od_dateutils import datetime_to_timestamp
-from ..od_hashutils import sha1_value
+from onedrive_client.od_tasks import base
+from onedrive_client import fix_owner_and_timestamp
+from onedrive_client.od_api_helper import get_item_modified_datetime
+from onedrive_client.od_api_helper import item_request_call
+from onedrive_client.od_dateutils import datetime_to_timestamp
+from onedrive_client.od_hashutils import sha1_value
 
 
 class DownloadFileTask(base.TaskBase):

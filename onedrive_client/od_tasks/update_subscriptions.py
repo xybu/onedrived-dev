@@ -4,11 +4,11 @@ import logging
 import onedrivesdk
 import onedrivesdk.error
 
-from .base import TaskBase
-from .. import od_api_helper
+from onedrive_client.od_tasks import base
+from onedrive_client import od_api_helper
 
 
-class UpdateSubscriptionTask(TaskBase):
+class UpdateSubscriptionTask(base.TaskBase):
 
     def __init__(self, repo, task_pool, webhook_worker, subscription_id=None):
         """

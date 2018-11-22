@@ -1,6 +1,6 @@
 import json
 
-from . import get_resource
+from onedrive_client import get_resource
 
 
 class Translator:
