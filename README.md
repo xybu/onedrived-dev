@@ -40,7 +40,7 @@ $ python3 --version
 Python 3.5.2
 ```
 
-If `python3` command is not found, or its version is below `3.3`, please
+If `python3` command is not found, or its version is below `3.4`, please
 install the latest `python3` package. For example, on Ubuntu
 
 ```bash
@@ -122,58 +122,16 @@ $ rm -rf ~/.onedrived ~/.onedrive_client
 
 ### Install `onedrive_client`
 
-You can either install `onedrive_client` by `pip3` or pull the code and install
-manually. Note that you may want to check out this repository regularly to
-have the latest version installed, and run the included tests to see whether
-`onedrive_client` can actually run on your setup.
-
-#### Install from PyPI with `pip`
-
-`onedrive_client` is not yet available on PyPI.
-
-#### Install from source with `pip` (recommended)
-
-To install latest `onedrive_client` from source with `pip3`, run the command below.
-
-Notes:
-
-1. `git` must be installed on the system.
-2. To install onedrive_client system-wide (that is, make onedrive_client program available
-to all users in the OS), remove argument `--user` from the command).
-
-```bash
-$ pip3 install --user git+https://github.com/derrix060/onedriveClient.git
-```
-
-#### Install from source manually
-
 First pull the code from GitHub repository:
 
 ```bash
 $ git clone https://github.com/derrix060/onedriveClient.git
 $ cd onedrive_client
-
 ```
-
-You may want to run the included tests before installing with one of the
-following commands:
+Then install `onedrive_client`:
 
 ```bash
-# Use the built-in test driver of Python.
-$ python3 ./setup.py test
-
-# Or use py.test if you have it installed.
-$ python3 -m pytest
-```
-
-Then install `onedrive_client` with one of the following command:
-
-```bash
-# Use pip to install onedrive_client.
-$ pip3 install -e .
-
-# Or use the built-in setuptools package from Python.
-$ python3 ./setup.py install --user
+$ python3 setup.py install
 ```
 
 ## Usage

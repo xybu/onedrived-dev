@@ -4,14 +4,12 @@ os:
   - linux
 
 python:
-#  - 3.2
-  - 3.3
   - 3.4
   - 3.5
   - 3.5-dev
   - 3.6
   - 3.6-dev
-#  - 3.7-dev
+  - 3.7-dev
 
 cache: pip
 sudo: false
@@ -30,16 +28,16 @@ addons:
 
 install:
   - pip install -U pip
-  - pip3 install -U setuptools
-  - pip3 install requests_mock
-  - pip3 install coverage coveralls pytest codeclimate-test-reporter
-  - python3 setup.py install
+  - pip install -U setuptools
+  - pip install requests_mock
+  - pip install coverage coveralls pytest codeclimate-test-reporter
+  - python setup.py install
 
 before_script:
-  - python3 --version
+  - python --version
 
 script:
-  - MOCK_KEYRING=1 python3 -m pytest
+  - MOCK_KEYRING=1 python -m pytest
   - MOCK_KEYRING=1 coverage3 run --branch --source=onedrive_client setup.py test
 
 after_success:

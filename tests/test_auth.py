@@ -28,11 +28,15 @@ class TestOneDriveAuthenticator(unittest.TestCase):
         self.assertIsInstance(authenticator.get_auth_url(), str)
 
     def test_get_proxies(self):
+        expected = 'http://foo/bar'
         for k in ('http_proxy', 'HTTP_PROXY', 'https_proxy', 'HTTPS_PROXY'):
-            os.environ[k] = 'http://foo/bar'
+            os.environ[k] = expected
             authenticator = od_auth.OneDriveAuthenticator()
-            self.assertIsInstance(authenticator.client.http_provider, HttpProviderWithProxy)
-            self.assertEqual({k.split('_')[0].lower(): 'http://foo/bar'}, authenticator.client.http_provider.proxies)
+            self.assertIsInstance(
+                authenticator.client.http_provider, HttpProviderWithProxy)
+            key = k.split('_')[0].lower()
+            self.assertEqual(
+                authenticator.client.http_provider.proxies[key], expected)
             del os.environ[k]
 
 

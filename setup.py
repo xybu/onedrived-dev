@@ -25,12 +25,8 @@ with open('README.md', 'r') as f:
 
 python_version = sys.version_info
 
-if python_version < (3, 3):
-    raise Exception('%s %s only supports Python 3.3 and newer.' % (__project__, __version__))
-
 if python_version < (3, 4):
-    install_requires.append('asyncio')
-    install_requires.append('enum34')
+    raise Exception('%s %s only supports Python 3.4 and newer.' % (__project__, __version__))
 
 if python_version < (3, 5):
     install_requires.append('dbus-python')
