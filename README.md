@@ -40,7 +40,7 @@ $ python3 --version
 Python 3.5.2
 ```
 
-If `python3` command is not found, or its version is below `3.3`, please
+If `python3` command is not found, or its version is below `3.4`, please
 install the latest `python3` package. For example, on Ubuntu
 
 ```bash
