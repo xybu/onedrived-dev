@@ -1,7 +1,7 @@
 # onedriveCLient
 
 [![GitHub version](https://badge.fury.io/gh/derrix060%2FonedriveClient.svg)](https://badge.fury.io/gh/derrix060%2FonedriveClient)
-[![Build Status](https://travis-ci.org/derrix060/onedriveClient.svg?branch=master)](https://travis-ci.org/derrix060/onedriveClient)
+[![Build Status](https://travis-ci.com/derrix060/onedriveClient.svg?branch=master)](https://travis-ci.com/derrix060/onedriveClient)
 [![License](https://img.shields.io/github/license/derrix060/onedriveClient.svg "MIT License")](LICENSE)
 [![codecov](https://codecov.io/gh/derrix060/onedriveClient/branch/master/graph/badge.svg)](https://codecov.io/gh/derrix060/onedriveClient)
 [![Coverage Status](https://coveralls.io/repos/github/derrix060/onedriveClient/badge.svg)](https://coveralls.io/github/derrix060/onedriveClient)
