@@ -422,6 +422,15 @@ A HTTPS proxy must have a verifiable SSL certificate.
 #### Edit configuration of an existing Drive
 
 #### Edit ignore list (selective sync)
+The ignore list follows the [rules of .gitignore](https://git-scm.com/docs/gitignore). For example to only sync **/foo/bar** add
+```
+/*
+!/foo
+/foo/*
+!/foo/bar
+!/foo/bar/*
+```
+The first line means to ignore everything but the lines starting with an `!`.
 
 #### Remove a Drive from `onedrived`
 
