@@ -2,7 +2,7 @@ setuptools>=30.0.0
 colorama>=0.3.7
 click>=6.6
 onedrivesdk
-keyring>=10.1
+keyring>=10.1, <15
 send2trash
 zgitignore
 requests>2.9.1
