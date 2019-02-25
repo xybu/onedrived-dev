@@ -59,7 +59,7 @@ class TestPathFilter(unittest.TestCase):
 
     def test_hardcoded_cases(self):
         cases = [
-            ('/.hehe', True, True),
+            ('/hehe.', True, True),
             ('/' + self.filter.get_temp_name('hello.txt'), False, True),
             ('/he?he', False, True)
         ]
