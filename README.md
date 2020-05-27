@@ -123,7 +123,8 @@ To install latest `onedrived` from source with `pip3`, run the command below.
 Notes:
 
 1. `git` must be installed on the system.
-2. To install onedrived system-wide (that is, make onedrived program available
+2. `python3-pip` must be installed on the system.
+3. To install onedrived system-wide (that is, make onedrived program available
 to all users in the OS), remove argument `--user` from the command).
 
 ```bash
